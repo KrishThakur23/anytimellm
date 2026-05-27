@@ -1,61 +1,336 @@
 @import "tailwindcss";
 
-:root {
-  --background: #09090b;
-  --foreground: #fafafa;
-  --card: #121214;
-  --card-border: rgba(255, 255, 255, 0.06);
-  --primary: #a855f7;
-  --primary-hover: #c084fc;
-  --secondary: #1f1f23;
-  --muted-foreground: #a1a1aa;
-  --border: #27272a;
-  --accent: #22c55e;
+/* ═══════════════════════════════════════════════════════════════════
+   AnytimeLLM Premium Warm Minimalist "Clay & Linen" Design System
+   Sleek Beige Day Mode + Warm Obsidian-Charcoal Dark Mode
+   ═══════════════════════════════════════════════════════════════════ */
+
+@theme {
+  --color-theme-bg: var(--background);
+  --color-theme-fg: var(--foreground);
+  --color-surface-0: var(--surface-0);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-surface-border: var(--border);
+  --color-theme-primary: var(--primary);
+  --color-theme-secondary: var(--secondary);
+
+  /* Font Families matching Stitch */
+  --font-display-lg: 'Geist', sans-serif;
+  --font-headline-lg: 'Geist', sans-serif;
+  --font-headline-md: 'Geist', sans-serif;
+  --font-body-lg: 'Inter', sans-serif;
+  --font-body-md: 'Inter', sans-serif;
+  --font-label-sm: 'JetBrains Mono', monospace;
+  --font-label-xs: 'Inter', sans-serif;
+
+  /* Custom Color Mappings from Stitch */
+  --color-oatmeal-bg: var(--oatmeal-bg);
+  --color-ink-text: var(--ink-text);
+  --color-parchment-surface: var(--parchment-surface);
+  --color-muted-gold: var(--muted-gold);
+  --color-slate-accent: var(--slate-accent);
+  --color-border-subtle: var(--border-subtle);
+  --color-primary-fixed-dim: var(--primary);
+  --color-on-surface-variant: var(--text-secondary);
+
+  --color-surface-container-lowest: var(--surface-container-lowest);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-container-highest: var(--surface-container-highest);
 }
+
+:root {
+  /* ── Light Mode default (Warm Linen & Earthy Terracotta) ────────── */
+  --background: hsl(36, 33%, 95.5%);      /* Warm Cream Linen */
+  --foreground: hsl(24, 15%, 12%);        /* Deep Earthy Charcoal */
+
+  /* Progressive warm clay elevations */
+  --surface-0: rgba(247, 244, 235, 0.75);
+  --surface-1: hsl(36, 22%, 91.5%);       /* Warm Sand-Clay */
+  --surface-2: hsl(0, 0%, 100%);          /* Crisp Ivory */
+  --surface-3: hsl(36, 18%, 86.5%);
+
+  /* Borders & Highlights */
+  --border: hsl(36, 15%, 83%);
+  --border-subtle: rgba(42, 36, 33, 0.045);
+  --border-hover: rgba(217, 107, 39, 0.55);
+
+  /* Primary Brand (Sleek Bronze & Earthy Clay-Terracotta) */
+  --primary: hsl(24, 75%, 46%);          /* Terracotta Clay */
+  --primary-hover: hsl(24, 85%, 38%);
+  --primary-muted: rgba(217, 107, 39, 0.08);
+  --primary-glow: rgba(217, 107, 39, 0.18);
+
+  --secondary: hsl(43, 60%, 38%);        /* Rich Warm Bronze */
+  --secondary-glow: rgba(181, 140, 61, 0.15);
+
+  /* Semantic Highlights (Adjusted for high-contrast beige backing) */
+  --accent-green: hsl(142, 70%, 28%);     /* Deep Forest Green */
+  --accent-green-muted: rgba(21, 128, 61, 0.08);
+  --accent-blue: hsl(220, 75%, 38%);      /* Elegant Deep Cobalt */
+  --accent-blue-muted: rgba(29, 78, 216, 0.08);
+  --accent-amber: hsl(35, 85%, 36%);      /* Burnt Amber */
+  --accent-amber-muted: rgba(180, 83, 9, 0.08);
+  --accent-red: hsl(0, 75%, 38%);         /* Rust Red */
+  --accent-red-muted: rgba(185, 28, 28, 0.08);
+
+  /* Typography */
+  --text-primary: hsl(24, 15%, 12%);
+  --text-secondary: hsl(24, 10%, 32%);
+  --text-muted: hsl(24, 8%, 46%);
+  --text-ghost: hsl(24, 6%, 72%);
+
+  /* Radii & Shadows */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+
+  --shadow-glow-sm: 0 0 20px -5px rgba(217, 107, 39, 0.1);
+  --shadow-glow-md: 0 0 40px -10px rgba(217, 107, 39, 0.12);
+  --shadow-glow-lg: 0 8px 60px -15px rgba(181, 140, 61, 0.12);
+  --shadow-elevation: 0 4px 20px -2px rgba(42, 36, 33, 0.06);
+
+  /* Stitch Custom Color Tokens - Light */
+  --oatmeal-bg: #F9F9F7;
+  --ink-text: #080808;
+  --parchment-surface: #FEFEFB;
+  --muted-gold: #B5A47A;
+  --slate-accent: #5E676E;
+  --border-subtle: rgba(0, 0, 0, 0.06);
+
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f5f4ed;
+  --surface-container: #efeee7;
+  --surface-container-high: #eae8e2;
+  --surface-container-highest: #e4e2dc;
+}
+
+.dark {
+  /* ── Dark Mode Override (Obsidian Warm Charcoal & Gold-Bronze) ───── */
+  --background: hsl(24, 10%, 6%);        /* Rich Warm Charcoal */
+  --foreground: hsl(36, 30%, 94%);        /* Warm Sand Linen */
+
+  --surface-0: hsl(24, 10%, 8.5%);
+  --surface-1: hsl(24, 8%, 11.5%);
+  --surface-2: hsl(24, 6%, 15.5%);
+  --surface-3: hsl(24, 6%, 19.5%);
+
+  --border: hsl(24, 8%, 17.5%);
+  --border-subtle: rgba(245, 238, 220, 0.035);
+  --border-hover: rgba(242, 122, 53, 0.4);
+
+  --primary: hsl(24, 85%, 58%);          /* Glowing Terracotta */
+  --primary-hover: hsl(24, 90%, 68%);
+  --primary-muted: rgba(242, 122, 53, 0.12);
+  --primary-glow: rgba(242, 122, 53, 0.25);
+
+  --secondary: hsl(43, 75%, 48%);        /* Glowing Gold-Bronze */
+  --secondary-glow: rgba(217, 160, 48, 0.25);
+
+  --accent-green: hsl(150, 80%, 42%);     /* Luminous Mint Green */
+  --accent-green-muted: rgba(16, 185, 129, 0.1);
+  --accent-blue: hsl(215, 90%, 58%);      /* Electric Sapphire */
+  --accent-blue-muted: rgba(59, 130, 246, 0.1);
+  --accent-amber: hsl(43, 75%, 48%);
+  --accent-amber-muted: rgba(217, 160, 48, 0.1);
+  --accent-red: hsl(0, 85%, 58%);         /* Crimson Rust */
+  --accent-red-muted: rgba(239, 68, 68, 0.1);
+
+  --text-primary: hsl(36, 30%, 94%);
+  --text-secondary: hsl(36, 15%, 74%);
+  --text-muted: hsl(36, 10%, 54%);
+  --text-ghost: hsl(36, 8%, 32%);
+
+  --shadow-glow-sm: 0 0 20px -5px rgba(242, 122, 53, 0.15);
+  --shadow-glow-md: 0 0 40px -10px rgba(242, 122, 53, 0.2);
+  --shadow-glow-lg: 0 8px 60px -15px rgba(217, 160, 48, 0.22);
+  --shadow-elevation: 0 6px 30px -4px rgba(0, 0, 0, 0.85);
+
+  /* Stitch Custom Color Tokens - Dark */
+  --oatmeal-bg: hsl(24, 10%, 6%);
+  --ink-text: hsl(36, 30%, 94%);
+  --parchment-surface: hsl(24, 10%, 8.5%);
+  --muted-gold: #B5A47A;
+  --slate-accent: #5E676E;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+
+  --surface-container-lowest: hsl(24, 10%, 8.5%);
+  --surface-container-low: hsl(24, 8%, 11.5%);
+  --surface-container: hsl(24, 6%, 15.5%);
+  --surface-container-high: hsl(24, 6%, 19.5%);
+  --surface-container-highest: hsl(24, 6%, 22.5%);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Base & Typography Overrides
+   ═══════════════════════════════════════════════════════════════════ */
 
 body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Glassmorphism styling helpers */
+::selection {
+  background: rgba(242, 122, 53, 0.25);
+  color: #fff;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Frosted Glass System
+   ═══════════════════════════════════════════════════════════════════ */
+
 .glass-panel {
-  background: rgba(18, 18, 20, 0.7);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--card-border);
+  background: var(--surface-0);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-elevation);
+  transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass-card-interactive {
-  background: rgba(22, 22, 26, 0.6);
-  backdrop-filter: blur(8px);
-  border: 1px solid var(--card-border);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--surface-0);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-elevation);
+}
+
+.glass-card-interactive::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  background: radial-gradient(
+    500px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(242, 122, 53, 0.08),
+    transparent 45%
+  );
+  transition: opacity 0.5s ease;
+  pointer-events: none;
 }
 
 .glass-card-interactive:hover {
-  background: rgba(28, 28, 35, 0.8);
-  border-color: rgba(168, 85, 247, 0.3);
-  transform: translateY(-2px);
-  box-shadow: 0 10px 30px -15px rgba(168, 85, 247, 0.2);
+  background: var(--surface-2);
+  border-color: var(--border-hover);
+  transform: translateY(-4px);
+  box-shadow: 
+    var(--shadow-glow-md),
+    0 15px 35px -10px rgba(42, 36, 33, 0.12);
 }
 
-/* Custom Scrollbar for premium feel */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+.dark .glass-card-interactive:hover {
+  box-shadow: 
+    var(--shadow-glow-md),
+    0 15px 35px -10px rgba(0, 0, 0, 0.65);
 }
 
-::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
+.glass-card-interactive:hover::before {
+  opacity: 1;
 }
 
-::-webkit-scrollbar-thumb {
-  background: rgba(168, 85, 247, 0.3);
-  border-radius: 9999px;
+/* ═══════════════════════════════════════════════════════════════════
+   Shimmer & Drift
+   ═══════════════════════════════════════════════════════════════════ */
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(168, 85, 247, 0.6);
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface-1) 25%,
+    var(--surface-2) 50%,
+    var(--surface-1) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2.2s ease-in-out infinite;
+  border-radius: var(--radius-sm);
 }
+
+@keyframes float-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(45px, -35px) scale(1.08); }
+  66% { transform: translate(-30px, 20px) scale(0.92); }
+}
+
+@keyframes float-drift-secondary {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-40px, 35px) scale(0.92); }
+  66% { transform: translate(30px, -20px) scale(1.08); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Utilities & Text Colors
+   ═══════════════════════════════════════════════════════════════════ */
+
+.text-gradient-primary {
+  background: linear-gradient(135deg, hsl(24, 75%, 46%), hsl(43, 60%, 38%), hsl(24, 85%, 58%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dark .text-gradient-primary {
+  background: linear-gradient(135deg, hsl(24, 85%, 58%), hsl(43, 75%, 48%), hsl(36, 30%, 94%));
+}
+
+.text-gradient-hero {
+  background: linear-gradient(135deg, hsl(43, 75%, 48%) 0%, hsl(24, 75%, 46%) 40%, hsl(24, 85%, 58%) 70%, hsl(36, 33%, 95.5%) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dark .text-gradient-hero {
+  background: linear-gradient(135deg, hsl(36, 30%, 94%) 0%, hsl(24, 85%, 58%) 40%, hsl(43, 75%, 48%) 70%, hsl(24, 75%, 46%) 100%);
+}
+
+.bg-grid-pattern {
+  background-image: 
+    linear-gradient(rgba(217, 107, 39, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(217, 107, 39, 0.02) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+.dark .bg-grid-pattern {
+  background-image: 
+    linear-gradient(rgba(242, 122, 53, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(242, 122, 53, 0.015) 1px, transparent 1px);
+}
+
+/* Stitch Redesign Utility Classes */
+.grainy-gradient {
+  background: linear-gradient(to bottom right, var(--background), var(--surface-container-low));
+  position: relative;
+}
+.grainy-gradient::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.025;
+  pointer-events: none;
+  background-image: url("https://www.transparenttextures.com/patterns/asfalt-dark.png");
+}
+.hairline-border {
+  border: 0.5px solid var(--border-subtle);
+}
+
