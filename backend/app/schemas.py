@@ -64,3 +64,50 @@ class ChatMessageOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# Orders
+class OrderOut(BaseModel):
+    id: UUID
+    business_id: UUID
+    customer_id: UUID
+    details: Dict[str, Any]
+    status: str
+    created_at: datetime
+    customer_name: Optional[str] = None
+    customer_phone: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+# WhatsApp Chats
+class MessageOut(BaseModel):
+    id: UUID
+    conversation_id: UUID
+    sender: str  # 'customer' or 'agent'
+    content: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class ConversationOut(BaseModel):
+    id: UUID
+    business_id: UUID
+    customer_id: UUID
+    channel: str  # 'whatsapp' or 'web'
+    status: str
+    created_at: datetime
+    customer_name: Optional[str] = None
+    customer_phone: Optional[str] = None
+    last_message_content: Optional[str] = None
+    messages: List[MessageOut] = []
+    is_ai_paused: bool = False
+
+    class Config:
+        from_attributes = True
+
+class MessageCreate(BaseModel):
+    content: str
+

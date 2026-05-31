@@ -74,6 +74,7 @@ class Conversation(Base):
     customer_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
     channel: Mapped[str] = mapped_column(String(50), nullable=False) # 'whatsapp' or 'web'
     status: Mapped[str] = mapped_column(String(50), default="active") # 'active' or 'closed'
+    is_ai_paused: Mapped[bool] = mapped_column(Boolean, default=False, server_default='false')
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
     
     business: Mapped["Business"] = relationship(back_populates="conversations")

@@ -114,7 +114,7 @@ export default function CatalogTab({
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Gold Ring, Rice, or Consultation"
+                  placeholder=""
                   value={catalogName}
                   onChange={(e) => setCatalogName(e.target.value)}
                   required
@@ -130,7 +130,7 @@ export default function CatalogTab({
                   <input
                     type="number"
                     step="0.01"
-                    placeholder="e.g. 150.00"
+                    placeholder=""
                     value={catalogPrice}
                     onChange={(e) => setCatalogPrice(e.target.value)}
                     required
@@ -144,7 +144,7 @@ export default function CatalogTab({
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. Jewellery, Grocery, Rent"
+                    placeholder=""
                     value={catalogCategory}
                     onChange={(e) => setCatalogCategory(e.target.value)}
                     required
@@ -158,7 +158,7 @@ export default function CatalogTab({
                   Short Description (विवरण)
                 </label>
                 <textarea
-                  placeholder="Enter product features, size, or policy details..."
+                  placeholder=""
                   rows={4}
                   value={catalogDesc}
                   onChange={(e) => setCatalogDesc(e.target.value)}

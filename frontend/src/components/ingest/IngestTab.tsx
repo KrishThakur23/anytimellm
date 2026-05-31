@@ -116,7 +116,7 @@ export default function IngestTab({
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full bg-parchment-surface dark:bg-surface-container-low border border-border-subtle rounded pl-9 pr-4 py-2.5 focus:ring-0 focus:border-ink-text transition-all font-label-sm text-xs text-ink-text"
-                    placeholder="Search your uploaded store files..."
+                    placeholder=""
                   />
                 </div>
               </div>
@@ -245,7 +245,7 @@ export default function IngestTab({
                 required
                 value={urlInput}
                 onChange={(e) => setUrlInput(e.target.value)}
-                placeholder="https://my-shop-website.com"
+                placeholder=""
                 className="w-full bg-oatmeal-bg dark:bg-surface-container-low border border-border-subtle rounded px-3 py-2.5 text-xs focus:ring-0 focus:border-purple-500 text-ink-text placeholder:text-outline font-bold"
               />
               <button

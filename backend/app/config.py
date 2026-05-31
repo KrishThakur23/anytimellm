@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     PINECONE_API_KEY: str = Field(default="")
     PINECONE_INDEX_NAME: str = Field(default="anytimellm")
     GEMINI_API_KEY: str = Field(default="")
+    OPENAI_API_KEY: str = Field(default="")
     
     # Meta WhatsApp Config
     META_WA_PHONE_NUMBER_ID: str = Field(default="")
@@ -16,6 +17,10 @@ class Settings(BaseSettings):
     TWILIO_ACCOUNT_SID: str = Field(default="")
     TWILIO_AUTH_TOKEN: str = Field(default="")
     TWILIO_PHONE_NUMBER: str = Field(default="")
+    
+    # Google Cloud Vision Config
+    GOOGLE_VISION_API_KEY: str = Field(default="")
+    GOOGLE_APPLICATION_CREDENTIALS: str = Field(default="")
     
     PORT: int = 8000
     HOST: str = "0.0.0.0"

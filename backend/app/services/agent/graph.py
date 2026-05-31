@@ -30,26 +30,80 @@ def place_order_tool(order_items_json: str) -> str:
     """Place an order or book an appointment for catalog items. The items parameter must be a JSON array, e.g. '[{"name": "Burger", "quantity": 2}]'."""
     return ""
 
-tools_list = [query_vector_store_tool, query_catalog_sql_tool, place_order_tool]
+@tool
+def get_customer_orders_tool() -> str:
+    """Retrieve all orders placed by this customer, showing order ID, items list, status, and creation date."""
+    return ""
+
+@tool
+def cancel_order_tool(order_id: str) -> str:
+    """Cancel a specific order using its order ID. The order ID must be retrieved by checking customer orders first."""
+    return ""
+
+tools_list = [query_vector_store_tool, query_catalog_sql_tool, place_order_tool, get_customer_orders_tool, cancel_order_tool]
 
 
-def get_llm():
-    """Initializes Google Gemini model, with a clean local fallback if keys are missing."""
-    if not settings.GEMINI_API_KEY:
-        logger.warning("GEMINI_API_KEY not found. Using local mock chatbot LLM.")
-        # Local mock fallback
-        class MockLLM:
-            def bind_tools(self, tools):
-                return self
-            def __call__(self, messages, **kwargs):
-                return AIMessage(content="[LLM Mock Response] Please configure GEMINI_API_KEY to test real AI agent reasoning.")
+class FallbackLLM:
+    def __init__(self, tools):
+        self.tools = tools
+        self.models_config = []
+        
+        # 1. Gemini 2.5 Flash
+        if settings.GEMINI_API_KEY:
+            self.models_config.append({
+                "name": "Gemini 2.5 Flash",
+                "model_id": "gemini-2.5-flash",
+                "client": ChatGoogleGenerativeAI(
+                    model="gemini-2.5-flash",
+                    google_api_key=settings.GEMINI_API_KEY,
+                    temperature=0.2
+                ).bind_tools(tools)
+            })
+            
+        # 2. Gemini 3.1 Flash Lite
+        if settings.GEMINI_API_KEY:
+            self.models_config.append({
+                "name": "Gemini 3.1 Flash Lite",
+                "model_id": "gemini-3.1-flash-lite",
+                "client": ChatGoogleGenerativeAI(
+                    model="gemini-3.1-flash-lite",
+                    google_api_key=settings.GEMINI_API_KEY,
+                    temperature=0.2
+                ).bind_tools(tools)
+            })
+            
+        # 3. GPT-4o-mini
+        if settings.OPENAI_API_KEY:
+            try:
+                from langchain_openai import ChatOpenAI
+                self.models_config.append({
+                    "name": "GPT-4o-mini",
+                    "model_id": "gpt-4o-mini",
+                    "client": ChatOpenAI(
+                        model="gpt-4o-mini",
+                        api_key=settings.OPENAI_API_KEY,
+                        temperature=0.2
+                    ).bind_tools(tools)
+                })
+            except Exception as e:
+                logger.error(f"Failed to load langchain-openai client: {e}")
+            
+        # Fallback to local mock if no API keys are configured
+        if not self.models_config:
+            logger.warning("No LLM API keys configured. Falling back to local Mock LLM.")
+            self.models_config.append({
+                "name": "Mock LLM",
+                "model_id": "mock-llm",
+                "client": self._get_mock_client()
+            })
+
+    def _get_mock_client(self):
+        class MockClient:
             def invoke(self, messages, **kwargs):
-                # If the last message is a ToolMessage, summarize and finish the loop
                 if messages and messages[-1].__class__.__name__ == "ToolMessage":
                     tool_msg = messages[-1]
                     return AIMessage(content=f"I have successfully executed the tool '{tool_msg.name}'. Result details: {tool_msg.content}")
 
-                # Simple pattern match to invoke mock tool calls for testing if desired
                 last_msg = messages[-1].content.lower()
                 if "catalog" in last_msg or "price" in last_msg or "menu" in last_msg:
                     return AIMessage(
@@ -78,18 +132,48 @@ def get_llm():
                             "id": "call_mock_vector_1"
                         }]
                     )
-                return AIMessage(content="Hello! I'm Apex Dental Care's assistant. How can I help you check the catalog, make an order, or read our docs?")
-        return MockLLM()
+                return AIMessage(content="Hello! I'm AnytimeLLM's assistant. How can I help you check the catalog, make an order, or read our docs?")
+        return MockClient()
+
+    def invoke(self, messages, **kwargs):
+        attempts = 2  # First run + 1 retry of the whole list
         
-    try:
-        return ChatGoogleGenerativeAI(
-            model="gemini-3.1-flash-lite",
-            google_api_key=settings.GEMINI_API_KEY,
-            temperature=0.2
-        )
-    except Exception as e:
-        logger.error(f"Error loading Gemini model: {e}")
-        raise e
+        for attempt in range(1, attempts + 1):
+            if attempt > 1:
+                print(f"\n[LLM FALLBACK CHAIN] >>> Starting Retry Cycle #{attempt - 1} of the entire model sequence...")
+                logger.info(f"Starting Retry Cycle #{attempt - 1} of the entire model sequence")
+                
+            for idx, model_info in enumerate(self.models_config):
+                name = model_info["name"]
+                model_id = model_info["model_id"]
+                client = model_info["client"]
+                
+                print(f"[LLM EXECUTION] Attempting model {idx+1}/{len(self.models_config)}: {name} ({model_id}) [Cycle {attempt}]")
+                logger.info(f"Attempting model {name} ({model_id}) [Cycle {attempt}]")
+                
+                try:
+                    response = client.invoke(messages, **kwargs)
+                    print(f"[LLM SUCCESS] Model {name} ({model_id}) succeeded!")
+                    logger.info(f"Model {name} ({model_id}) succeeded")
+                    return response
+                except Exception as e:
+                    error_msg = str(e)
+                    print(f"[LLM FALLBACK WARNING] Model {name} ({model_id}) failed: {error_msg}")
+                    logger.warning(f"Model {name} ({model_id}) failed: {error_msg}")
+                    
+        # Graceful fallback response if all models and retries fail
+        error_reply = "I'm sorry, I am currently experiencing connection issues with my reasoning models. Please try again in a few moments."
+        print(f"[LLM FALLBACK ERROR] All models and retries failed. Returning graceful fallback reply.")
+        logger.error("All models and retries failed. Returning graceful fallback reply.")
+        return AIMessage(content=error_reply)
+
+
+def get_llm():
+    """Initializes standard fallback wrapper adapter."""
+    class LLMFactory:
+        def bind_tools(self, tools):
+            return FallbackLLM(tools)
+    return LLMFactory()
 
 
 # 2. Define Graph Nodes
@@ -116,16 +200,23 @@ def agent_node(state: AgentState) -> Dict[str, Any]:
 
     # Prepend business guidelines system message
     full_prompt = (
-        f"{system_prompt}\n"
-        f"Context details:\n"
-        f"- You are assisting customers on behalf of: {business_name}.\n"
+        f"{system_prompt}\n\n"
+        f"Context & Persona Guidelines:\n"
+        f"- You are a customer support agent representing the business: {business_name}.\n"
+        f"- Always speak as an official representative of {business_name}.\n"
         f"- Current Business ID: {state['business_id']}\n"
         f"- Customer ID: {state['customer_id']}\n\n"
         f"Instructions:\n"
-        f"1. To check catalogs, pricing, or menus, call the query_catalog_sql_tool.\n"
+        f"1. To check catalogs, pricing, or menus, call the query_catalog_sql_tool first. If it returns that the catalog is empty or has no matching items, you MUST query the unstructured files using query_vector_store_tool to find the menu, price lists, or catalog details.\n"
         f"2. To fetch company details, policies, hours, or generic guidelines, call query_vector_store_tool.\n"
-        f"3. To place orders or reserve catalog items, use place_order_tool.\n"
-        f"4. Keep answers clean, direct, and tailored to the business information retrieved."
+        f"3. To place orders or reserve catalog items, use place_order_tool. Once placed, always state clearly in your response: 'Order placed' or 'Order placed successfully' along with the details.\n"
+        f"4. To retrieve the customer's order history or check order status, use get_customer_orders_tool.\n"
+        f"5. To cancel a specific order, use cancel_order_tool. Always call get_customer_orders_tool first to identify the correct order ID, or ask the customer if there are multiple orders. Once cancelled, always state clearly in your response: 'Your order was cancelled' or 'Your order has been cancelled successfully'.\n"
+        f"6. Keep answers clean, direct, and tailored to the business information retrieved.\n"
+        f"7. CRITICAL: Never mention filenames, file extensions (e.g. 'WhatsApp Image...', '.jpeg', '.pdf', '.png'), document sources, or database queries to the customer. State information directly.\n"
+        f"8. CRITICAL: Avoid meta-talk like 'Based on the retrieved document...', 'I have searched...', or 'According to the file...'. Respond directly and conversationally.\n"
+        f"9. CRITICAL: If you do not have enough information to answer the question, state that politely or ask for clarification, rather than summarizing your search attempts.\n"
+        f"10. CRITICAL: You must remain strictly on-topic and focus only on the business, store catalog, menu, services, opening hours, policies, or placing/cancelling orders. If the customer asks random, off-topic, or irrelevant questions (such as video games, sports, general knowledge, math, coding, personal chat, or opinions about other topics), politely decline to answer, state that you can only assist with store-related inquiries, and steer them back to your business offerings."
     )
     
     sys_msg = SystemMessage(content=full_prompt)
@@ -186,6 +277,17 @@ def execute_tools_node(state: AgentState) -> Dict[str, Any]:
                 customer_id=state["customer_id"],
                 business_id=state["business_id"],
                 order_items_json=arguments.get("order_items_json", "[]")
+            )
+        elif tool_name == "get_customer_orders_tool":
+            result = real_tools.get_customer_orders_tool(
+                customer_id=state["customer_id"],
+                business_id=state["business_id"]
+            )
+        elif tool_name == "cancel_order_tool":
+            result = real_tools.cancel_order_tool(
+                order_id=arguments.get("order_id", ""),
+                customer_id=state["customer_id"],
+                business_id=state["business_id"]
             )
         else:
             result = f"Error: Tool name '{tool_name}' is not recognized."

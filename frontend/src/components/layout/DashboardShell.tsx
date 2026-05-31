@@ -6,7 +6,7 @@ import ErrorBanner from "../ui/ErrorBanner";
 import GradientOrb from "../effects/GradientOrb";
 import { Business } from "@/lib/api";
 
-type Tab = "overview" | "ingest" | "catalog" | "playground" | "integrations";
+type Tab = "overview" | "ingest" | "catalog" | "playground" | "integrations" | "orders" | "chats";
 
 interface DashboardShellProps {
   activeBusiness: Business;

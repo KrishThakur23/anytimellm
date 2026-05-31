@@ -3,6 +3,8 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Dict, Type
 
+from app.config import settings
+
 logger = logging.getLogger(__name__)
 
 # Optional dependencies imported inside functions to keep the core imports lightweight
@@ -73,6 +75,108 @@ class TesseractOCRParser(BaseParser):
             return f"[OCR Fallback - Content from {filename} cannot be extracted. Tesseract binary or path error: {str(e)}]"
 
 
+class GoogleVisionOCRParser(BaseParser):
+    def parse(self, file_content: bytes, filename: str = "") -> str:
+        logger.info(f"Parsing Image {filename} using Google Cloud Vision OCR")
+        
+        # 1. Attempt using Service Account credentials via official Client Library
+        from pathlib import Path
+        credentials_path = settings.GOOGLE_APPLICATION_CREDENTIALS
+        resolved_path = None
+        
+        if credentials_path:
+            p = Path(credentials_path)
+            if p.exists():
+                resolved_path = str(p.resolve())
+            else:
+                # Check relative to backend folder and workspace root
+                # parser.py is at: backend/app/services/parser.py
+                possible_paths = [
+                    Path(__file__).resolve().parents[2] / p, # relative to backend
+                    Path(__file__).resolve().parents[3] / p  # relative to workspace root
+                ]
+                for pp in possible_paths:
+                    if pp.exists():
+                        resolved_path = str(pp.resolve())
+                        break
+        
+        if resolved_path:
+            try:
+                from google.cloud import vision
+                logger.info(f"Initializing Google Vision client with service account key: {resolved_path}")
+                client = vision.ImageAnnotatorClient.from_service_account_json(resolved_path)
+                image = vision.Image(content=file_content)
+                response = client.text_detection(image=image)
+                
+                if response.error.message:
+                    logger.error(f"Google Cloud Vision Service Account API Error: {response.error.message}")
+                else:
+                    text_annotations = response.text_annotations
+                    if not text_annotations:
+                        logger.info(f"No text detected by Google Vision OCR in {filename}")
+                        return ""
+                    return text_annotations[0].description.strip()
+            except Exception as e:
+                logger.error(f"Google Cloud Vision Client Library exception: {e}. Trying REST API fallback.")
+        else:
+            logger.info("No valid Google service account JSON key found or configured.")
+
+        # 2. REST API key fallback
+        api_key = settings.GOOGLE_VISION_API_KEY or settings.GEMINI_API_KEY
+        if not api_key:
+            logger.warning("No Google Vision API key configured. Falling back to local Tesseract OCR.")
+            return TesseractOCRParser().parse(file_content, filename)
+            
+        import base64
+        import json
+        import httpx
+        
+        try:
+            image_content = base64.b64encode(file_content).decode("utf-8")
+            payload = {
+                "requests": [
+                    {
+                        "image": {"content": image_content},
+                        "features": [{"type": "TEXT_DETECTION"}]
+                    }
+                ]
+            }
+            
+            url = f"https://vision.googleapis.com/v1/images:annotate?key={api_key}"
+            headers = {"Content-Type": "application/json"}
+            
+            with httpx.Client() as client:
+                response = client.post(url, json=payload, headers=headers)
+                
+            if response.status_code != 200:
+                logger.error(f"Google Vision REST API returned status {response.status_code}: {response.text}")
+                return TesseractOCRParser().parse(file_content, filename)
+                
+            response_json = response.json()
+            responses = response_json.get("responses", [])
+            if not responses:
+                logger.warning("Google Vision REST API returned empty responses.")
+                return ""
+                
+            first_response = responses[0]
+            if "error" in first_response:
+                error_msg = first_response["error"].get("message", "Unknown API error")
+                logger.error(f"Google Vision REST API response contained error: {error_msg}")
+                return TesseractOCRParser().parse(file_content, filename)
+                
+            text_annotations = first_response.get("textAnnotations", [])
+            if not text_annotations:
+                logger.info(f"No text detected by Google Vision OCR in {filename}")
+                return ""
+                
+            full_text = text_annotations[0].get("description", "")
+            return full_text.strip()
+            
+        except Exception as e:
+            logger.error(f"Exception raised during Google Vision REST OCR: {e}. Falling back to Tesseract.")
+            return TesseractOCRParser().parse(file_content, filename)
+
+
 class HTMLParser(BaseParser):
     def parse(self, file_content: bytes, filename: str = "") -> str:
         logger.info(f"Parsing HTML content")
@@ -103,9 +207,9 @@ class ParserRegistry:
         self._parsers: Dict[str, Type[BaseParser]] = {}
         # Register default parsers
         self.register_parser("pdf", PyMuPDFParser)
-        self.register_parser("png", TesseractOCRParser)
-        self.register_parser("jpg", TesseractOCRParser)
-        self.register_parser("jpeg", TesseractOCRParser)
+        self.register_parser("png", GoogleVisionOCRParser)
+        self.register_parser("jpg", GoogleVisionOCRParser)
+        self.register_parser("jpeg", GoogleVisionOCRParser)
         self.register_parser("html", HTMLParser)
         self.register_parser("txt", BaseParser) # text is parsed directly
 

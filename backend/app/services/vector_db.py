@@ -4,6 +4,13 @@ from typing import List, Dict, Any, Optional
 from langchain_core.documents import Document as LCDocument
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from app.config import settings
+import os
+
+# Set API keys in environment for langchain integrations
+if settings.PINECONE_API_KEY:
+    os.environ["PINECONE_API_KEY"] = settings.PINECONE_API_KEY
+if settings.GEMINI_API_KEY:
+    os.environ["GEMINI_API_KEY"] = settings.GEMINI_API_KEY
 
 logger = logging.getLogger(__name__)
 
@@ -69,8 +76,9 @@ def get_embeddings():
     try:
         from langchain_google_genai import GoogleGenerativeAIEmbeddings
         _embeddings_client = GoogleGenerativeAIEmbeddings(
-            model="models/text-embedding-004",
-            google_api_key=settings.GEMINI_API_KEY
+            model="models/gemini-embedding-001",
+            google_api_key=settings.GEMINI_API_KEY,
+            output_dimensionality=768
         )
         return _embeddings_client
     except Exception as e:
@@ -140,7 +148,7 @@ def index_document_text(text: str, business_id: str, document_id: str, file_name
         return
 
     try:
-        from langchain_community.vectorstores import Pinecone as LCPinecone
+        from langchain_pinecone import Pinecone as LCPinecone
         embeddings = get_embeddings()
         
         LCPinecone.from_texts(
@@ -165,7 +173,7 @@ def search_vector_store(query: str, business_id: str, k: int = 4) -> List[LCDocu
         return local_mock_store.similarity_search(query, namespace, k)
         
     try:
-        from langchain_community.vectorstores import Pinecone as LCPinecone
+        from langchain_pinecone import Pinecone as LCPinecone
         embeddings = get_embeddings()
         
         # Load from existing index

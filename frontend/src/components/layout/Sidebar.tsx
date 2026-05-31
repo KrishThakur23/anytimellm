@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { Business } from "@/lib/api";
 
-type Tab = "overview" | "ingest" | "catalog" | "playground" | "integrations";
+type Tab = "overview" | "ingest" | "catalog" | "playground" | "integrations" | "orders" | "chats";
 
 interface SidebarProps {
   activeBusiness: Business;
@@ -81,6 +81,24 @@ const navItems: {
     hoverClass: "hover:text-cyan-600 dark:hover:text-cyan-400 hover:bg-cyan-500/5 dark:hover:bg-cyan-500/10",
     activeClass: "bg-cyan-600 text-white font-black shadow-[0_4px_12px_rgba(8,145,178,0.3)]",
     glowClass: "shadow-[0_0_15px_rgba(6,182,212,0.25)] border-cyan-500/40 bg-cyan-500/[0.03] dark:bg-cyan-500/[0.08]"
+  },
+  {
+    id: "orders",
+    label: "📦 Order Inbox",
+    icon: Settings,
+    colorClass: "text-rose-500",
+    hoverClass: "hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/5 dark:hover:bg-rose-500/10",
+    activeClass: "bg-rose-600 text-white font-black shadow-[0_4px_12px_rgba(244,63,94,0.3)]",
+    glowClass: "shadow-[0_0_15px_rgba(244,63,94,0.25)] border-rose-500/40 bg-rose-500/[0.03] dark:bg-rose-500/[0.08]"
+  },
+  {
+    id: "chats",
+    label: "💬 WhatsApp Chats",
+    icon: MessageSquare,
+    colorClass: "text-emerald-500",
+    hoverClass: "hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/5 dark:hover:bg-emerald-500/10",
+    activeClass: "bg-emerald-600 text-white font-black shadow-[0_4px_12px_rgba(16,185,129,0.3)]",
+    glowClass: "shadow-[0_0_15px_rgba(16,185,129,0.25)] border-emerald-500/40 bg-emerald-500/[0.03] dark:bg-emerald-500/[0.08]"
   }
 ];
 
@@ -192,6 +210,8 @@ export default function Sidebar({
                     {item.id === "catalog" && "library_books"}
                     {item.id === "playground" && "terminal"}
                     {item.id === "integrations" && "settings"}
+                    {item.id === "orders" && "shopping_bag"}
+                    {item.id === "chats" && "forum"}
                   </span>
                   <span className={isActive ? "text-white" : "text-ink-text dark:text-foreground"}>
                     {item.label}

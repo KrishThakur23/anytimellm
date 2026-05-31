@@ -135,28 +135,6 @@ export default function PlaygroundTab({
                           <p className="font-body-md text-xs text-ink-text leading-relaxed font-semibold">
                             {msg.content}
                           </p>
-                          
-                          {/* If the message mentions buying or placing orders, show simulated bento structured summary matching Stitch */}
-                          {(msg.content.toLowerCase().includes("placed") || msg.content.toLowerCase().includes("cleaning") || msg.content.toLowerCase().includes("order")) && (
-                            <div className="w-full border border-border-subtle rounded-xl overflow-hidden shadow-sm animate-[fadeIn_0.2s_ease-out]">
-                              <table className="w-full text-left font-mono text-[10px]">
-                                <thead className="bg-surface-container-low dark:bg-surface-container-high border-b border-border-subtle text-on-surface-variant font-black uppercase tracking-wider">
-                                  <tr>
-                                    <th className="py-2.5 px-3">Item (सामान)</th>
-                                    <th className="py-2.5 px-3">Status (स्थिति)</th>
-                                    <th className="py-2.5 px-3 text-right">Price (कीमत)</th>
-                                  </tr>
-                                </thead>
-                                <tbody className="divide-y divide-border-subtle bg-parchment-surface">
-                                  <tr className="hover:bg-surface-container-low/40">
-                                    <td className="py-2 px-3 text-ink-text font-black">Gold Ring (सोने की अंगूठी)</td>
-                                    <td className="py-2 px-3 text-emerald-600 dark:text-emerald-400 font-black uppercase">DONE (सफल)</td>
-                                    <td className="py-2 px-3 text-right text-ink-text font-black">₹ 1,500.00</td>
-                                  </tr>
-                                </tbody>
-                              </table>
-                            </div>
-                          )}
                         </div>
                       </div>
                     )}
@@ -190,7 +168,7 @@ export default function PlaygroundTab({
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   className="w-full bg-transparent border-none focus:ring-0 px-2 py-4 font-body-md text-xs text-ink-text placeholder:text-outline font-bold"
-                  placeholder="Type customer question here... (यहाँ ग्राहक का सवाल लिखें)"
+                  placeholder=""
                 />
                 <div className="pr-3 flex items-center gap-2 shrink-0">
                   <button
@@ -281,7 +259,7 @@ export default function PlaygroundTab({
                 logColorClass = "bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-500/20";
                 iconName = "search";
               } else if (log.includes("query_catalog_sql_tool")) {
-                friendlyText = "🔍 Checked Product Price List: Found item 'Prophylaxis Service' matching successfully.";
+                friendlyText = "🔍 Checked Product Price List: Found matching items successfully.";
                 logColorClass = "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20 font-bold";
                 iconName = "search_check";
               } else if (log.includes("query_vector_store_tool")) {

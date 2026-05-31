@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect } from "react";
 import gsap from "gsap";
-import { Business, CatalogItem, DocumentInfo } from "@/lib/api";
+import { Business, CatalogItem, DocumentInfo, Order } from "@/lib/api";
 import { Copy, Check } from "lucide-react";
 import AnimatedCounter from "../ui/AnimatedCounter";
 
@@ -10,15 +10,17 @@ interface OverviewTabProps {
   activeBusiness: Business;
   documents: DocumentInfo[];
   catalog: CatalogItem[];
+  orders: Order[];
   copied: boolean;
   copyToClipboard: (text: string) => void;
-  onTabChange?: (tab: "overview" | "ingest" | "catalog" | "playground" | "integrations") => void;
+  onTabChange?: (tab: "overview" | "ingest" | "catalog" | "playground" | "integrations" | "orders") => void;
 }
 
 export default function OverviewTab({
   activeBusiness,
   documents,
   catalog,
+  orders,
   copied,
   copyToClipboard,
   onTabChange,
@@ -41,7 +43,64 @@ export default function OverviewTab({
         { opacity: 1, y: 0, duration: 0.6, ease: "power2.out", delay: 0.25 }
       );
     }
-  }, []);
+  }, [documents, catalog, orders]);
+
+  // Generate dynamic recent activities feed
+  const activities: {
+    title: string;
+    description: string;
+    time: Date;
+    color: string;
+    icon: string;
+    badge: string;
+  }[] = [
+    // Documents
+    ...documents.map(doc => ({
+      title: doc.file_type === "html" ? "🌐 Website Link Synced" : "📄 File Ingested",
+      description: doc.file_type === "html" 
+        ? `Added shop details from website: ${doc.file_name}`
+        : `Ingested store guidelines from file: ${doc.file_name}`,
+      time: new Date(doc.created_at),
+      color: "bg-purple-500",
+      icon: "schema",
+      badge: "DOC"
+    })),
+    // Catalog items
+    ...catalog.map(item => ({
+      title: "🛍️ Product Registered",
+      description: `Added product '${item.name}' priced at ${item.price ? `₹${item.price}` : "N/A"} to catalog.`,
+      time: item.created_at ? new Date(item.created_at) : new Date(Date.now() - 3600000),
+      color: "bg-amber-500",
+      icon: "library_books",
+      badge: "CATALOG"
+    })),
+    // Orders
+    ...orders.map(order => ({
+      title: `🛒 Order: ${order.status.toUpperCase()}`,
+      description: `Customer ${order.customer_name || "Guest"} ordered ${order.details?.items?.map(i => `${i.name} (Qty: ${i.quantity})`).join(", ")}.`,
+      time: new Date(order.created_at),
+      color: order.status === "confirmed" ? "bg-emerald-500" : order.status === "cancelled" ? "bg-rose-500" : "bg-blue-500",
+      icon: "shopping_bag",
+      badge: "ORDER"
+    }))
+  ];
+
+  // Sort activities by timestamp descending
+  activities.sort((a, b) => b.time.getTime() - a.time.getTime());
+
+  // Show top 3 recent activities
+  const displayActivities = activities.slice(0, 3);
+
+  // Formatting relative time helper
+  const getRelativeTimeString = (date: Date): string => {
+    const delta = Math.round((Date.now() - date.getTime()) / 1000);
+    if (delta < 60) return "just now";
+    const minutes = Math.round(delta / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.round(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  };
 
   return (
     <div className="space-y-8">
@@ -73,19 +132,20 @@ export default function OverviewTab({
 
       {/* High-Level KPIs (Stitch Bento Style Grid) */}
       <section ref={cardsRef} className="grid grid-cols-1 md:grid-cols-4 gap-gutter mb-8">
+        {/* Total Orders Card */}
         <div className="md:col-span-2 bg-blue-500/5 dark:bg-blue-500/10 border border-blue-500/30 p-6 flex flex-col justify-between rounded-xl shadow-sm relative overflow-hidden min-h-[160px] hover:scale-[1.01] transition-transform duration-200">
           <div>
             <span className="font-label-xs text-label-xs text-blue-700 dark:text-blue-400 uppercase tracking-widest font-black flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-              💬 Total Customer Chats (कुल ग्राहक बातचीत)
+              💬 Total Customer Orders (कुल ऑर्डर्स)
             </span>
             <h2 className="font-display-lg text-4xl mt-3 text-ink-text tracking-tighter leading-none font-black text-blue-600 dark:text-blue-400">
-              <AnimatedCounter target={14208} />
+              <AnimatedCounter target={orders.length} />
             </h2>
           </div>
           <div className="mt-4 flex items-center gap-2">
             <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[16px] font-bold">trending_up</span>
-            <span className="text-[10px] font-label-xs text-blue-700 dark:text-blue-400 font-black tracking-wider">📈 More customer chats this week!</span>
+            <span className="text-[10px] font-label-xs text-blue-700 dark:text-blue-400 font-black tracking-wider">📈 Track customer shopping behaviors</span>
           </div>
           {/* Sparkline background */}
           <svg className="absolute bottom-0 right-0 w-32 h-16 opacity-15 dark:opacity-25" preserveAspectRatio="none" viewBox="0 0 100 50">
@@ -93,29 +153,31 @@ export default function OverviewTab({
           </svg>
         </div>
 
+        {/* Catalog Items Card */}
         <div className="bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/30 p-6 rounded-xl shadow-sm flex flex-col justify-between min-h-[160px] hover:scale-[1.01] transition-transform duration-200">
           <div>
             <span className="font-label-xs text-label-xs text-amber-700 dark:text-amber-400 uppercase tracking-widest font-black flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-              🤖 Auto-Answer Rate (सटीक जवाब दर)
+              <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+              🛍️ Products Registered (सामान लिस्ट)
             </span>
-            <h3 className="font-headline-lg text-3xl mt-4 text-amber-600 dark:text-amber-400 tracking-tight font-black leading-none">92.4%</h3>
+            <h3 className="font-headline-lg text-3xl mt-4 text-amber-600 dark:text-amber-400 tracking-tight font-black leading-none">{catalog.length}</h3>
           </div>
-          <div className="w-full bg-amber-200/50 dark:bg-amber-900/30 h-2 mt-4 rounded-full overflow-hidden">
-            <div className="bg-amber-500 h-full" style={{ width: "92.4%" }}></div>
+          <div className="text-[9px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+            Available in Database
           </div>
         </div>
 
-        <div className="bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/30 p-6 rounded-xl shadow-sm flex flex-col justify-between min-h-[160px] hover:scale-[1.01] transition-transform duration-200 shadow-[0_0_15px_rgba(16,185,129,0.08)]">
+        {/* Documents Card */}
+        <div className="bg-purple-500/5 dark:bg-purple-500/10 border border-purple-500/30 p-6 rounded-xl shadow-sm flex flex-col justify-between min-h-[160px] hover:scale-[1.01] transition-transform duration-200">
           <div>
-            <span className="font-label-xs text-label-xs text-emerald-700 dark:text-emerald-400 uppercase tracking-widest font-black flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              🟢 Assistant Status (सहायक की स्थिति)
+            <span className="font-label-xs text-label-xs text-purple-700 dark:text-purple-400 uppercase tracking-widest font-black flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+              📄 Ingested Guidelines (दस्तावेज़)
             </span>
-            <h3 className="font-headline-lg text-2xl mt-4 text-emerald-600 dark:text-emerald-400 tracking-tight font-black leading-none uppercase">Online 24/7</h3>
+            <h3 className="font-headline-lg text-3xl mt-4 text-purple-600 dark:text-purple-400 tracking-tight font-black leading-none">{documents.length}</h3>
           </div>
-          <div className="w-full bg-emerald-200/50 dark:bg-emerald-900/30 h-2 mt-4 rounded-full overflow-hidden">
-            <div className="bg-emerald-500 h-full" style={{ width: "100%" }}></div>
+          <div className="text-[9px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-wider">
+            Uploaded store details
           </div>
         </div>
       </section>
@@ -123,7 +185,7 @@ export default function OverviewTab({
       {/* Quick Actions (Stitch design) */}
       <section className="mb-8">
         <h4 className="font-label-xs text-label-xs text-on-surface-variant uppercase tracking-widest mb-4 font-black">⚙️ Quick Settings (आसान सेटिंग्स)</h4>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <button
             onClick={() => onTabChange?.("ingest")}
             className="group flex flex-col items-center justify-center p-5 bg-parchment-surface dark:bg-surface-container border border-border-subtle rounded-xl hover:border-purple-500 hover:scale-[1.02] transition-all duration-200 active:scale-[0.98] shadow-sm cursor-pointer"
@@ -143,6 +205,15 @@ export default function OverviewTab({
             <span className="font-label-xs text-[11px] font-black text-ink-text">🛍️ Add Items & Prices</span>
           </button>
           <button
+            onClick={() => onTabChange?.("orders")}
+            className="group flex flex-col items-center justify-center p-5 bg-parchment-surface dark:bg-surface-container border border-border-subtle rounded-xl hover:border-rose-500 hover:scale-[1.02] transition-all duration-200 active:scale-[0.98] shadow-sm cursor-pointer"
+          >
+            <div className="w-12 h-12 rounded-xl bg-rose-500/10 flex items-center justify-center mb-3 group-hover:bg-rose-600 dark:group-hover:bg-rose-500 group-hover:text-white transition-colors border border-rose-500/20">
+              <span className="material-symbols-outlined text-[22px] text-rose-600 dark:text-rose-400 group-hover:text-white">shopping_bag</span>
+            </div>
+            <span className="font-label-xs text-[11px] font-black text-ink-text">📦 Order Inbox ({orders.length})</span>
+          </button>
+          <button
             onClick={() => onTabChange?.("playground")}
             className="group flex flex-col items-center justify-center p-5 bg-parchment-surface dark:bg-surface-container border border-border-subtle rounded-xl hover:border-emerald-500 hover:scale-[1.02] transition-all duration-200 active:scale-[0.98] shadow-sm cursor-pointer"
           >
@@ -160,60 +231,40 @@ export default function OverviewTab({
         <section ref={logRef} className="lg:col-span-7">
           <div className="flex items-center justify-between mb-4">
             <h4 className="font-label-xs text-label-xs text-on-surface-variant uppercase tracking-widest font-black">📋 Recent Activity (हाल ही की हलचल)</h4>
-            <span className="font-label-xs text-[10px] text-muted-gold uppercase tracking-wider font-extrabold cursor-pointer hover:underline">View All</span>
           </div>
           <div className="space-y-0.5 border border-border-subtle bg-border-subtle rounded-lg overflow-hidden shadow-sm">
-            {/* Activity 1 */}
-            <div className="bg-parchment-surface dark:bg-surface-container p-4 flex gap-4 relative">
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></div>
-              <div className="mt-0.5">
-                <span className="material-symbols-outlined text-blue-500 text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>circle</span>
+            {displayActivities.length === 0 ? (
+              <div className="bg-parchment-surface dark:bg-surface-container p-8 text-center text-on-surface-variant text-xs font-mono">
+                No recent activity recorded yet. Register products or upload details to begin.
               </div>
-              <div className="flex-1">
-                <div className="flex justify-between items-start mb-1">
-                  <span className="font-body-md font-black text-ink-text text-xs">💬 Assistant Answered Customer</span>
-                  <span className="font-label-sm text-[10px] text-on-surface-variant font-mono font-bold">2m ago</span>
+            ) : (
+              displayActivities.map((act, idx) => (
+                <div key={idx} className="bg-parchment-surface dark:bg-surface-container p-4 flex gap-4 relative">
+                  <div className={`absolute left-0 top-0 bottom-0 w-1 ${act.color}`}></div>
+                  <div className={`mt-0.5 ${act.color.replace("bg-", "text-")}`}>
+                    <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                      circle
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start mb-1">
+                      <span className="font-body-md font-black text-ink-text text-xs truncate mr-2">
+                        {act.title}
+                      </span>
+                      <span className="font-label-sm text-[10px] text-on-surface-variant font-mono font-bold shrink-0">
+                        {getRelativeTimeString(act.time)}
+                      </span>
+                    </div>
+                    <p className="text-on-surface-variant text-[11px] font-bold leading-relaxed">{act.description}</p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className="px-1.5 py-0.5 rounded bg-surface-container-low dark:bg-surface-container-high font-mono text-[9px] text-on-surface-variant uppercase border border-border-subtle font-black">
+                        {act.badge}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-on-surface-variant text-[11px] font-bold">Answered customer query about product prices & stock availability successfully.</p>
-                <div className="mt-2 flex items-center gap-2">
-                  <span className="px-1.5 py-0.5 rounded bg-surface-container-low dark:bg-surface-container-high font-mono text-[9px] text-on-surface-variant uppercase border border-border-subtle font-black">
-                    Chat ID: 829-XJ
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Activity 2 */}
-            <div className="bg-parchment-surface dark:bg-surface-container p-4 flex gap-4 relative">
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-purple-500"></div>
-              <div className="mt-0.5">
-                <span className="material-symbols-outlined text-purple-500 text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>circle</span>
-              </div>
-              <div className="flex-1">
-                <div className="flex justify-between items-start mb-1">
-                  <span className="font-body-md font-black text-ink-text text-xs">📄 File Added: Uploaded price list successfully!</span>
-                  <span className="font-label-sm text-[10px] text-on-surface-variant font-mono font-bold">14m ago</span>
-                </div>
-                <p className="text-on-surface-variant text-[11px] font-bold">
-                  Added shop details from <code className="font-mono bg-surface-container-low dark:bg-surface-container-high px-1 rounded text-ink-text">product_prices.pdf</code>.
-                </p>
-              </div>
-            </div>
-
-            {/* Activity 3 */}
-            <div className="bg-parchment-surface dark:bg-surface-container p-4 flex gap-4 relative">
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500"></div>
-              <div className="mt-0.5 text-emerald-500">
-                <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>circle</span>
-              </div>
-              <div className="flex-1">
-                <div className="flex justify-between items-start mb-1">
-                  <span className="font-body-md font-black text-ink-text text-xs">🟢 Chatbot Status: Luminous and online 24/7</span>
-                  <span className="font-label-sm text-[10px] text-on-surface-variant font-mono font-bold">1h ago</span>
-                </div>
-                <p className="text-on-surface-variant text-[11px] font-bold">The AI chatbot is fully online and ready to answer incoming WhatsApp queries.</p>
-              </div>
-            </div>
+              ))
+            )}
           </div>
         </section>
 

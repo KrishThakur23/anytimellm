@@ -212,6 +212,19 @@ async def process_single_whatsapp_event(
             else:
                 langchain_history.append(AIMessage(content=record.content))
 
+        # Check if conversation is paused for manual takeover
+        if conversation.is_ai_paused:
+            print(f"[WEBHOOK PROCESS] AI Agent is PAUSED for conversation {conversation.id}. Logging customer message and skipping AI reply.")
+            cust_msg = Message(
+                conversation_id=conversation.id,
+                sender="customer",
+                content=text
+            )
+            db.add(cust_msg)
+            db.commit()
+            print(f"[WEBHOOK PROCESS] Logged messages to DB (Conversation ID: {conversation.id})")
+            return
+
         # 4. Invoke LangGraph agent
         new_human_msg = HumanMessage(content=text)
         initial_state = {

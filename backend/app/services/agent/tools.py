@@ -18,7 +18,11 @@ def query_vector_store_tool(query: str, business_id: str) -> str:
         formatted_results = []
         for i, doc in enumerate(docs):
             filename = doc.metadata.get("file_name", "Unknown File")
-            formatted_results.append(f"Source [{filename}]:\n{doc.page_content}\n")
+            # If filename is an auto-generated WhatsApp image, format as a generic knowledge context block
+            if "WhatsApp Image" in filename or filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
+                formatted_results.append(f"Knowledge Context Block {i+1}:\n{doc.page_content}\n")
+            else:
+                formatted_results.append(f"Source [{filename}]:\n{doc.page_content}\n")
             
         return "\n---\n".join(formatted_results)
     except Exception as e:
@@ -32,21 +36,31 @@ def query_catalog_sql_tool(search_query: str, business_id: str) -> str:
     try:
         import uuid
         biz_uuid = uuid.UUID(business_id) if isinstance(business_id, str) else business_id
-        # Perform structured filter to isolate tenant business_id
-        # We query the catalogs table matching name or description
+        
+        # Check if structured catalog table is empty for this tenant
+        total_items = db.query(Catalog).filter(Catalog.business_id == biz_uuid).count()
+        if total_items == 0:
+            return "No structured catalog items found. Note: The structured SQL catalog is currently empty for this business. Please search the unstructured uploaded documents using query_vector_store_tool to find the menu, price lists, or business details."
+            
+        # Parse query for generic words
+        query_text = search_query.strip().lower() if search_query else ""
+        generic_words = ["menu", "all", "list", "items", "catalog", "food", "show", "get"]
+        
         stmt = (
             db.query(Catalog)
             .filter(Catalog.business_id == biz_uuid)
             .filter(Catalog.is_available == True)
-            .filter(
+        )
+        
+        if query_text and query_text not in generic_words:
+            stmt = stmt.filter(
                 Catalog.name.ilike(f"%{search_query}%") | 
                 Catalog.description.ilike(f"%{search_query}%")
             )
-            .limit(10)
-        )
-        results = stmt.all()
+            
+        results = stmt.limit(30).all()
         if not results:
-            return f"No products or catalog items matching '{search_query}' were found."
+            return f"No products or catalog items matching '{search_query}' were found in the structured catalog. If you think the menu or item is in an uploaded image or document, try calling query_vector_store_tool."
             
         catalog_list = []
         for item in results:
@@ -107,5 +121,74 @@ def place_order_tool(customer_id: str, business_id: str, order_items_json: str) 
         db.rollback()
         logger.error(f"Error placing order: {e}")
         return f"Error submitting order: {str(e)}"
+    finally:
+        db.close()
+
+
+def get_customer_orders_tool(customer_id: str, business_id: str) -> str:
+    """Retrieve all orders placed by this customer, showing order ID, items, status, and creation date."""
+    db = SessionLocal()
+    try:
+        import uuid
+        cust_uuid = uuid.UUID(customer_id) if isinstance(customer_id, str) else customer_id
+        biz_uuid = uuid.UUID(business_id) if isinstance(business_id, str) else business_id
+        
+        orders = (
+            db.query(Order)
+            .filter(Order.business_id == biz_uuid, Order.customer_id == cust_uuid)
+            .order_by(Order.created_at.desc())
+            .all()
+        )
+        if not orders:
+            return "You have not placed any orders yet."
+            
+        orders_list = []
+        for o in orders:
+            orders_list.append({
+                "order_id": str(o.id),
+                "status": o.status,
+                "details": o.details,
+                "created_at": o.created_at.isoformat()
+            })
+        return json.dumps(orders_list, indent=2)
+    except Exception as e:
+        logger.error(f"Error in get_customer_orders_tool: {e}")
+        return f"Error retrieving orders: {str(e)}"
+    finally:
+        db.close()
+
+
+def cancel_order_tool(order_id: str, customer_id: str, business_id: str) -> str:
+    """Cancel a specific order using the order ID. The status of the order will be changed to 'cancelled'."""
+    db = SessionLocal()
+    try:
+        import uuid
+        ord_uuid = uuid.UUID(order_id) if isinstance(order_id, str) else order_id
+        cust_uuid = uuid.UUID(customer_id) if isinstance(customer_id, str) else customer_id
+        biz_uuid = uuid.UUID(business_id) if isinstance(business_id, str) else business_id
+        
+        order = (
+            db.query(Order)
+            .filter(Order.id == ord_uuid, Order.business_id == biz_uuid, Order.customer_id == cust_uuid)
+            .first()
+        )
+        if not order:
+            return f"Error: Order with ID '{order_id}' was not found for this account."
+            
+        if order.status == "cancelled":
+            return "This order has already been cancelled."
+            
+        order.status = "cancelled"
+        db.commit()
+        
+        return json.dumps({
+            "status": "success",
+            "message": "Your order has been cancelled successfully.",
+            "order_id": order_id
+        })
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error in cancel_order_tool: {e}")
+        return f"Error cancelling order: {str(e)}"
     finally:
         db.close()

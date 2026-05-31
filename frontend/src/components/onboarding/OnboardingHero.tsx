@@ -154,7 +154,7 @@ export default function OnboardingHero({
               <form onSubmit={handleCreateBusiness} className="space-y-4">
                 <input
                   type="text"
-                  placeholder="e.g. Gaurav Jewellers (गौरव ज्वैलर्स) or Kirana Store"
+                  placeholder=""
                   value={businessName}
                   onChange={(e) => setBusinessName(e.target.value)}
                   className="w-full bg-oatmeal-bg dark:bg-surface-container-low border border-border-subtle rounded-md px-4 py-3.5 text-xs focus:outline-none focus:border-emerald-500 text-ink-text placeholder:text-outline transition-all duration-200 font-bold"
@@ -187,7 +187,7 @@ export default function OnboardingHero({
               <form onSubmit={handleLoadBusiness} className="space-y-4">
                 <input
                   type="text"
-                  placeholder="Paste your Shop ID key here"
+                  placeholder=""
                   value={businessIdInput}
                   onChange={(e) => setBusinessIdInput(e.target.value)}
                   className="w-full bg-parchment-surface dark:bg-surface-container-low border border-border-subtle rounded-md px-4 py-3.5 text-xs focus:outline-none focus:border-blue-500 text-ink-text placeholder:text-outline font-mono transition-all duration-200 font-bold"

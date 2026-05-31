@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { api, Business, CatalogItem, DocumentInfo, ChatMessage } from "@/lib/api";
+import { api, Business, CatalogItem, DocumentInfo, ChatMessage, Order, Conversation, Message } from "@/lib/api";
 
 // Modular UI Components
 import OnboardingHero from "@/components/onboarding/OnboardingHero";
@@ -12,8 +12,10 @@ import IngestTab from "@/components/ingest/IngestTab";
 import CatalogTab from "@/components/catalog/CatalogTab";
 import PlaygroundTab from "@/components/playground/PlaygroundTab";
 import IntegrationsTab from "@/components/integrations/IntegrationsTab";
+import OrdersTab from "@/components/orders/OrdersTab";
+import ChatsTab from "@/components/chats/ChatsTab";
 
-type Tab = "overview" | "ingest" | "catalog" | "playground" | "integrations";
+type Tab = "overview" | "ingest" | "catalog" | "playground" | "integrations" | "orders" | "chats";
 
 export default function Dashboard() {
   const [activeBusiness, setActiveBusiness] = useState<Business | null>(null);
@@ -30,6 +32,12 @@ export default function Dashboard() {
   const [tab, setTab] = useState<Tab>("overview");
   const [documents, setDocuments] = useState<DocumentInfo[]>([]);
   const [catalog, setCatalog] = useState<CatalogItem[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+  
+  const [chats, setChats] = useState<Conversation[]>([]);
+  const [loadingChats, setLoadingChats] = useState(false);
   
   // Form States
   const [urlInput, setUrlInput] = useState("");
@@ -52,11 +60,27 @@ export default function Dashboard() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Synchronize client-side theme loading on mount
+  // Synchronize client-side theme loading on mount and auto-load active business session
   useEffect(() => {
     const savedTheme = localStorage.getItem("anytimellm-theme") as "dark" | "light" || "dark";
     setTheme(savedTheme);
     document.documentElement.classList.toggle("dark", savedTheme === "dark");
+
+    const savedBizId = localStorage.getItem("anytimellm-active-business-id");
+    if (savedBizId) {
+      setLoadingBusiness(true);
+      api.getBusiness(savedBizId)
+        .then(biz => {
+          setActiveBusiness(biz);
+        })
+        .catch(err => {
+          console.error("Failed to load saved business session:", err);
+          localStorage.removeItem("anytimellm-active-business-id");
+        })
+        .finally(() => {
+          setLoadingBusiness(false);
+        });
+    }
   }, []);
 
   const toggleTheme = () => {
@@ -92,15 +116,97 @@ export default function Dashboard() {
   const fetchBusinessData = async () => {
     if (!activeBusiness) return;
     try {
-      const [docsData, catalogData] = await Promise.all([
+      const [docsData, catalogData, ordersData, chatsData] = await Promise.all([
         api.getDocuments(activeBusiness.id),
-        api.getCatalog(activeBusiness.id)
+        api.getCatalog(activeBusiness.id),
+        api.getOrders(activeBusiness.id),
+        api.getChats(activeBusiness.id)
       ]);
       setDocuments(docsData);
       setCatalog(catalogData);
+      setOrders(ordersData);
+      setChats(chatsData);
     } catch (err: any) {
       console.error(err);
       setError("Failed to fetch business data. Check if backend server is running.");
+    }
+  };
+
+  const handleRefreshOrders = async () => {
+    if (!activeBusiness) return;
+    setLoadingOrders(true);
+    try {
+      const ordersData = await api.getOrders(activeBusiness.id);
+      setOrders(ordersData);
+    } catch (err) {
+      setError("Failed to refresh orders.");
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
+
+  const handleUpdateOrderStatus = async (orderId: string, status: 'pending' | 'confirmed' | 'cancelled') => {
+    if (!activeBusiness) return;
+    setUpdatingOrderId(orderId);
+    try {
+      await api.updateOrderStatus(activeBusiness.id, orderId, status);
+      const ordersData = await api.getOrders(activeBusiness.id);
+      setOrders(ordersData);
+    } catch (err) {
+      setError("Failed to update order status.");
+    } finally {
+      setUpdatingOrderId(null);
+    }
+  };
+
+  const handleRefreshChats = async () => {
+    if (!activeBusiness) return;
+    setLoadingChats(true);
+    try {
+      const chatsData = await api.getChats(activeBusiness.id);
+      setChats(chatsData);
+    } catch (err) {
+      setError("Failed to refresh WhatsApp chats.");
+    } finally {
+      setLoadingChats(false);
+    }
+  };
+
+  const handleSendManualReply = async (conversationId: string, content: string) => {
+    if (!activeBusiness) return;
+    try {
+      const newMsg = await api.sendChatMessage(activeBusiness.id, conversationId, content);
+      setChats(prevChats => prevChats.map(c => {
+        if (c.id === conversationId) {
+          return {
+            ...c,
+            last_message_content: content,
+            messages: [...c.messages, newMsg]
+          };
+        }
+        return c;
+      }));
+    } catch (err) {
+      setError("Failed to send manual WhatsApp reply.");
+      throw err;
+    }
+  };
+
+  const handleToggleChatPause = async (conversationId: string, isPaused: boolean) => {
+    if (!activeBusiness) return;
+    try {
+      const updated = await api.updateChatSettings(activeBusiness.id, conversationId, { is_ai_paused: isPaused });
+      setChats(prevChats => prevChats.map(c => {
+        if (c.id === conversationId) {
+          return {
+            ...c,
+            is_ai_paused: updated.is_ai_paused
+          };
+        }
+        return c;
+      }));
+    } catch (err) {
+      setError("Failed to toggle AI Agent pause state.");
     }
   };
 
@@ -112,6 +218,7 @@ export default function Dashboard() {
     try {
       const biz = await api.registerBusiness(businessName);
       setActiveBusiness(biz);
+      localStorage.setItem("anytimellm-active-business-id", biz.id);
     } catch (err: any) {
       setError(err.message || "Failed to register business.");
     } finally {
@@ -127,6 +234,7 @@ export default function Dashboard() {
     try {
       const biz = await api.getBusiness(businessIdInput.trim());
       setActiveBusiness(biz);
+      localStorage.setItem("anytimellm-active-business-id", biz.id);
     } catch (err: any) {
       setError("Business ID not found or database error.");
     } finally {
@@ -325,7 +433,10 @@ export default function Dashboard() {
       activeBusiness={activeBusiness}
       tab={tab}
       onTabChange={setTab}
-      onLogout={() => setActiveBusiness(null)}
+      onLogout={() => {
+        setActiveBusiness(null);
+        localStorage.removeItem("anytimellm-active-business-id");
+      }}
       error={error}
       onDismissError={() => setError(null)}
       theme={theme}
@@ -337,6 +448,7 @@ export default function Dashboard() {
             activeBusiness={activeBusiness}
             documents={documents}
             catalog={catalog}
+            orders={orders}
             copied={copied}
             copyToClipboard={copyToClipboard}
             onTabChange={setTab}
@@ -386,6 +498,24 @@ export default function Dashboard() {
           <IntegrationsTab
             activeBusiness={activeBusiness}
             copyToClipboard={copyToClipboard}
+          />
+        )}
+        {tab === "orders" && (
+          <OrdersTab
+            orders={orders}
+            loading={loadingOrders}
+            onRefresh={handleRefreshOrders}
+            onUpdateStatus={handleUpdateOrderStatus}
+            updatingOrderId={updatingOrderId}
+          />
+        )}
+        {tab === "chats" && (
+          <ChatsTab
+            chats={chats}
+            loading={loadingChats}
+            onRefresh={handleRefreshChats}
+            onSendReply={handleSendManualReply}
+            onTogglePause={handleToggleChatPause}
           />
         )}
       </TabTransition>
