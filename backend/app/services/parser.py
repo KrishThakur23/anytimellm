@@ -234,7 +234,7 @@ class ParserRegistry:
         self.register_parser("jpg", GoogleVisionOCRParser)
         self.register_parser("jpeg", GoogleVisionOCRParser)
         self.register_parser("html", HTMLParser)
-        self.register_parser("txt", BaseParser) # text is parsed directly
+        self.register_parser("txt", FallbackTextParser) # text is parsed directly
 
     def register_parser(self, extension: str, parser_class: Type[BaseParser]):
         self._parsers[extension.lower()] = parser_class
