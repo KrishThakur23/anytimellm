@@ -67,7 +67,7 @@ app.include_router(ingest.router)
 app.include_router(chat.router)
 app.include_router(webhook.router)
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def health_check():
     return {
         "status": "healthy",
