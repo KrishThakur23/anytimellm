@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { api, Business, CatalogItem, DocumentInfo, ChatMessage, Order, Conversation, Message } from "@/lib/api";
+import { api } from "@/lib/api";
+import type { Business, CatalogItem, DocumentInfo, ChatMessage, Order, Conversation, Message } from "@/lib/api";
 
 // Modular UI Components
 import OnboardingHero from "@/components/onboarding/OnboardingHero";
