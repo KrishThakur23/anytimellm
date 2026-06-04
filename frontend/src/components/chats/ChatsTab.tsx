@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
-import { Conversation } from "@/lib/api";
+import type { Conversation } from "@/lib/api";
 
 interface ChatsTabProps {
   chats: Conversation[];

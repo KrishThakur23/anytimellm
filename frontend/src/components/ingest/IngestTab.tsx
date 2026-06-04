@@ -3,7 +3,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import gsap from "gsap";
-import { DocumentInfo } from "@/lib/api";
+import type { DocumentInfo } from "@/lib/api";
 
 interface IngestTabProps {
   documents: DocumentInfo[];

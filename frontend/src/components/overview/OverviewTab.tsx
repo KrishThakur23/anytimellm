@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect } from "react";
 import gsap from "gsap";
-import { Business, CatalogItem, DocumentInfo, Order } from "@/lib/api";
+import type { Business, CatalogItem, DocumentInfo, Order } from "@/lib/api";
 import { Copy, Check } from "lucide-react";
 import AnimatedCounter from "../ui/AnimatedCounter";
 

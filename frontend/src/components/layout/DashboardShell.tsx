@@ -4,7 +4,7 @@ import React from "react";
 import Sidebar from "./Sidebar";
 import ErrorBanner from "../ui/ErrorBanner";
 import GradientOrb from "../effects/GradientOrb";
-import { Business } from "@/lib/api";
+import type { Business } from "@/lib/api";
 
 type Tab = "overview" | "ingest" | "catalog" | "playground" | "integrations" | "orders" | "chats";
 

@@ -3,7 +3,7 @@
 import React, { useRef, useEffect } from "react";
 import { Loader2, RefreshCw, ShoppingBag, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import gsap from "gsap";
-import { Order } from "@/lib/api";
+import type { Order } from "@/lib/api";
 
 interface OrdersTabProps {
   orders: Order[];

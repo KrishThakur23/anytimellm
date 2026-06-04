@@ -4,7 +4,7 @@ import React, { useRef, useEffect, useState } from "react";
 import { Send, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
-import { ChatMessage } from "@/lib/api";
+import type { ChatMessage } from "@/lib/api";
 
 interface PlaygroundTabProps {
   chatPhone: string;

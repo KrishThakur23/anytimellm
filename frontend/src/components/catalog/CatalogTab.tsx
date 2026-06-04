@@ -3,7 +3,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import gsap from "gsap";
-import { CatalogItem } from "@/lib/api";
+import type { CatalogItem } from "@/lib/api";
 
 interface CatalogTabProps {
   catalog: CatalogItem[];

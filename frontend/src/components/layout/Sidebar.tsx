@@ -15,7 +15,7 @@ import {
   Sun,
   Moon,
 } from "lucide-react";
-import { Business } from "@/lib/api";
+import type { Business } from "@/lib/api";
 
 type Tab = "overview" | "ingest" | "catalog" | "playground" | "integrations" | "orders" | "chats";
 

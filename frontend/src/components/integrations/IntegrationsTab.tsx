@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect, useState } from "react";
 import gsap from "gsap";
-import { Business } from "@/lib/api";
+import type { Business } from "@/lib/api";
 
 interface IntegrationsTabProps {
   activeBusiness: Business;
