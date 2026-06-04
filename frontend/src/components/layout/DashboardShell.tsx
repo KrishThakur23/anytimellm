@@ -32,23 +32,7 @@ export default function DashboardShell({
   children,
 }: DashboardShellProps) {
   return (
-    <div className="min-h-screen flex bg-oatmeal-bg text-ink-text relative transition-colors duration-300">
-      {/* Ambient orbs */}
-      <GradientOrb
-        color={theme === "dark" ? "rgba(5, 243, 173, 0.04)" : "rgba(181, 140, 61, 0.04)"}
-        size={500}
-        top="-100px"
-        right="-100px"
-        duration={25}
-      />
-      <GradientOrb
-        color={theme === "dark" ? "rgba(59, 130, 246, 0.03)" : "rgba(5, 243, 173, 0.03)"}
-        size={400}
-        top="60%"
-        left="-80px"
-        duration={30}
-      />
-
+    <div className="min-h-screen flex bg-black text-white relative">
       {/* Sidebar */}
       <Sidebar
         activeBusiness={activeBusiness}
@@ -60,10 +44,10 @@ export default function DashboardShell({
       />
 
       {/* Main Content */}
-      <main className="flex-1 p-8 overflow-y-auto max-w-6xl relative z-10 transition-colors duration-300">
+      <main className="flex-1 p-8 overflow-y-auto max-w-6xl relative z-10">
         {/* Grid pattern overlay */}
         <div
-          className="fixed inset-0 bg-grid-pattern pointer-events-none opacity-40 dark:opacity-40"
+          className="fixed inset-0 bg-grid-pattern pointer-events-none opacity-[0.03]"
           aria-hidden="true"
         />
 

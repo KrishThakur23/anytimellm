@@ -200,5 +200,15 @@ export const api = {
     });
     if (!res.ok) throw new Error("Failed to update conversation settings.");
     return res.json();
+  },
+
+  async updateBusinessSettings(businessId: string, settings: Record<string, any>): Promise<Business> {
+    const res = await fetch(`${BACKEND_URL}/api/businesses/${businessId}/settings`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(settings),
+    });
+    if (!res.ok) throw new Error("Failed to update business settings.");
+    return res.json();
   }
 };

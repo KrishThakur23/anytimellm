@@ -20,16 +20,16 @@ export default function ErrorBanner({ message, onDismiss }: ErrorBannerProps) {
           transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
           className="mb-6 overflow-hidden"
         >
-          <div className="p-4 bg-[var(--accent-red-muted)] border border-[var(--accent-red)]/25 rounded-xl flex justify-between items-center text-red-650 dark:text-red-200 text-sm backdrop-blur-sm shadow-sm">
+          <div className="p-4 bg-[var(--accent-red-muted)] border border-[var(--accent-red)]/25 rounded-none flex justify-between items-center text-red-650 dark:text-red-200 text-sm backdrop-blur-sm shadow-none">
             <div className="flex gap-2.5 items-center">
-              <div className="p-1.5 bg-red-500/10 rounded-lg">
+              <div className="p-1.5 bg-red-500/10 rounded-none">
                 <AlertCircle className="w-4 h-4 text-red-500 dark:text-red-400 shrink-0" />
               </div>
               <span className="font-semibold">{message}</span>
             </div>
             <button
               onClick={onDismiss}
-              className="p-1.5 hover:bg-red-500/10 rounded-lg text-zinc-550 dark:text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 transition"
+              className="p-1.5 hover:bg-red-500/10 rounded-none text-zinc-550 dark:text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 transition"
               aria-label="Dismiss error"
             >
               <X className="w-4 h-4" />

@@ -26,249 +26,225 @@ export default function OnboardingHero({
   error,
   handleCreateBusiness,
   handleLoadBusiness,
-  theme,
-  toggleTheme,
 }: OnboardingHeroProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
   const brandRef = useRef<HTMLDivElement>(null);
   const visualRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
-    // Subtle mouse interaction for background movement
-    const handleMouseMove = (e: MouseEvent) => {
-      const moveX = (e.clientX - window.innerWidth / 2) * 0.01;
-      const moveY = (e.clientY - window.innerHeight / 2) * 0.01;
-      const blurredShapes = document.querySelectorAll(".blur-shapes");
-      
-      blurredShapes.forEach((shape, index) => {
-        const speed = (index + 1) * 0.5;
-        gsap.to(shape, {
-          x: moveX * speed,
-          y: moveY * speed,
-          duration: 0.5,
-          ease: "power2.out"
-        });
-      });
-    };
-
-    document.addEventListener("mousemove", handleMouseMove);
-
-    // Initial load animations
-    const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+    // Premium reveal timeline with GSAP
+    const tl = gsap.timeline({ defaults: { ease: "power4.out" } });
+    
     tl.fromTo(
       brandRef.current,
-      { opacity: 0, y: -20 },
-      { opacity: 1, y: 0, duration: 0.8 }
-    ).fromTo(
-      ".onboarding-content-animate",
-      { opacity: 0, y: 20 },
-      { opacity: 1, y: 0, duration: 0.6, stagger: 0.1 },
-      "-=0.4"
-    ).fromTo(
-      visualRef.current,
-      { opacity: 0, scale: 0.95 },
-      { opacity: 1, scale: 1, duration: 0.8 },
-      "-=0.3"
+      { opacity: 0, y: -15 },
+      { opacity: 1, y: 0, duration: 1.0, delay: 0.2 }
     );
 
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-    };
+    if (headerRef.current) {
+      tl.fromTo(
+        headerRef.current,
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, duration: 1.2 },
+        "-=0.6"
+      );
+    }
+
+    tl.fromTo(
+      ".onboarding-animate-element",
+      { opacity: 0, y: 25 },
+      { opacity: 1, y: 0, duration: 0.8, stagger: 0.1 },
+      "-=0.8"
+    );
+
+    if (visualRef.current) {
+      tl.fromTo(
+        visualRef.current,
+        { opacity: 0, scale: 0.98 },
+        { opacity: 1, scale: 1, duration: 1.0 },
+        "-=0.6"
+      );
+    }
   }, []);
 
+  const onSubmitCreate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!businessName.trim()) return;
+    handleCreateBusiness(e);
+  };
+
+  const onSubmitLoad = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!businessIdInput.trim()) return;
+    handleLoadBusiness(e);
+  };
+
   return (
-    <div
-      ref={containerRef}
-      className="min-h-screen w-full flex flex-col bg-oatmeal-bg text-ink-text relative overflow-x-hidden transition-colors duration-300"
-    >
-      {/* Top Navigation Bar */}
-      <header className="fixed top-0 w-full z-50 bg-transparent h-16 flex items-center px-margin-mobile md:px-margin-desktop justify-between">
-        <div ref={brandRef} className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-ink-text text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>token</span>
-          <span className="font-headline-md text-headline-md text-ink-text tracking-tight font-extrabold">AnytimeLLM</span>
+    <div className="min-h-screen w-full flex flex-col bg-black text-white relative overflow-x-hidden">
+      {/* Background Hero Photo Band (Volumetric watch precision backdrop) */}
+      <div className="absolute inset-0 h-[65vh] w-full overflow-hidden z-0">
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-30 filter grayscale" 
+          style={{ backgroundImage: `url('/luxury_watch_precision.png')` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/60 to-black" />
+      </div>
+
+      {/* Top Navigation Bar: Minimal & Solid Background to prevent overlap */}
+      <header 
+        ref={brandRef} 
+        className="fixed top-0 w-full z-50 bg-black/95 backdrop-blur-md h-16 flex items-center justify-between px-8 border-b border-border-subtle/30"
+      >
+        <span className="font-mono text-[10px] tracking-[0.2em] text-muted-gold uppercase cursor-pointer hover:text-white transition-colors duration-300">MENU</span>
+        <div className="flex items-center gap-1">
+          <span className="font-display-lg text-sm tracking-[0.4em] font-medium uppercase text-white cursor-pointer">ANYTIMELLM</span>
         </div>
-        <div className="flex items-center gap-4">
-          <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest border-r border-border-subtle pr-4 mr-4 hidden md:inline">
-            Status: Operational
-          </span>
-          {/* Theme Toggle Button */}
-          <button
-            onClick={toggleTheme}
-            className="p-2.5 bg-parchment-surface dark:bg-surface-container hover:bg-surface-container-low text-ink-text rounded-full border border-border-subtle transition-all duration-200 shadow-sm"
-            title="Toggle Day/Night mode"
-          >
-            {theme === "dark" ? (
-              <span className="material-symbols-outlined text-[16px] text-amber-500 block">light_mode</span>
-            ) : (
-              <span className="material-symbols-outlined text-[16px] text-indigo-500 block">dark_mode</span>
-            )}
-          </button>
-        </div>
+        <span className="font-mono text-[10px] tracking-[0.2em] text-muted-gold uppercase cursor-pointer hover:text-white transition-colors duration-300">CONSOLE v1.0</span>
       </header>
 
-      {/* Main Content Area */}
-      <main className="relative flex-grow flex flex-col items-center justify-center pt-24 pb-20 px-margin-mobile">
-        {/* Abstract Background Graphic */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="blur-shapes absolute top-[15%] left-[10%] w-[600px] h-[600px] opacity-[0.05] rounded-full border border-primary blur-3xl"></div>
-          <div className="blur-shapes absolute bottom-[10%] right-[5%] w-[400px] h-[400px] opacity-[0.03] rounded-full border border-muted-gold blur-2xl"></div>
-          {/* Intelligent Grid Lines */}
-          <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: "linear-gradient(#000 0.5px, transparent 0.5px), linear-gradient(90deg, #000 0.5px, transparent 0.5px)", backgroundSize: "80px 80px" }}></div>
+      {/* Main Container */}
+      <main className="relative z-10 flex-grow flex flex-col items-center justify-start pt-32 pb-24 px-6 max-w-[1200px] mx-auto w-full">
+        {/* Tagline overlay */}
+        <div className="onboarding-animate-element mb-4 inline-flex items-center gap-2">
+          <span className="font-mono text-[10px] tracking-[0.2em] text-muted uppercase">MULTI-TENANT INGESTION GATEWAY</span>
         </div>
 
-        <div className="relative z-10 w-full max-w-4xl flex flex-col items-center text-center">
-          {/* Badge */}
-          <div className="onboarding-content-animate mb-6 inline-flex items-center gap-2 px-3 py-1 bg-surface-container/30 border border-border-subtle rounded-full">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="font-label-xs text-label-xs text-on-secondary-container uppercase tracking-widest font-bold">WhatsApp Assistant Platform</span>
+        {/* Big Display Headline */}
+        <h1 
+          ref={headerRef} 
+          className="font-display-lg text-4xl md:text-5xl lg:text-6xl text-white tracking-[0.08em] uppercase max-w-4xl text-center leading-[1.1] mb-6"
+        >
+          Automate Customer Service At High Precision
+        </h1>
+
+        {/* Running Serif Body */}
+        <p className="onboarding-animate-element font-body-lg text-lg text-on-surface-variant max-w-2xl text-center mb-16 leading-relaxed italic">
+          Deploy smart agents mapping your business catalog to WhatsApp in seconds. Universal parsing, relational memory, and vector-RAG orchestration.
+        </p>
+
+        {/* Error Banner */}
+        {error && (
+          <div className="onboarding-animate-element w-full max-w-4xl mb-8 p-4 bg-red-950/20 border border-red-900/40 rounded-none flex items-start gap-3 text-red-300 text-xs text-left">
+            <span className="material-symbols-outlined text-[16px] text-red-500 shrink-0 mt-0.5">error</span>
+            <span className="font-mono tracking-wider">{error}</span>
+          </div>
+        )}
+
+        {/* Main Interface Bento Grid */}
+        <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-12 gap-8 items-stretch mb-16">
+          {/* Create Assistant Form */}
+          <div className="onboarding-animate-element md:col-span-6 bg-surface-2 border border-border-subtle p-8 rounded-none text-left flex flex-col justify-between transition-colors hover:border-hairline-strong duration-300">
+            <div>
+              <span className="font-mono text-[9px] tracking-[0.2em] text-muted-gold uppercase">PHASE 01</span>
+              <h3 className="font-display-lg text-xl tracking-[0.1em] text-white uppercase mt-1 mb-3">NEW ASSISTANT</h3>
+              <p className="font-body-sm text-sm text-on-surface-variant mb-8 leading-relaxed">
+                Initialize a dedicated agent instance for your store or company. Type your brand name to spin up metadata and vector namespace.
+              </p>
+            </div>
+            <form onSubmit={onSubmitCreate} className="space-y-6">
+              <input
+                type="text"
+                placeholder="ENTER BUSINESS NAME"
+                value={businessName}
+                onChange={(e) => setBusinessName(e.target.value)}
+                className="w-full bg-transparent border-b border-border-subtle focus:border-white rounded-none py-3.5 text-xs text-white placeholder-muted-soft focus:outline-none tracking-widest uppercase transition-all duration-300"
+              />
+              <button
+                type="submit"
+                disabled={loadingBusiness}
+                className="w-full h-11 border border-white hover:bg-white hover:text-black rounded-none bg-transparent text-white font-mono text-xs tracking-[0.2em] uppercase flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-50 cursor-pointer"
+              >
+                {loadingBusiness ? (
+                  <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                ) : (
+                  "CREATE BUSINESS CONSOLE"
+                )}
+              </button>
+            </form>
           </div>
 
-          {/* Headline */}
-          <h1 className="onboarding-content-animate font-display-lg text-display-lg text-ink-text mb-4 max-w-2xl leading-tight font-extrabold">
-            Automatic WhatsApp Assistant for Your Shop
-          </h1>
-
-          {/* Value Prop */}
-          <p className="onboarding-content-animate font-body-lg text-body-lg text-on-surface-variant mb-10 max-w-xl font-semibold">
-            Let customers chat with your shop on WhatsApp! They can search your products, check prices, read details, and place orders automatically 24/7.
-          </p>
-
-          {/* Error Banner */}
-          {error && (
-            <div className="onboarding-content-animate w-full max-w-3xl mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start gap-2.5 text-red-700 dark:text-red-300 text-xs leading-relaxed text-left animate-pulse">
-              <span className="material-symbols-outlined text-[16px] text-red-500 shrink-0 mt-0.5">error</span>
-              <span>{error}</span>
+          {/* Open Assistant Form */}
+          <div className="onboarding-animate-element md:col-span-6 bg-surface-1 border border-border-subtle p-8 rounded-none text-left flex flex-col justify-between transition-colors hover:border-hairline-strong duration-300">
+            <div>
+              <span className="font-mono text-[9px] tracking-[0.2em] text-muted-gold uppercase">AUTHENTICATION</span>
+              <h3 className="font-display-lg text-xl tracking-[0.1em] text-white uppercase mt-1 mb-3">LOAD SESSION</h3>
+              <p className="font-body-sm text-sm text-on-surface-variant mb-8 leading-relaxed">
+                Re-enter your secure workspace. Paste your private credentials to open configured documents, catalogs, and logs.
+              </p>
             </div>
-          )}
-
-          {/* Onboarding Bento Box Grid Layout */}
-          <div className="onboarding-content-animate grid grid-cols-1 md:grid-cols-12 gap-gutter w-full max-w-3xl px-2">
-            {/* Primary Action Card: Initialize Tenant */}
-            <div className="md:col-span-7 bg-parchment-surface dark:bg-surface-container border border-border-subtle p-8 text-left flex flex-col justify-between transition-all duration-300 hover:bg-white dark:hover:bg-surface-container-high rounded shadow-[0_1px_2px_rgba(0,0,0,0.02)] hover:scale-[1.01] hover:border-emerald-500/40">
-              <div>
-                <h3 className="font-headline-md text-headline-md text-ink-text mb-2 font-black">🆕 Create New Shop Assistant</h3>
-                <p className="font-body-md text-on-surface-variant mb-8 text-xs leading-relaxed font-bold">
-                  Create a smart assistant for your shop in 10 seconds! Type your shop's name below to begin.
-                </p>
-              </div>
-              <form onSubmit={handleCreateBusiness} className="space-y-4">
-                <input
-                  type="text"
-                  placeholder=""
-                  value={businessName}
-                  onChange={(e) => setBusinessName(e.target.value)}
-                  className="w-full bg-oatmeal-bg dark:bg-surface-container-low border border-border-subtle rounded-md px-4 py-3.5 text-xs focus:outline-none focus:border-emerald-500 text-ink-text placeholder:text-outline transition-all duration-200 font-bold"
-                />
-                <button
-                  type="submit"
-                  disabled={loadingBusiness}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs py-4 px-6 rounded-md flex items-center justify-center gap-2 transition-all active:scale-[0.95] hover:scale-[1.01] disabled:opacity-50 uppercase tracking-wider shadow-[0_4px_15px_rgba(16,185,129,0.3)] border-none cursor-pointer"
-                >
-                  {loadingBusiness ? (
-                    <Loader2 className="w-4 h-4 animate-spin shrink-0" />
-                  ) : (
-                    <>
-                      🚀 CREATE MY SHOP CHATBOT (सहायक बनाएं)
-                      <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-                    </>
-                  )}
-                </button>
-              </form>
-            </div>
-
-            {/* Secondary Action Card: Resume Tenant */}
-            <div className="md:col-span-5 bg-surface-container-low dark:bg-surface-container border border-border-subtle p-8 text-left flex flex-col justify-between transition-all duration-300 rounded shadow-[0_1px_2px_rgba(0,0,0,0.02)] hover:scale-[1.01] hover:border-blue-500/40">
-              <div>
-                <h3 className="font-headline-md text-headline-md text-ink-text mb-2 font-black">🔑 Open Existing Shop</h3>
-                <p className="font-body-md text-on-surface-variant mb-6 text-xs leading-relaxed font-bold">
-                  Enter your secret Shop ID key below to open your assistant settings.
-                </p>
-              </div>
-              <form onSubmit={handleLoadBusiness} className="space-y-4">
-                <input
-                  type="text"
-                  placeholder=""
-                  value={businessIdInput}
-                  onChange={(e) => setBusinessIdInput(e.target.value)}
-                  className="w-full bg-parchment-surface dark:bg-surface-container-low border border-border-subtle rounded-md px-4 py-3.5 text-xs focus:outline-none focus:border-blue-500 text-ink-text placeholder:text-outline font-mono transition-all duration-200 font-bold"
-                />
-                <button
-                  type="submit"
-                  disabled={loadingBusiness}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black text-xs py-4 px-6 rounded-md flex items-center justify-center gap-2 transition-all active:scale-[0.95] hover:scale-[1.01] disabled:opacity-50 uppercase tracking-wider shadow-[0_4px_15px_rgba(37,99,235,0.3)] border-none cursor-pointer"
-                >
-                  {loadingBusiness ? (
-                    <Loader2 className="w-4 h-4 animate-spin shrink-0" />
-                  ) : (
-                    "🔓 OPEN MY SHOP SETTINGS"
-                  )}
-                </button>
-              </form>
-            </div>
+            <form onSubmit={onSubmitLoad} className="space-y-6">
+              <input
+                type="text"
+                placeholder="PASTE SECRET SHOP ID"
+                value={businessIdInput}
+                onChange={(e) => setBusinessIdInput(e.target.value)}
+                className="w-full bg-transparent border-b border-border-subtle focus:border-white rounded-none py-3.5 text-xs font-mono text-white placeholder-muted-soft focus:outline-none tracking-widest uppercase transition-all duration-300"
+              />
+              <button
+                type="submit"
+                disabled={loadingBusiness}
+                className="w-full h-11 border border-white hover:bg-white hover:text-black rounded-none bg-transparent text-white font-mono text-xs tracking-[0.2em] uppercase flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-50 cursor-pointer"
+              >
+                {loadingBusiness ? (
+                  <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                ) : (
+                  "OPEN CONSOLE"
+                )}
+              </button>
+            </form>
           </div>
-
-          {/* Step-by-Step Flowchart */}
-          <div ref={visualRef} className="mt-10 w-full max-w-3xl bg-parchment-surface dark:bg-surface-container border border-border-subtle rounded-2xl p-6 shadow-md hover:scale-[1.01] hover:border-emerald-500/40 transition-all duration-300 relative overflow-hidden">
-            <h4 className="font-black text-xs text-ink-text uppercase tracking-widest mb-6 text-center flex items-center justify-center gap-2">
-              <span className="material-symbols-outlined text-[16px] text-emerald-500 animate-pulse">sync_alt</span>
-              How Your Shop Chatbot Works (यह कैसे काम करता है)
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-7 gap-3 items-center">
-              {/* Step 1 */}
-              <div className="md:col-span-1 flex flex-col items-center p-4 rounded-xl bg-surface-container-low dark:bg-surface-container-high border border-border-subtle hover:border-blue-500 hover:shadow-[0_4px_12px_rgba(59,130,246,0.15)] transition-all duration-200 cursor-pointer">
-                <span className="material-symbols-outlined text-[28px] text-blue-500 mb-2">forum</span>
-                <span className="text-[10px] font-black text-ink-text text-center whitespace-nowrap">1. Customer Chats</span>
-                <span className="text-[9px] text-on-surface-variant text-center font-bold mt-1">ग्राहक सवाल पूछता है</span>
-              </div>
-              {/* Arrow */}
-              <div className="md:col-span-1 hidden md:flex justify-center text-on-surface-variant/40">
-                <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
-              </div>
-              {/* Step 2 */}
-              <div className="md:col-span-1 flex flex-col items-center p-4 rounded-xl bg-surface-container-low dark:bg-surface-container-high border border-border-subtle hover:border-purple-500 hover:shadow-[0_4px_12px_rgba(168,85,247,0.15)] transition-all duration-200 cursor-pointer">
-                <span className="material-symbols-outlined text-[28px] text-purple-500 mb-2">send_to_mobile</span>
-                <span className="text-[10px] font-black text-ink-text text-center whitespace-nowrap">2. Sent via WhatsApp</span>
-                <span className="text-[9px] text-on-surface-variant text-center font-bold mt-1">व्हाट्सएप पर जाता है</span>
-              </div>
-              {/* Arrow */}
-              <div className="md:col-span-1 hidden md:flex justify-center text-on-surface-variant/40">
-                <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
-              </div>
-              {/* Step 3 */}
-              <div className="md:col-span-1 flex flex-col items-center p-4 rounded-xl bg-surface-container-low dark:bg-surface-container-high border border-border-subtle hover:border-amber-500 hover:shadow-[0_4px_12px_rgba(245,158,11,0.15)] transition-all duration-200 cursor-pointer">
-                <span className="material-symbols-outlined text-[28px] text-amber-500 mb-2">smart_toy</span>
-                <span className="text-[10px] font-black text-ink-text text-center whitespace-nowrap">3. Chatbot Answers</span>
-                <span className="text-[9px] text-on-surface-variant text-center font-bold mt-1">रोबोट जवाब देता है</span>
-              </div>
-              {/* Arrow */}
-              <div className="md:col-span-1 hidden md:flex justify-center text-on-surface-variant/40">
-                <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
-              </div>
-              {/* Step 4 */}
-              <div className="md:col-span-1 flex flex-col items-center p-4 rounded-xl bg-surface-container-low dark:bg-surface-container-high border border-border-subtle hover:border-emerald-500 hover:shadow-[0_4px_12px_rgba(16,185,129,0.15)] transition-all duration-200 cursor-pointer">
-                <span className="material-symbols-outlined text-[28px] text-emerald-500 mb-2">task_alt</span>
-                <span className="text-[10px] font-black text-ink-text text-center whitespace-nowrap">4. Happy Customer</span>
-                <span className="text-[9px] text-on-surface-variant text-center font-bold mt-1">ग्राहक खुश!</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Footer Info */}
-          <footer className="mt-10 flex flex-wrap justify-center gap-x-8 gap-y-4 text-on-surface-variant font-bold">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 rounded-full shadow-sm hover:scale-105 transition-transform">
-              <span className="material-symbols-outlined text-[16px] text-emerald-500 font-bold">verified_user</span>
-              <span className="font-label-xs text-[10px] uppercase font-black tracking-wider">🔒 Safe & Secure (100% सुरक्षित)</span>
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20 rounded-full shadow-sm hover:scale-105 transition-transform">
-              <span className="material-symbols-outlined text-[16px] text-blue-500 font-bold">cloud_done</span>
-              <span className="font-label-xs text-[10px] uppercase font-black tracking-wider">⚡ Super Fast (बहुत तेज़)</span>
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-500/20 rounded-full shadow-sm hover:scale-105 transition-transform">
-              <span className="material-symbols-outlined text-[16px] text-purple-500 font-bold">dns</span>
-              <span className="font-label-xs text-[10px] uppercase font-black tracking-wider">💬 Works on WhatsApp (व्हाट्सएप पर चालू)</span>
-            </div>
-          </footer>
         </div>
+
+        {/* System Capabilities Section */}
+        <div 
+          ref={visualRef} 
+          className="w-full max-w-4xl bg-surface-2 border border-border-subtle rounded-none p-8 relative overflow-hidden mb-12"
+        >
+          <h4 className="font-mono text-[10px] tracking-[0.2em] text-white uppercase mb-8 text-center flex items-center justify-center gap-2">
+            SYSTEM SEQUENCE & CAPABILITIES
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {/* Step 1 */}
+            <div className="flex flex-col items-start p-5 bg-black/40 border border-border-subtle rounded-none hover:border-white transition-all duration-300 cursor-pointer">
+              <span className="font-mono text-[10px] tracking-widest text-muted mb-2">01 / INGESTION</span>
+              <span className="font-display-lg text-sm text-white tracking-widest uppercase mb-1">Crawl & Parse</span>
+              <span className="font-body-sm text-xs text-on-surface-variant leading-relaxed">
+                Feed unstructured docs, URLs or files. Raw data is cleaned instantly.
+              </span>
+            </div>
+            {/* Step 2 */}
+            <div className="flex flex-col items-start p-5 bg-black/40 border border-border-subtle rounded-none hover:border-white transition-all duration-300 cursor-pointer">
+              <span className="font-mono text-[10px] tracking-widest text-muted mb-2">02 / INDEXING</span>
+              <span className="font-display-lg text-sm text-white tracking-widest uppercase mb-1">Vector DB</span>
+              <span className="font-body-sm text-xs text-on-surface-variant leading-relaxed">
+                Embedded data indexed in Pinecone namespaces with low latency.
+              </span>
+            </div>
+            {/* Step 3 */}
+            <div className="flex flex-col items-start p-5 bg-black/40 border border-border-subtle rounded-none hover:border-white transition-all duration-300 cursor-pointer">
+              <span className="font-mono text-[10px] tracking-widest text-muted mb-2">03 / COGNITION</span>
+              <span className="font-display-lg text-sm text-white tracking-widest uppercase mb-1">LangGraph RAG</span>
+              <span className="font-body-sm text-xs text-on-surface-variant leading-relaxed">
+                Gemini routes reasoning loops through relational catalogs.
+              </span>
+            </div>
+            {/* Step 4 */}
+            <div className="flex flex-col items-start p-5 bg-black/40 border border-border-subtle rounded-none hover:border-white transition-all duration-300 cursor-pointer">
+              <span className="font-mono text-[10px] tracking-widest text-muted mb-2">04 / DELIVERY</span>
+              <span className="font-display-lg text-sm text-white tracking-widest uppercase mb-1">WhatsApp Webhook</span>
+              <span className="font-body-sm text-xs text-on-surface-variant leading-relaxed">
+                Respond to queries, look up catalog items, and process orders 24/7.
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Minimal Footer Info */}
+        <footer className="onboarding-animate-element flex flex-wrap justify-center gap-x-8 gap-y-4 text-muted text-[10px] font-mono tracking-widest uppercase border-t border-border-subtle/30 pt-8 w-full">
+          <span>🔒 END-TO-END SECURITY</span>
+          <span>⚡ MOCK-COMPATIBLE RUNTIME</span>
+          <span>💬 WHATSAPP CLOUD API READY</span>
+        </footer>
       </main>
     </div>
   );

@@ -1,10 +1,5 @@
 @import "tailwindcss";
 
-/* ═══════════════════════════════════════════════════════════════════
-   AnytimeLLM Premium Warm Minimalist "Clay & Linen" Design System
-   Sleek Beige Day Mode + Warm Obsidian-Charcoal Dark Mode
-   ═══════════════════════════════════════════════════════════════════ */
-
 @theme {
   --color-theme-bg: var(--background);
   --color-theme-fg: var(--foreground);
@@ -16,154 +11,156 @@
   --color-theme-primary: var(--primary);
   --color-theme-secondary: var(--secondary);
 
-  /* Font Families matching Stitch */
-  --font-display-lg: 'Geist', sans-serif;
-  --font-headline-lg: 'Geist', sans-serif;
-  --font-headline-md: 'Geist', sans-serif;
-  --font-body-lg: 'Inter', sans-serif;
-  --font-body-md: 'Inter', sans-serif;
+  /* Font Families matching Bugatti Trinity */
+  --font-display-lg: 'Saira Condensed', sans-serif;
+  --font-headline-lg: 'Saira Condensed', sans-serif;
+  --font-headline-md: 'Saira Condensed', sans-serif;
+  --font-body-lg: 'EB Garamond', serif;
+  --font-body-md: 'EB Garamond', serif;
   --font-label-sm: 'JetBrains Mono', monospace;
-  --font-label-xs: 'Inter', sans-serif;
+  --font-label-xs: 'JetBrains Mono', monospace;
 
-  /* Custom Color Mappings from Stitch */
-  --color-oatmeal-bg: var(--oatmeal-bg);
-  --color-ink-text: var(--ink-text);
-  --color-parchment-surface: var(--parchment-surface);
-  --color-muted-gold: var(--muted-gold);
-  --color-slate-accent: var(--slate-accent);
-  --color-border-subtle: var(--border-subtle);
+  /* Custom Color Mappings from Bugatti Theme */
+  --color-oatmeal-bg: var(--background);
+  --color-ink-text: var(--foreground);
+  --color-parchment-surface: var(--surface-1);
+  --color-muted-gold: var(--muted);
+  --color-slate-accent: var(--text-muted);
+  --color-border-subtle: var(--border);
   --color-primary-fixed-dim: var(--primary);
   --color-on-surface-variant: var(--text-secondary);
 
-  --color-surface-container-lowest: var(--surface-container-lowest);
-  --color-surface-container-low: var(--surface-container-low);
-  --color-surface-container: var(--surface-container);
-  --color-surface-container-high: var(--surface-container-high);
-  --color-surface-container-highest: var(--surface-container-highest);
+  --color-surface-container-lowest: var(--surface-0);
+  --color-surface-container-low: var(--surface-1);
+  --color-surface-container: var(--surface-2);
+  --color-surface-container-high: var(--surface-3);
+  --color-surface-container-highest: var(--surface-3);
 }
 
 :root {
-  /* ── Light Mode default (Warm Linen & Earthy Terracotta) ────────── */
-  --background: hsl(36, 33%, 95.5%);      /* Warm Cream Linen */
-  --foreground: hsl(24, 15%, 12%);        /* Deep Earthy Charcoal */
+  /* Bugatti is pure black floor dark mode only */
+  --background: #000000;
+  --foreground: #ffffff;
 
-  /* Progressive warm clay elevations */
-  --surface-0: rgba(247, 244, 235, 0.75);
-  --surface-1: hsl(36, 22%, 91.5%);       /* Warm Sand-Clay */
-  --surface-2: hsl(0, 0%, 100%);          /* Crisp Ivory */
-  --surface-3: hsl(36, 18%, 86.5%);
+  --surface-0: #000000;
+  --surface-1: #0d0d0d;
+  --surface-2: #141414;
+  --surface-3: #1f1f1f;
 
-  /* Borders & Highlights */
-  --border: hsl(36, 15%, 83%);
-  --border-subtle: rgba(42, 36, 33, 0.045);
-  --border-hover: rgba(217, 107, 39, 0.55);
+  --border: #262626;
+  --border-subtle: #262626;
+  --border-hover: #3a3a3a;
 
-  /* Primary Brand (Sleek Bronze & Earthy Clay-Terracotta) */
-  --primary: hsl(24, 75%, 46%);          /* Terracotta Clay */
-  --primary-hover: hsl(24, 85%, 38%);
-  --primary-muted: rgba(217, 107, 39, 0.08);
-  --primary-glow: rgba(217, 107, 39, 0.18);
+  --primary: #ffffff;
+  --primary-hover: #e6e6e6;
+  --primary-muted: rgba(255, 255, 255, 0.08);
+  --primary-glow: rgba(255, 255, 255, 0.12);
 
-  --secondary: hsl(43, 60%, 38%);        /* Rich Warm Bronze */
-  --secondary-glow: rgba(181, 140, 61, 0.15);
+  --secondary: #ffffff;
 
-  /* Semantic Highlights (Adjusted for high-contrast beige backing) */
-  --accent-green: hsl(142, 70%, 28%);     /* Deep Forest Green */
-  --accent-green-muted: rgba(21, 128, 61, 0.08);
-  --accent-blue: hsl(220, 75%, 38%);      /* Elegant Deep Cobalt */
-  --accent-blue-muted: rgba(29, 78, 216, 0.08);
-  --accent-amber: hsl(35, 85%, 36%);      /* Burnt Amber */
-  --accent-amber-muted: rgba(180, 83, 9, 0.08);
-  --accent-red: hsl(0, 75%, 38%);         /* Rust Red */
-  --accent-red-muted: rgba(185, 28, 28, 0.08);
+  /* Semantic Highlights */
+  --accent-green: #5fa657;
+  --accent-green-muted: rgba(95, 166, 87, 0.1);
+  --accent-blue: #c3d9f3;
+  --accent-blue-muted: rgba(195, 217, 243, 0.15);
+  --accent-amber: #d4a017;
+  --accent-amber-muted: rgba(212, 160, 23, 0.1);
+  --accent-red: #ef4444;
+  --accent-red-muted: rgba(239, 68, 68, 0.1);
 
-  /* Typography */
-  --text-primary: hsl(24, 15%, 12%);
-  --text-secondary: hsl(24, 10%, 32%);
-  --text-muted: hsl(24, 8%, 46%);
-  --text-ghost: hsl(24, 6%, 72%);
+  --text-primary: #ffffff;
+  --text-secondary: #cccccc;
+  --text-muted: #999999;
+  --text-ghost: #666666;
 
-  /* Radii & Shadows */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
-  --radius-2xl: 24px;
+  /* Sharp corner radii globally - No rounding */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
 
-  --shadow-glow-sm: 0 0 20px -5px rgba(217, 107, 39, 0.1);
-  --shadow-glow-md: 0 0 40px -10px rgba(217, 107, 39, 0.12);
-  --shadow-glow-lg: 0 8px 60px -15px rgba(181, 140, 61, 0.12);
-  --shadow-elevation: 0 4px 20px -2px rgba(42, 36, 33, 0.06);
+  --shadow-glow-sm: none;
+  --shadow-glow-md: none;
+  --shadow-glow-lg: none;
+  --shadow-elevation: none;
 
-  /* Stitch Custom Color Tokens - Light */
-  --oatmeal-bg: #F9F9F7;
-  --ink-text: #080808;
-  --parchment-surface: #FEFEFB;
-  --muted-gold: #B5A47A;
-  --slate-accent: #5E676E;
-  --border-subtle: rgba(0, 0, 0, 0.06);
+  /* Stitch Custom Color Tokens - Pure Black / Grey */
+  --oatmeal-bg: #000000;
+  --ink-text: #ffffff;
+  --parchment-surface: #0d0d0d;
+  --muted-gold: #999999;
+  --slate-accent: #666666;
+  --border-subtle: #262626;
 
-  --surface-container-lowest: #ffffff;
-  --surface-container-low: #f5f4ed;
-  --surface-container: #efeee7;
-  --surface-container-high: #eae8e2;
-  --surface-container-highest: #e4e2dc;
+  --surface-container-lowest: #000000;
+  --surface-container-low: #0d0d0d;
+  --surface-container: #141414;
+  --surface-container-high: #1f1f1f;
+  --surface-container-highest: #1f1f1f;
 }
 
 .dark {
-  /* ── Dark Mode Override (Obsidian Warm Charcoal & Gold-Bronze) ───── */
-  --background: hsl(24, 10%, 6%);        /* Rich Warm Charcoal */
-  --foreground: hsl(36, 30%, 94%);        /* Warm Sand Linen */
+  /* Same dark variables for consistency */
+  --background: #000000;
+  --foreground: #ffffff;
 
-  --surface-0: hsl(24, 10%, 8.5%);
-  --surface-1: hsl(24, 8%, 11.5%);
-  --surface-2: hsl(24, 6%, 15.5%);
-  --surface-3: hsl(24, 6%, 19.5%);
+  --surface-0: #000000;
+  --surface-1: #0d0d0d;
+  --surface-2: #141414;
+  --surface-3: #1f1f1f;
 
-  --border: hsl(24, 8%, 17.5%);
-  --border-subtle: rgba(245, 238, 220, 0.035);
-  --border-hover: rgba(242, 122, 53, 0.4);
+  --border: #262626;
+  --border-subtle: #262626;
+  --border-hover: #3a3a3a;
 
-  --primary: hsl(24, 85%, 58%);          /* Glowing Terracotta */
-  --primary-hover: hsl(24, 90%, 68%);
-  --primary-muted: rgba(242, 122, 53, 0.12);
-  --primary-glow: rgba(242, 122, 53, 0.25);
+  --primary: #ffffff;
+  --primary-hover: #e6e6e6;
+  --primary-muted: rgba(255, 255, 255, 0.08);
+  --primary-glow: rgba(255, 255, 255, 0.12);
 
-  --secondary: hsl(43, 75%, 48%);        /* Glowing Gold-Bronze */
-  --secondary-glow: rgba(217, 160, 48, 0.25);
+  --secondary: #ffffff;
 
-  --accent-green: hsl(150, 80%, 42%);     /* Luminous Mint Green */
-  --accent-green-muted: rgba(16, 185, 129, 0.1);
-  --accent-blue: hsl(215, 90%, 58%);      /* Electric Sapphire */
-  --accent-blue-muted: rgba(59, 130, 246, 0.1);
-  --accent-amber: hsl(43, 75%, 48%);
-  --accent-amber-muted: rgba(217, 160, 48, 0.1);
-  --accent-red: hsl(0, 85%, 58%);         /* Crimson Rust */
+  /* Semantic Highlights */
+  --accent-green: #5fa657;
+  --accent-green-muted: rgba(95, 166, 87, 0.1);
+  --accent-blue: #c3d9f3;
+  --accent-blue-muted: rgba(195, 217, 243, 0.15);
+  --accent-amber: #d4a017;
+  --accent-amber-muted: rgba(212, 160, 23, 0.1);
+  --accent-red: #ef4444;
   --accent-red-muted: rgba(239, 68, 68, 0.1);
 
-  --text-primary: hsl(36, 30%, 94%);
-  --text-secondary: hsl(36, 15%, 74%);
-  --text-muted: hsl(36, 10%, 54%);
-  --text-ghost: hsl(36, 8%, 32%);
+  --text-primary: #ffffff;
+  --text-secondary: #cccccc;
+  --text-muted: #999999;
+  --text-ghost: #666666;
 
-  --shadow-glow-sm: 0 0 20px -5px rgba(242, 122, 53, 0.15);
-  --shadow-glow-md: 0 0 40px -10px rgba(242, 122, 53, 0.2);
-  --shadow-glow-lg: 0 8px 60px -15px rgba(217, 160, 48, 0.22);
-  --shadow-elevation: 0 6px 30px -4px rgba(0, 0, 0, 0.85);
+  /* Sharp corner radii globally - No rounding */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
 
-  /* Stitch Custom Color Tokens - Dark */
-  --oatmeal-bg: hsl(24, 10%, 6%);
-  --ink-text: hsl(36, 30%, 94%);
-  --parchment-surface: hsl(24, 10%, 8.5%);
-  --muted-gold: #B5A47A;
-  --slate-accent: #5E676E;
-  --border-subtle: rgba(255, 255, 255, 0.06);
+  --shadow-glow-sm: none;
+  --shadow-glow-md: none;
+  --shadow-glow-lg: none;
+  --shadow-elevation: none;
 
-  --surface-container-lowest: hsl(24, 10%, 8.5%);
-  --surface-container-low: hsl(24, 8%, 11.5%);
-  --surface-container: hsl(24, 6%, 15.5%);
-  --surface-container-high: hsl(24, 6%, 19.5%);
-  --surface-container-highest: hsl(24, 6%, 22.5%);
+  /* Stitch Custom Color Tokens - Pure Black / Grey */
+  --oatmeal-bg: #000000;
+  --ink-text: #ffffff;
+  --parchment-surface: #0d0d0d;
+  --muted-gold: #999999;
+  --slate-accent: #666666;
+  --border-subtle: #262626;
+
+  --surface-container-lowest: #000000;
+  --surface-container-low: #0d0d0d;
+  --surface-container: #141414;
+  --surface-container-high: #1f1f1f;
+  --surface-container-highest: #1f1f1f;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -173,7 +170,7 @@
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'EB Garamond', Garamond, "Times New Roman", serif;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -283,54 +280,39 @@ body {
    ═══════════════════════════════════════════════════════════════════ */
 
 .text-gradient-primary {
-  background: linear-gradient(135deg, hsl(24, 75%, 46%), hsl(43, 60%, 38%), hsl(24, 85%, 58%));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #ffffff;
 }
 
 .dark .text-gradient-primary {
-  background: linear-gradient(135deg, hsl(24, 85%, 58%), hsl(43, 75%, 48%), hsl(36, 30%, 94%));
+  color: #ffffff;
 }
 
 .text-gradient-hero {
-  background: linear-gradient(135deg, hsl(43, 75%, 48%) 0%, hsl(24, 75%, 46%) 40%, hsl(24, 85%, 58%) 70%, hsl(36, 33%, 95.5%) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #ffffff;
 }
 
 .dark .text-gradient-hero {
-  background: linear-gradient(135deg, hsl(36, 30%, 94%) 0%, hsl(24, 85%, 58%) 40%, hsl(43, 75%, 48%) 70%, hsl(24, 75%, 46%) 100%);
+  color: #ffffff;
 }
 
 .bg-grid-pattern {
   background-image: 
-    linear-gradient(rgba(217, 107, 39, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(217, 107, 39, 0.02) 1px, transparent 1px);
-  background-size: 50px 50px;
+    linear-gradient(rgba(255, 255, 255, 0.003) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.003) 1px, transparent 1px);
+  background-size: 80px 80px;
 }
 
 .dark .bg-grid-pattern {
   background-image: 
-    linear-gradient(rgba(242, 122, 53, 0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(242, 122, 53, 0.015) 1px, transparent 1px);
+    linear-gradient(rgba(255, 255, 255, 0.003) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.003) 1px, transparent 1px);
 }
 
 /* Stitch Redesign Utility Classes */
 .grainy-gradient {
-  background: linear-gradient(to bottom right, var(--background), var(--surface-container-low));
-  position: relative;
-}
-.grainy-gradient::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  opacity: 0.025;
-  pointer-events: none;
-  background-image: url("https://www.transparenttextures.com/patterns/asfalt-dark.png");
+  background: #000000;
 }
 .hairline-border {
-  border: 0.5px solid var(--border-subtle);
+  border: 1px solid var(--border-subtle);
 }
 

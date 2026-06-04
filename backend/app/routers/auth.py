@@ -41,6 +41,31 @@ def get_business_details(business_id: UUID, db: Session = Depends(get_db)):
     return biz
 
 
+@router.patch("/{business_id}/settings", response_model=BusinessOut)
+def update_business_settings(business_id: UUID, payload: dict, db: Session = Depends(get_db)):
+    """Update custom API settings (system prompt, model, temperature, etc.) for a business."""
+    biz = db.query(Business).filter(Business.id == business_id).first()
+    if not biz:
+        raise HTTPException(status_code=404, detail="Business not found.")
+    
+    settings_data = dict(biz.api_settings or {})
+    for k, v in payload.items():
+        settings_data[k] = v
+        
+    try:
+        biz.api_settings = settings_data
+        from sqlalchemy.orm.attributes import flag_modified
+        flag_modified(biz, "api_settings")
+        db.commit()
+        db.refresh(biz)
+        return biz
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error updating settings: {e}")
+        raise HTTPException(status_code=500, detail="Could not update business settings.")
+
+
+
 @router.post("/{business_id}/catalog", response_model=CatalogOut, status_code=status.HTTP_201_CREATED)
 def add_catalog_item(business_id: UUID, payload: CatalogCreate, db: Session = Depends(get_db)):
     """Add a menu item, subscription, or catalog asset to the business's relational data store."""

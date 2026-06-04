@@ -20,11 +20,15 @@ try:
     logger.info("Database tables initialized successfully.")
     
     # Safe migration: add column is_ai_paused if it does not exist
-    from sqlalchemy import text
-    with engine.connect() as conn:
-        conn.execute(text("ALTER TABLE conversations ADD COLUMN IF NOT EXISTS is_ai_paused BOOLEAN DEFAULT FALSE;"))
-        conn.commit()
-    logger.info("Database migration check completed successfully.")
+    try:
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            if "sqlite" not in str(engine.url):
+                conn.execute(text("ALTER TABLE conversations ADD COLUMN IF NOT EXISTS is_ai_paused BOOLEAN DEFAULT FALSE;"))
+                conn.commit()
+        logger.info("Database migration check completed successfully.")
+    except Exception as migration_error:
+        logger.warning(f"Database migration check skipped or failed: {migration_error}")
 except Exception as e:
     logger.error(f"Failed database table creation: {e}. Please ensure PostgreSQL is running.")
 
