@@ -90,7 +90,7 @@ The repository includes a `docker-compose.yml` file that provisions a pre-config
    A virtual environment (`venv`) is already present in the workspace root. Run the appropriate command for your terminal:
    * **PowerShell**:
      ```powershell
-     ..\venv\Scripts\Activate.ps1
+     
      ```
    * **CMD / Command Prompt**:
      ```cmd
@@ -107,7 +107,7 @@ The repository includes a `docker-compose.yml` file that provisions a pre-config
    ```
 3. **Start the FastAPI Application**:
    Run uvicorn to start the local development server:
-   ```powershell
+   ```powershell..\venv\Scripts\Activate.ps1
    python -m app.main
    ```
    *Alternatively, you can run:*

@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     # Google Cloud Vision Config
     GOOGLE_VISION_API_KEY: str = Field(default="")
     GOOGLE_APPLICATION_CREDENTIALS: str = Field(default="")
+    GOOGLE_SERVICE_ACCOUNT_JSON: str = Field(default="")
     
     PORT: int = 8000
     HOST: str = "0.0.0.0"

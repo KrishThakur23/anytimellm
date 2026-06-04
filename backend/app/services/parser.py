@@ -80,6 +80,31 @@ class GoogleVisionOCRParser(BaseParser):
         logger.info(f"Parsing Image {filename} using Google Cloud Vision OCR")
         
         # 1. Attempt using Service Account credentials via official Client Library
+        from google.cloud import vision
+        import json
+        
+        # Try loading raw JSON string from environment variable first
+        json_str = settings.GOOGLE_SERVICE_ACCOUNT_JSON
+        if json_str:
+            try:
+                logger.info("Initializing Google Vision client with GOOGLE_SERVICE_ACCOUNT_JSON environment variable.")
+                service_account_info = json.loads(json_str)
+                client = vision.ImageAnnotatorClient.from_service_account_info(service_account_info)
+                image = vision.Image(content=file_content)
+                response = client.text_detection(image=image)
+                
+                if response.error.message:
+                    logger.error(f"Google Cloud Vision Service Account API Error: {response.error.message}")
+                else:
+                    text_annotations = response.text_annotations
+                    if not text_annotations:
+                        logger.info(f"No text detected by Google Vision OCR in {filename}")
+                        return ""
+                    return text_annotations[0].description.strip()
+            except Exception as e:
+                logger.error(f"Google Cloud Vision client initialization via JSON string failed: {e}. Trying file path fallback.")
+
+        # Fallback to file path credentials if raw JSON string is not set
         from pathlib import Path
         credentials_path = settings.GOOGLE_APPLICATION_CREDENTIALS
         resolved_path = None
@@ -90,7 +115,6 @@ class GoogleVisionOCRParser(BaseParser):
                 resolved_path = str(p.resolve())
             else:
                 # Check relative to backend folder and workspace root
-                # parser.py is at: backend/app/services/parser.py
                 possible_paths = [
                     Path(__file__).resolve().parents[2] / p, # relative to backend
                     Path(__file__).resolve().parents[3] / p  # relative to workspace root
@@ -102,7 +126,6 @@ class GoogleVisionOCRParser(BaseParser):
         
         if resolved_path:
             try:
-                from google.cloud import vision
                 logger.info(f"Initializing Google Vision client with service account key: {resolved_path}")
                 client = vision.ImageAnnotatorClient.from_service_account_json(resolved_path)
                 image = vision.Image(content=file_content)
