@@ -22,7 +22,7 @@ export default function RegisterPage() {
     // If user is already logged in, redirect them immediately to dashboard
     const token = localStorage.getItem("anytimellm-token");
     if (token) {
-      router.push("/");
+      router.push("/dashboard");
       return;
     }
 
@@ -57,7 +57,7 @@ export default function RegisterPage() {
     try {
       await api.register(businessName.trim(), email.trim(), password);
       // Success: redirect to dashboard
-      router.push("/");
+      router.push("/dashboard");
     } catch (err: any) {
       setError(err.message || "Registration failed. Email might already be taken.");
       setLoading(false);
@@ -89,7 +89,7 @@ export default function RegisterPage() {
         <div className="flex items-center gap-1">
           <span className="font-display-lg text-sm tracking-[0.4em] font-medium uppercase text-white cursor-pointer">ANYTIMELLM</span>
         </div>
-        <span className="font-mono text-[10px] tracking-[0.2em] text-muted-gold uppercase">CONSOLE v1.0</span>
+        <span className="font-mono text-[10px] tracking-[0.2em] text-muted-gold uppercase">Dashboard</span>
       </header>
 
       {/* Main Container */}
@@ -102,7 +102,7 @@ export default function RegisterPage() {
             <span className="font-mono text-[9px] tracking-[0.2em] text-muted-gold uppercase">PHASE 01</span>
             <h3 className="font-display-lg text-2xl tracking-[0.1em] text-white uppercase mt-1 mb-3">NEW WORKSPACE</h3>
             <p className="font-body-sm text-sm text-on-surface-variant mb-6 leading-relaxed">
-              Initialize a dedicated agent instance and secure workspace for your brand. Type details to spin up metadata and vector namespace.
+              Set up your AI assistant and secure workspace for your brand. Type details to spin up metadata and vector namespace.
             </p>
           </div>
 

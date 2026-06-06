@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+
 @theme {
   --color-theme-bg: var(--background);
   --color-theme-fg: var(--foreground);
@@ -11,16 +12,16 @@
   --color-theme-primary: var(--primary);
   --color-theme-secondary: var(--secondary);
 
-  /* Font Families matching Bugatti Trinity */
-  --font-display-lg: 'Saira Condensed', sans-serif;
-  --font-headline-lg: 'Saira Condensed', sans-serif;
-  --font-headline-md: 'Saira Condensed', sans-serif;
-  --font-body-lg: 'EB Garamond', serif;
-  --font-body-md: 'EB Garamond', serif;
+  /* Font Families matching Outfit and Plus Jakarta Sans */
+  --font-display-lg: 'Outfit', sans-serif;
+  --font-headline-lg: 'Outfit', sans-serif;
+  --font-headline-md: 'Outfit', sans-serif;
+  --font-body-lg: 'Plus Jakarta Sans', sans-serif;
+  --font-body-md: 'Plus Jakarta Sans', sans-serif;
   --font-label-sm: 'JetBrains Mono', monospace;
   --font-label-xs: 'JetBrains Mono', monospace;
 
-  /* Custom Color Mappings from Bugatti Theme */
+  /* Custom Color Mappings */
   --color-oatmeal-bg: var(--background);
   --color-ink-text: var(--foreground);
   --color-parchment-surface: var(--surface-1);
@@ -38,129 +39,127 @@
 }
 
 :root {
-  /* Bugatti is pure black floor dark mode only */
-  --background: #000000;
+  /* Premium Dark Mode: Space-Indigo Obsidian */
+  --background: #02000f;
   --foreground: #ffffff;
 
-  --surface-0: #000000;
-  --surface-1: #0d0d0d;
-  --surface-2: #141414;
-  --surface-3: #1f1f1f;
+  --surface-0: #02000f;
+  --surface-1: #070518;
+  --surface-2: #0d0926;
+  --surface-3: #140f36;
 
-  --border: #262626;
-  --border-subtle: #262626;
-  --border-hover: #3a3a3a;
+  --border: #1b173e;
+  --border-subtle: #151132;
+  --border-hover: #312a66;
 
   --primary: #ffffff;
-  --primary-hover: #e6e6e6;
-  --primary-muted: rgba(255, 255, 255, 0.08);
-  --primary-glow: rgba(255, 255, 255, 0.12);
+  --primary-hover: #e0d9ff;
+  --primary-muted: rgba(168, 85, 247, 0.08);
+  --primary-glow: rgba(168, 85, 247, 0.16);
 
-  --secondary: #ffffff;
+  --secondary: #c084fc;
 
   /* Semantic Highlights */
-  --accent-green: #5fa657;
-  --accent-green-muted: rgba(95, 166, 87, 0.1);
-  --accent-blue: #c3d9f3;
-  --accent-blue-muted: rgba(195, 217, 243, 0.15);
-  --accent-amber: #d4a017;
-  --accent-amber-muted: rgba(212, 160, 23, 0.1);
+  --accent-green: #10b981;
+  --accent-green-muted: rgba(16, 185, 129, 0.1);
+  --accent-blue: #60a5fa;
+  --accent-blue-muted: rgba(96, 165, 250, 0.15);
+  --accent-amber: #f59e0b;
+  --accent-amber-muted: rgba(245, 158, 11, 0.1);
   --accent-red: #ef4444;
   --accent-red-muted: rgba(239, 68, 68, 0.1);
 
   --text-primary: #ffffff;
-  --text-secondary: #cccccc;
-  --text-muted: #999999;
-  --text-ghost: #666666;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-ghost: #64748b;
 
-  /* Sharp corner radii globally - No rounding */
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 0px;
-  --radius-2xl: 0px;
+  /* Smooth Rounded Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-2xl: 28px;
 
-  --shadow-glow-sm: none;
-  --shadow-glow-md: none;
-  --shadow-glow-lg: none;
-  --shadow-elevation: none;
+  --shadow-glow-sm: 0 0 15px rgba(168, 85, 247, 0.08);
+  --shadow-glow-md: 0 0 30px rgba(168, 85, 247, 0.16);
+  --shadow-glow-lg: 0 0 50px rgba(168, 85, 247, 0.25);
+  --shadow-elevation: 0 8px 30px rgba(0, 0, 0, 0.6);
 
-  /* Stitch Custom Color Tokens - Pure Black / Grey */
-  --oatmeal-bg: #000000;
+  /* Custom Color Tokens */
+  --oatmeal-bg: #02000f;
   --ink-text: #ffffff;
-  --parchment-surface: #0d0d0d;
-  --muted-gold: #999999;
-  --slate-accent: #666666;
-  --border-subtle: #262626;
+  --parchment-surface: #070518;
+  --muted-gold: #c084fc;
+  --slate-accent: #94a3b8;
+  --border-subtle: #151132;
 
-  --surface-container-lowest: #000000;
-  --surface-container-low: #0d0d0d;
-  --surface-container: #141414;
-  --surface-container-high: #1f1f1f;
-  --surface-container-highest: #1f1f1f;
+  --surface-container-lowest: #02000f;
+  --surface-container-low: #070518;
+  --surface-container: #0d0926;
+  --surface-container-high: #140f36;
+  --surface-container-highest: #140f36;
 }
 
 .dark {
-  /* Same dark variables for consistency */
-  --background: #000000;
+  /* Keep variables identical */
+  --background: #02000f;
   --foreground: #ffffff;
 
-  --surface-0: #000000;
-  --surface-1: #0d0d0d;
-  --surface-2: #141414;
-  --surface-3: #1f1f1f;
+  --surface-0: #02000f;
+  --surface-1: #070518;
+  --surface-2: #0d0926;
+  --surface-3: #140f36;
 
-  --border: #262626;
-  --border-subtle: #262626;
-  --border-hover: #3a3a3a;
+  --border: #1b173e;
+  --border-subtle: #151132;
+  --border-hover: #312a66;
 
   --primary: #ffffff;
-  --primary-hover: #e6e6e6;
-  --primary-muted: rgba(255, 255, 255, 0.08);
-  --primary-glow: rgba(255, 255, 255, 0.12);
+  --primary-hover: #e0d9ff;
+  --primary-muted: rgba(168, 85, 247, 0.08);
+  --primary-glow: rgba(168, 85, 247, 0.16);
 
-  --secondary: #ffffff;
+  --secondary: #c084fc;
 
   /* Semantic Highlights */
-  --accent-green: #5fa657;
-  --accent-green-muted: rgba(95, 166, 87, 0.1);
-  --accent-blue: #c3d9f3;
-  --accent-blue-muted: rgba(195, 217, 243, 0.15);
-  --accent-amber: #d4a017;
-  --accent-amber-muted: rgba(212, 160, 23, 0.1);
+  --accent-green: #10b981;
+  --accent-green-muted: rgba(16, 185, 129, 0.1);
+  --accent-blue: #60a5fa;
+  --accent-blue-muted: rgba(96, 165, 250, 0.15);
+  --accent-amber: #f59e0b;
+  --accent-amber-muted: rgba(245, 158, 11, 0.1);
   --accent-red: #ef4444;
   --accent-red-muted: rgba(239, 68, 68, 0.1);
 
   --text-primary: #ffffff;
-  --text-secondary: #cccccc;
-  --text-muted: #999999;
-  --text-ghost: #666666;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-ghost: #64748b;
 
-  /* Sharp corner radii globally - No rounding */
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 0px;
-  --radius-2xl: 0px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-2xl: 28px;
 
-  --shadow-glow-sm: none;
-  --shadow-glow-md: none;
-  --shadow-glow-lg: none;
-  --shadow-elevation: none;
+  --shadow-glow-sm: 0 0 15px rgba(168, 85, 247, 0.08);
+  --shadow-glow-md: 0 0 30px rgba(168, 85, 247, 0.16);
+  --shadow-glow-lg: 0 0 50px rgba(168, 85, 247, 0.25);
+  --shadow-elevation: 0 8px 30px rgba(0, 0, 0, 0.6);
 
-  /* Stitch Custom Color Tokens - Pure Black / Grey */
-  --oatmeal-bg: #000000;
+  --oatmeal-bg: #02000f;
   --ink-text: #ffffff;
-  --parchment-surface: #0d0d0d;
-  --muted-gold: #999999;
-  --slate-accent: #666666;
-  --border-subtle: #262626;
+  --parchment-surface: #070518;
+  --muted-gold: #c084fc;
+  --slate-accent: #94a3b8;
+  --border-subtle: #151132;
 
-  --surface-container-lowest: #000000;
-  --surface-container-low: #0d0d0d;
-  --surface-container: #141414;
-  --surface-container-high: #1f1f1f;
-  --surface-container-highest: #1f1f1f;
+  --surface-container-lowest: #02000f;
+  --surface-container-low: #070518;
+  --surface-container: #0d0926;
+  --surface-container-high: #140f36;
+  --surface-container-highest: #140f36;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -170,15 +169,14 @@
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: 'EB Garamond', Garamond, "Times New Roman", serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 ::selection {
-  background: rgba(242, 122, 53, 0.25);
+  background: rgba(168, 85, 247, 0.25);
   color: #fff;
 }
 
@@ -187,25 +185,25 @@ body {
    ═══════════════════════════════════════════════════════════════════ */
 
 .glass-panel {
-  background: var(--surface-0);
+  background: rgba(7, 5, 24, 0.5);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-elevation);
   transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass-card-interactive {
-  background: var(--surface-0);
+  background: rgba(7, 5, 24, 0.45);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid rgba(255, 255, 255, 0.04);
   border-radius: var(--radius-xl);
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   overflow: hidden;
-  box-shadow: var(--shadow-elevation);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
 }
 
 .glass-card-interactive::before {
@@ -215,8 +213,8 @@ body {
   border-radius: inherit;
   opacity: 0;
   background: radial-gradient(
-    500px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-    rgba(242, 122, 53, 0.08),
+    600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(192, 132, 252, 0.08),
     transparent 45%
   );
   transition: opacity 0.5s ease;
@@ -224,22 +222,47 @@ body {
 }
 
 .glass-card-interactive:hover {
-  background: var(--surface-2);
-  border-color: var(--border-hover);
+  background: rgba(13, 9, 38, 0.65);
+  border-color: rgba(168, 85, 247, 0.3);
   transform: translateY(-4px);
   box-shadow: 
     var(--shadow-glow-md),
-    0 15px 35px -10px rgba(42, 36, 33, 0.12);
-}
-
-.dark .glass-card-interactive:hover {
-  box-shadow: 
-    var(--shadow-glow-md),
-    0 15px 35px -10px rgba(0, 0, 0, 0.65);
+    0 15px 35px -10px rgba(0, 0, 0, 0.75);
 }
 
 .glass-card-interactive:hover::before {
   opacity: 1;
+}
+
+/* Rotating Gradient Border glow for premium callouts */
+.card-glow-pulse {
+  position: relative;
+  z-index: 10;
+}
+
+.card-glow-pulse::after {
+  content: '';
+  position: absolute;
+  inset: -1.5px;
+  background: linear-gradient(90deg, #a855f7, #6366f1, #06b6d4, #a855f7);
+  background-size: 300% 300%;
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0.2;
+  transition: opacity 0.5s ease;
+  animation: borderGlowGradient 8s linear infinite;
+  pointer-events: none;
+}
+
+.card-glow-pulse:hover::after {
+  opacity: 0.55;
+  filter: blur(1px);
+}
+
+@keyframes borderGlowGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -279,40 +302,41 @@ body {
    Utilities & Text Colors
    ═══════════════════════════════════════════════════════════════════ */
 
-.text-gradient-primary {
-  color: #ffffff;
-}
-
-.dark .text-gradient-primary {
-  color: #ffffff;
-}
-
 .text-gradient-hero {
-  color: #ffffff;
+  background: linear-gradient(135deg, #ffffff 30%, #d8b4fe 70%, #a5b4fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent !important;
 }
 
-.dark .text-gradient-hero {
-  color: #ffffff;
+.text-gradient-primary {
+  background: linear-gradient(135deg, #ffffff 40%, #c084fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent !important;
+}
+
+.text-gradient-accent {
+  background: linear-gradient(135deg, #fb7185 0%, #a855f7 50%, #6366f1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent !important;
 }
 
 .bg-grid-pattern {
   background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.003) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.003) 1px, transparent 1px);
-  background-size: 80px 80px;
+    linear-gradient(rgba(255, 255, 255, 0.005) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.005) 1px, transparent 1px);
+  background-size: 60px 60px;
 }
 
-.dark .bg-grid-pattern {
-  background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.003) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.003) 1px, transparent 1px);
-}
-
-/* Stitch Redesign Utility Classes */
 .grainy-gradient {
-  background: #000000;
-}
-.hairline-border {
-  border: 1px solid var(--border-subtle);
+  background: radial-gradient(circle at top, rgba(20, 15, 60, 0.3) 0%, #02000f 70%);
 }
 
+.hairline-border {
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}

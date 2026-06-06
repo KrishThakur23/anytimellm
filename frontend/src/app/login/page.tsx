@@ -21,7 +21,7 @@ export default function LoginPage() {
     // If user is already logged in, redirect them immediately to dashboard
     const token = localStorage.getItem("anytimellm-token");
     if (token) {
-      router.push("/");
+      router.push("/dashboard");
       return;
     }
 
@@ -56,7 +56,7 @@ export default function LoginPage() {
     try {
       await api.login(email.trim(), password);
       // Success: redirect to dashboard
-      router.push("/");
+      router.push("/dashboard");
     } catch (err: any) {
       setError(err.message || "Invalid email or password.");
       setLoading(false);
@@ -88,7 +88,7 @@ export default function LoginPage() {
         <div className="flex items-center gap-1">
           <span className="font-display-lg text-sm tracking-[0.4em] font-medium uppercase text-white cursor-pointer">ANYTIMELLM</span>
         </div>
-        <span className="font-mono text-[10px] tracking-[0.2em] text-muted-gold uppercase">CONSOLE v1.0</span>
+        <span className="font-mono text-[10px] tracking-[0.2em] text-muted-gold uppercase">Dashboard</span>
       </header>
 
       {/* Main Container */}

@@ -52,7 +52,7 @@ export default function FloatingParticles() {
     };
 
     const initParticles = () => {
-      particles = Array.from({ length: 35 }, () => ({
+      particles = Array.from({ length: 15 }, () => ({
         x: Math.random() * width,
         y: Math.random() * height,
         vx: (Math.random() - 0.5) * 0.3,

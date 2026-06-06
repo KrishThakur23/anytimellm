@@ -99,14 +99,14 @@ export default function OnboardingHero({
         <div className="flex items-center gap-1">
           <span className="font-display-lg text-sm tracking-[0.4em] font-medium uppercase text-white cursor-pointer">ANYTIMELLM</span>
         </div>
-        <span className="font-mono text-[10px] tracking-[0.2em] text-muted-gold uppercase cursor-pointer hover:text-white transition-colors duration-300">CONSOLE v1.0</span>
+        <span className="font-mono text-[10px] tracking-[0.2em] text-muted-gold uppercase cursor-pointer hover:text-white transition-colors duration-300">Dashboard</span>
       </header>
 
       {/* Main Container */}
       <main className="relative z-10 flex-grow flex flex-col items-center justify-start pt-32 pb-24 px-6 max-w-[1200px] mx-auto w-full">
         {/* Tagline overlay */}
         <div className="onboarding-animate-element mb-4 inline-flex items-center gap-2">
-          <span className="font-mono text-[10px] tracking-[0.2em] text-muted uppercase">SECURE MULTI-TENANT INGESTION GATEWAY</span>
+          <span className="font-mono text-[10px] tracking-[0.2em] text-muted uppercase">Smart WhatsApp AI for your business</span>
         </div>
 
         {/* Big Display Headline */}
@@ -138,7 +138,7 @@ export default function OnboardingHero({
               <span className="font-mono text-[9px] tracking-[0.2em] text-muted-gold uppercase">PHASE 01</span>
               <h3 className="font-display-lg text-xl tracking-[0.1em] text-white uppercase mt-1 mb-3">NEW WORKSPACE</h3>
               <p className="font-body-sm text-sm text-on-surface-variant mb-6 leading-relaxed">
-                Initialize a dedicated agent instance and secure workspace for your brand. Type details to spin up metadata and vector namespace.
+                Set up your AI assistant and secure workspace for your brand. Type details to spin up metadata and vector namespace.
               </p>
             </div>
             <form onSubmit={handleRegisterSubmit} className="space-y-4">
@@ -236,7 +236,7 @@ export default function OnboardingHero({
             {/* Step 2 */}
             <div className="flex flex-col items-start p-5 bg-black/40 border border-border-subtle rounded-none hover:border-white transition-all duration-300 cursor-pointer">
               <span className="font-mono text-[10px] tracking-widest text-muted mb-2">02 / INDEXING</span>
-              <span className="font-display-lg text-sm text-white tracking-widest uppercase mb-1">Vector DB</span>
+              <span className="font-display-lg text-sm text-white tracking-widest uppercase mb-1">Instant memory</span>
               <span className="font-body-sm text-xs text-on-surface-variant leading-relaxed">
                 Embedded data indexed in Pinecone namespaces with low latency.
               </span>
@@ -244,7 +244,7 @@ export default function OnboardingHero({
             {/* Step 3 */}
             <div className="flex flex-col items-start p-5 bg-black/40 border border-border-subtle rounded-none hover:border-white transition-all duration-300 cursor-pointer">
               <span className="font-mono text-[10px] tracking-widest text-muted mb-2">03 / COGNITION</span>
-              <span className="font-display-lg text-sm text-white tracking-widest uppercase mb-1">LangGraph RAG</span>
+              <span className="font-display-lg text-sm text-white tracking-widest uppercase mb-1">Smart reasoning</span>
               <span className="font-body-sm text-xs text-on-surface-variant leading-relaxed">
                 Gemini routes reasoning loops through relational catalogs.
               </span>
@@ -252,7 +252,7 @@ export default function OnboardingHero({
             {/* Step 4 */}
             <div className="flex flex-col items-start p-5 bg-black/40 border border-border-subtle rounded-none hover:border-white transition-all duration-300 cursor-pointer">
               <span className="font-mono text-[10px] tracking-widest text-muted mb-2">04 / DELIVERY</span>
-              <span className="font-display-lg text-sm text-white tracking-widest uppercase mb-1">WhatsApp Webhook</span>
+              <span className="font-display-lg text-sm text-white tracking-widest uppercase mb-1">WhatsApp integration</span>
               <span className="font-body-sm text-xs text-on-surface-variant leading-relaxed">
                 Respond to queries, look up catalog items, and process orders 24/7.
               </span>
