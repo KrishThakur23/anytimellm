@@ -76,19 +76,88 @@ export interface Conversation {
   is_ai_paused: boolean;
 }
 
+// Utility function to inject JWT Authorization header
+function getHeaders(extraHeaders: Record<string, string> = {}): Record<string, string> {
+  const headers: Record<string, string> = { ...extraHeaders };
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("anytimellm-token");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+  }
+  return headers;
+}
+
 export const api = {
+  // Authentication methods
+  async login(email: string, password: string): Promise<{ access_token: string, business_id: string }> {
+    const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || "Invalid email or password.");
+    }
+    const data = await res.json();
+    if (typeof window !== "undefined") {
+      localStorage.setItem("anytimellm-token", data.access_token);
+      localStorage.setItem("anytimellm-active-business-id", data.business_id);
+    }
+    return data;
+  },
+
+  async register(businessName: string, email: string, password: string): Promise<{ access_token: string, business_id: string }> {
+    const res = await fetch(`${BACKEND_URL}/api/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ business_name: businessName, email, password }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || "Registration failed.");
+    }
+    const data = await res.json();
+    if (typeof window !== "undefined") {
+      localStorage.setItem("anytimellm-token", data.access_token);
+      localStorage.setItem("anytimellm-active-business-id", data.business_id);
+    }
+    return data;
+  },
+
+  async getMe(): Promise<any> {
+    const res = await fetch(`${BACKEND_URL}/api/auth/me`, {
+      headers: getHeaders(),
+    });
+    if (!res.ok) throw new Error("Unauthorized");
+    return res.json();
+  },
+
+  async getMyBusiness(): Promise<Business> {
+    const res = await fetch(`${BACKEND_URL}/api/auth/business`, {
+      headers: getHeaders(),
+    });
+    if (!res.ok) throw new Error("Failed to fetch business details.");
+    return res.json();
+  },
+
+  // Legacy fallback method for initialization without token (registers empty business)
   async registerBusiness(name: string): Promise<Business> {
     const res = await fetch(`${BACKEND_URL}/api/businesses`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({ name }),
     });
     if (!res.ok) throw new Error("Failed to register business tenant.");
     return res.json();
   },
 
+  // Secured Operator API methods
   async getBusiness(id: string): Promise<Business> {
-    const res = await fetch(`${BACKEND_URL}/api/businesses/${id}`);
+    const res = await fetch(`${BACKEND_URL}/api/businesses/${id}`, {
+      headers: getHeaders(),
+    });
     if (!res.ok) throw new Error("Failed to fetch business details.");
     return res.json();
   },
@@ -101,6 +170,7 @@ export const api = {
     const res = await fetch(`${BACKEND_URL}/api/ingest/file`, {
       method: "POST",
       body: formData,
+      headers: getHeaders(),
     });
     if (!res.ok) {
       const err = await res.json();
@@ -117,6 +187,7 @@ export const api = {
     const res = await fetch(`${BACKEND_URL}/api/ingest/url`, {
       method: "POST",
       body: formData,
+      headers: getHeaders(),
     });
     if (!res.ok) {
       const err = await res.json();
@@ -126,7 +197,9 @@ export const api = {
   },
 
   async getDocuments(businessId: string): Promise<DocumentInfo[]> {
-    const res = await fetch(`${BACKEND_URL}/api/ingest/${businessId}`);
+    const res = await fetch(`${BACKEND_URL}/api/ingest/${businessId}`, {
+      headers: getHeaders(),
+    });
     if (!res.ok) throw new Error("Failed to list business documents.");
     return res.json();
   },
@@ -134,7 +207,7 @@ export const api = {
   async addCatalogItem(businessId: string, item: CatalogItem): Promise<CatalogItem> {
     const res = await fetch(`${BACKEND_URL}/api/businesses/${businessId}/catalog`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(item),
     });
     if (!res.ok) throw new Error("Failed to register catalog item.");
@@ -142,11 +215,14 @@ export const api = {
   },
 
   async getCatalog(businessId: string): Promise<CatalogItem[]> {
-    const res = await fetch(`${BACKEND_URL}/api/businesses/${businessId}/catalog`);
+    const res = await fetch(`${BACKEND_URL}/api/businesses/${businessId}/catalog`, {
+      headers: getHeaders(),
+    });
     if (!res.ok) throw new Error("Failed to fetch catalog list.");
     return res.json();
   },
 
+  // Public Agent endpoint (Anonymous Web widget) - doesn't need Bearer headers
   async chatWithAgent(businessId: string, content: string, customerPhone: string): Promise<ChatMessage> {
     const res = await fetch(`${BACKEND_URL}/api/chat/${businessId}`, {
       method: "POST",
@@ -161,7 +237,9 @@ export const api = {
   },
 
   async getOrders(businessId: string): Promise<Order[]> {
-    const res = await fetch(`${BACKEND_URL}/api/businesses/${businessId}/orders`);
+    const res = await fetch(`${BACKEND_URL}/api/businesses/${businessId}/orders`, {
+      headers: getHeaders(),
+    });
     if (!res.ok) throw new Error("Failed to fetch orders list.");
     return res.json();
   },
@@ -169,7 +247,7 @@ export const api = {
   async updateOrderStatus(businessId: string, orderId: string, status: string): Promise<Order> {
     const res = await fetch(`${BACKEND_URL}/api/businesses/${businessId}/orders/${orderId}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: getHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({ status }),
     });
     if (!res.ok) throw new Error("Failed to update order status.");
@@ -177,7 +255,9 @@ export const api = {
   },
 
   async getChats(businessId: string): Promise<Conversation[]> {
-    const res = await fetch(`${BACKEND_URL}/api/businesses/${businessId}/chats`);
+    const res = await fetch(`${BACKEND_URL}/api/businesses/${businessId}/chats`, {
+      headers: getHeaders(),
+    });
     if (!res.ok) throw new Error("Failed to fetch WhatsApp chats.");
     return res.json();
   },
@@ -185,7 +265,7 @@ export const api = {
   async sendChatMessage(businessId: string, conversationId: string, content: string): Promise<Message> {
     const res = await fetch(`${BACKEND_URL}/api/businesses/${businessId}/chats/${conversationId}/messages`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({ content }),
     });
     if (!res.ok) throw new Error("Failed to send chat reply message.");
@@ -195,7 +275,7 @@ export const api = {
   async updateChatSettings(businessId: string, conversationId: string, settings: { is_ai_paused?: boolean; status?: string; }): Promise<Conversation> {
     const res = await fetch(`${BACKEND_URL}/api/businesses/${businessId}/chats/${conversationId}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: getHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(settings),
     });
     if (!res.ok) throw new Error("Failed to update conversation settings.");
@@ -205,7 +285,7 @@ export const api = {
   async updateBusinessSettings(businessId: string, settings: Record<string, any>): Promise<Business> {
     const res = await fetch(`${BACKEND_URL}/api/businesses/${businessId}/settings`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: getHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(settings),
     });
     if (!res.ok) throw new Error("Failed to update business settings.");

@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import engine, Base
-from app.routers import auth, ingest, chat, webhook
+from app.routers import auth, ingest, chat, webhook, users
 
 # Setup logger
 logging.basicConfig(
@@ -19,16 +19,39 @@ try:
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables initialized successfully.")
     
-    # Safe migration: add column is_ai_paused if it does not exist
-    try:
-        from sqlalchemy import text
-        with engine.connect() as conn:
-            if "sqlite" not in str(engine.url):
-                conn.execute(text("ALTER TABLE conversations ADD COLUMN IF NOT EXISTS is_ai_paused BOOLEAN DEFAULT FALSE;"))
-                conn.commit()
-        logger.info("Database migration check completed successfully.")
-    except Exception as migration_error:
-        logger.warning(f"Database migration check skipped or failed: {migration_error}")
+    # Safe migration: add column is_ai_paused if it does not exist and create indexes
+    from sqlalchemy import text
+    with engine.connect() as conn:
+        # Create users table if it does not exist
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS users (
+                id UUID PRIMARY KEY,
+                business_id UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                hashed_password VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+        """))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_users_email ON users (email);"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_users_business_id ON users (business_id);"))
+
+        conn.execute(text("ALTER TABLE conversations ADD COLUMN IF NOT EXISTS is_ai_paused BOOLEAN DEFAULT FALSE;"))
+        
+        # Create missing indexes for critical foreign keys and filter fields
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_documents_business_id ON documents (business_id);"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_catalogs_business_id ON catalogs (business_id);"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_customers_business_id ON customers (business_id);"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_customers_phone_number ON customers (phone_number);"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_conversations_business_id ON conversations (business_id);"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_conversations_customer_id ON conversations (customer_id);"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_messages_conversation_id ON messages (conversation_id);"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_orders_business_id ON orders (business_id);"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_orders_customer_id ON orders (customer_id);"))
+        
+        conn.commit()
+    logger.info("Database migration check and indexing completed successfully.")
+except Exception as migration_error:
+    logger.warning(f"Database migration check skipped or failed: {migration_error}")
 except Exception as e:
     logger.error(f"Failed database table creation: {e}. Please ensure PostgreSQL is running.")
 
@@ -66,6 +89,7 @@ async def log_requests(request: Request, call_next):
         raise e
 
 # Include routers
+app.include_router(users.router)
 app.include_router(auth.router)
 app.include_router(ingest.router)
 app.include_router(chat.router)

@@ -1,35 +1,35 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 import gsap from "gsap";
 
 interface OnboardingHeroProps {
-  businessName: string;
-  setBusinessName: (val: string) => void;
-  businessIdInput: string;
-  setBusinessIdInput: (val: string) => void;
   loadingBusiness: boolean;
   error: string | null;
-  handleCreateBusiness: (e: React.FormEvent) => void;
-  handleLoadBusiness: (e: React.FormEvent) => void;
+  onLogin: (email: string, password: string) => Promise<void>;
+  onRegister: (businessName: string, email: string, password: string) => Promise<void>;
   theme: "dark" | "light";
   toggleTheme: () => void;
 }
 
 export default function OnboardingHero({
-  businessName,
-  setBusinessName,
-  businessIdInput,
-  setBusinessIdInput,
   loadingBusiness,
   error,
-  handleCreateBusiness,
-  handleLoadBusiness,
+  onLogin,
+  onRegister,
 }: OnboardingHeroProps) {
   const brandRef = useRef<HTMLDivElement>(null);
   const visualRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLHeadingElement>(null);
+
+  // Local form states
+  const [registerName, setRegisterName] = useState("");
+  const [registerEmail, setRegisterEmail] = useState("");
+  const [registerPassword, setRegisterPassword] = useState("");
+
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
 
   useEffect(() => {
     // Premium reveal timeline with GSAP
@@ -67,21 +67,21 @@ export default function OnboardingHero({
     }
   }, []);
 
-  const onSubmitCreate = (e: React.FormEvent) => {
+  const handleRegisterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!businessName.trim()) return;
-    handleCreateBusiness(e);
+    if (!registerName.trim() || !registerEmail.trim() || !registerPassword.trim()) return;
+    onRegister(registerName.trim(), registerEmail.trim(), registerPassword);
   };
 
-  const onSubmitLoad = (e: React.FormEvent) => {
+  const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!businessIdInput.trim()) return;
-    handleLoadBusiness(e);
+    if (!loginEmail.trim() || !loginPassword.trim()) return;
+    onLogin(loginEmail.trim(), loginPassword);
   };
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-black text-white relative overflow-x-hidden">
-      {/* Background Hero Photo Band (Volumetric watch precision backdrop) */}
+      {/* Background Hero Photo Band */}
       <div className="absolute inset-0 h-[65vh] w-full overflow-hidden z-0">
         <div 
           className="absolute inset-0 bg-cover bg-center opacity-30 filter grayscale" 
@@ -90,7 +90,7 @@ export default function OnboardingHero({
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/60 to-black" />
       </div>
 
-      {/* Top Navigation Bar: Minimal & Solid Background to prevent overlap */}
+      {/* Top Navigation Bar */}
       <header 
         ref={brandRef} 
         className="fixed top-0 w-full z-50 bg-black/95 backdrop-blur-md h-16 flex items-center justify-between px-8 border-b border-border-subtle/30"
@@ -106,7 +106,7 @@ export default function OnboardingHero({
       <main className="relative z-10 flex-grow flex flex-col items-center justify-start pt-32 pb-24 px-6 max-w-[1200px] mx-auto w-full">
         {/* Tagline overlay */}
         <div className="onboarding-animate-element mb-4 inline-flex items-center gap-2">
-          <span className="font-mono text-[10px] tracking-[0.2em] text-muted uppercase">MULTI-TENANT INGESTION GATEWAY</span>
+          <span className="font-mono text-[10px] tracking-[0.2em] text-muted uppercase">SECURE MULTI-TENANT INGESTION GATEWAY</span>
         </div>
 
         {/* Big Display Headline */}
@@ -117,78 +117,99 @@ export default function OnboardingHero({
           Automate Customer Service At High Precision
         </h1>
 
-        {/* Running Serif Body */}
+        {/* Serif Body */}
         <p className="onboarding-animate-element font-body-lg text-lg text-on-surface-variant max-w-2xl text-center mb-16 leading-relaxed italic">
           Deploy smart agents mapping your business catalog to WhatsApp in seconds. Universal parsing, relational memory, and vector-RAG orchestration.
         </p>
 
         {/* Error Banner */}
         {error && (
-          <div className="onboarding-animate-element w-full max-w-4xl mb-8 p-4 bg-red-950/20 border border-red-900/40 rounded-none flex items-start gap-3 text-red-300 text-xs text-left">
+          <div className="onboarding-animate-element w-full max-w-4xl mb-8 p-4 bg-red-950/20 border border-red-900/40 rounded-none flex items-start gap-3 text-red-300 text-xs text-left font-mono">
             <span className="material-symbols-outlined text-[16px] text-red-500 shrink-0 mt-0.5">error</span>
-            <span className="font-mono tracking-wider">{error}</span>
+            <span className="tracking-wider">{error}</span>
           </div>
         )}
 
         {/* Main Interface Bento Grid */}
         <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-12 gap-8 items-stretch mb-16">
-          {/* Create Assistant Form */}
+          {/* Register Form */}
           <div className="onboarding-animate-element md:col-span-6 bg-surface-2 border border-border-subtle p-8 rounded-none text-left flex flex-col justify-between transition-colors hover:border-hairline-strong duration-300">
             <div>
               <span className="font-mono text-[9px] tracking-[0.2em] text-muted-gold uppercase">PHASE 01</span>
-              <h3 className="font-display-lg text-xl tracking-[0.1em] text-white uppercase mt-1 mb-3">NEW ASSISTANT</h3>
-              <p className="font-body-sm text-sm text-on-surface-variant mb-8 leading-relaxed">
-                Initialize a dedicated agent instance for your store or company. Type your brand name to spin up metadata and vector namespace.
+              <h3 className="font-display-lg text-xl tracking-[0.1em] text-white uppercase mt-1 mb-3">NEW WORKSPACE</h3>
+              <p className="font-body-sm text-sm text-on-surface-variant mb-6 leading-relaxed">
+                Initialize a dedicated agent instance and secure workspace for your brand. Type details to spin up metadata and vector namespace.
               </p>
             </div>
-            <form onSubmit={onSubmitCreate} className="space-y-6">
+            <form onSubmit={handleRegisterSubmit} className="space-y-4">
               <input
                 type="text"
                 placeholder="ENTER BUSINESS NAME"
-                value={businessName}
-                onChange={(e) => setBusinessName(e.target.value)}
-                className="w-full bg-transparent border-b border-border-subtle focus:border-white rounded-none py-3.5 text-xs text-white placeholder-muted-soft focus:outline-none tracking-widest uppercase transition-all duration-300"
+                value={registerName}
+                onChange={(e) => setRegisterName(e.target.value)}
+                className="w-full bg-transparent border-b border-border-subtle focus:border-white rounded-none py-2.5 text-xs text-white placeholder-muted-soft focus:outline-none tracking-widest uppercase transition-all duration-300"
+              />
+              <input
+                type="email"
+                placeholder="ENTER ADMIN EMAIL"
+                value={registerEmail}
+                onChange={(e) => setRegisterEmail(e.target.value)}
+                className="w-full bg-transparent border-b border-border-subtle focus:border-white rounded-none py-2.5 text-xs text-white placeholder-muted-soft focus:outline-none tracking-widest transition-all duration-300"
+              />
+              <input
+                type="password"
+                placeholder="CREATE PASSWORD"
+                value={registerPassword}
+                onChange={(e) => setRegisterPassword(e.target.value)}
+                className="w-full bg-transparent border-b border-border-subtle focus:border-white rounded-none py-2.5 text-xs text-white placeholder-muted-soft focus:outline-none tracking-widest transition-all duration-300"
               />
               <button
                 type="submit"
                 disabled={loadingBusiness}
-                className="w-full h-11 border border-white hover:bg-white hover:text-black rounded-none bg-transparent text-white font-mono text-xs tracking-[0.2em] uppercase flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-50 cursor-pointer"
+                className="w-full h-11 border border-white hover:bg-white hover:text-black rounded-none bg-transparent text-white font-mono text-xs tracking-[0.2em] uppercase flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-50 cursor-pointer mt-4"
               >
                 {loadingBusiness ? (
                   <Loader2 className="w-4 h-4 animate-spin shrink-0" />
                 ) : (
-                  "CREATE BUSINESS CONSOLE"
+                  "REGISTER & CREATE WORKSPACE"
                 )}
               </button>
             </form>
           </div>
 
-          {/* Open Assistant Form */}
+          {/* Login Form */}
           <div className="onboarding-animate-element md:col-span-6 bg-surface-1 border border-border-subtle p-8 rounded-none text-left flex flex-col justify-between transition-colors hover:border-hairline-strong duration-300">
             <div>
               <span className="font-mono text-[9px] tracking-[0.2em] text-muted-gold uppercase">AUTHENTICATION</span>
-              <h3 className="font-display-lg text-xl tracking-[0.1em] text-white uppercase mt-1 mb-3">LOAD SESSION</h3>
-              <p className="font-body-sm text-sm text-on-surface-variant mb-8 leading-relaxed">
-                Re-enter your secure workspace. Paste your private credentials to open configured documents, catalogs, and logs.
+              <h3 className="font-display-lg text-xl tracking-[0.1em] text-white uppercase mt-1 mb-3">LOAD WORKSPACE</h3>
+              <p className="font-body-sm text-sm text-on-surface-variant mb-6 leading-relaxed">
+                Re-enter your secure console. Login with your administrator credentials to open configured documents, catalogs, and logs.
               </p>
             </div>
-            <form onSubmit={onSubmitLoad} className="space-y-6">
+            <form onSubmit={handleLoginSubmit} className="space-y-4">
               <input
-                type="text"
-                placeholder="PASTE SECRET SHOP ID"
-                value={businessIdInput}
-                onChange={(e) => setBusinessIdInput(e.target.value)}
-                className="w-full bg-transparent border-b border-border-subtle focus:border-white rounded-none py-3.5 text-xs font-mono text-white placeholder-muted-soft focus:outline-none tracking-widest uppercase transition-all duration-300"
+                type="email"
+                placeholder="ADMIN EMAIL"
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                className="w-full bg-transparent border-b border-border-subtle focus:border-white rounded-none py-2.5 text-xs text-white placeholder-muted-soft focus:outline-none tracking-widest transition-all duration-300"
+              />
+              <input
+                type="password"
+                placeholder="PASSWORD"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                className="w-full bg-transparent border-b border-border-subtle focus:border-white rounded-none py-2.5 text-xs text-white placeholder-muted-soft focus:outline-none tracking-widest transition-all duration-300"
               />
               <button
                 type="submit"
                 disabled={loadingBusiness}
-                className="w-full h-11 border border-white hover:bg-white hover:text-black rounded-none bg-transparent text-white font-mono text-xs tracking-[0.2em] uppercase flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-50 cursor-pointer"
+                className="w-full h-11 border border-white hover:bg-white hover:text-black rounded-none bg-transparent text-white font-mono text-xs tracking-[0.2em] uppercase flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-50 cursor-pointer mt-4"
               >
                 {loadingBusiness ? (
                   <Loader2 className="w-4 h-4 animate-spin shrink-0" />
                 ) : (
-                  "OPEN CONSOLE"
+                  "SIGN IN TO CONSOLE"
                 )}
               </button>
             </form>
@@ -241,8 +262,8 @@ export default function OnboardingHero({
 
         {/* Minimal Footer Info */}
         <footer className="onboarding-animate-element flex flex-wrap justify-center gap-x-8 gap-y-4 text-muted text-[10px] font-mono tracking-widest uppercase border-t border-border-subtle/30 pt-8 w-full">
-          <span>🔒 END-TO-END SECURITY</span>
-          <span>⚡ MOCK-COMPATIBLE RUNTIME</span>
+          <span>🔒 JWT ENCRYPTED AUTHENTICATION</span>
+          <span>⚡ MULTI-TENANT ISOLATED CONSOLE</span>
           <span>💬 WHATSAPP CLOUD API READY</span>
         </footer>
       </main>

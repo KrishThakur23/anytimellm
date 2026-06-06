@@ -25,6 +25,11 @@ class Settings(BaseSettings):
     
     PORT: int = 8000
     HOST: str = "0.0.0.0"
+    
+    # JWT Auth Config
+    JWT_SECRET_KEY: str = Field(default="anytimellm_secret_key_change_me_in_production")
+    JWT_ALGORITHM: str = Field(default="HS256")
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=1440)
 
     model_config = SettingsConfigDict(
         env_file=".env",

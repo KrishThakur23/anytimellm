@@ -111,3 +111,28 @@ class ConversationOut(BaseModel):
 class MessageCreate(BaseModel):
     content: str
 
+
+# Authentication Schemas
+class UserRegister(BaseModel):
+    business_name: str
+    email: str
+    password: str
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class TokenOut(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    business_id: UUID
+
+class UserOut(BaseModel):
+    id: UUID
+    business_id: UUID
+    email: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+

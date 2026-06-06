@@ -1,12 +1,13 @@
 import logging
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload, selectinload
 from uuid import UUID
 from typing import List
 
 from app.database import get_db
 from app.models import Business, Catalog, Order, Conversation, Message
 from app.schemas import BusinessCreate, BusinessOut, CatalogCreate, CatalogOut, OrderOut, ConversationOut, MessageOut, MessageCreate
+from app.services.security import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -33,8 +34,14 @@ def register_business(payload: BusinessCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/{business_id}", response_model=BusinessOut)
-def get_business_details(business_id: UUID, db: Session = Depends(get_db)):
+def get_business_details(
+    business_id: UUID,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     """Fetch details and current configuration settings for a business."""
+    if current_user.business_id != business_id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this business.")
     biz = db.query(Business).filter(Business.id == business_id).first()
     if not biz:
         raise HTTPException(status_code=404, detail="Business not found.")
@@ -42,8 +49,15 @@ def get_business_details(business_id: UUID, db: Session = Depends(get_db)):
 
 
 @router.patch("/{business_id}/settings", response_model=BusinessOut)
-def update_business_settings(business_id: UUID, payload: dict, db: Session = Depends(get_db)):
+def update_business_settings(
+    business_id: UUID,
+    payload: dict,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     """Update custom API settings (system prompt, model, temperature, etc.) for a business."""
+    if current_user.business_id != business_id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this business.")
     biz = db.query(Business).filter(Business.id == business_id).first()
     if not biz:
         raise HTTPException(status_code=404, detail="Business not found.")
@@ -67,8 +81,15 @@ def update_business_settings(business_id: UUID, payload: dict, db: Session = Dep
 
 
 @router.post("/{business_id}/catalog", response_model=CatalogOut, status_code=status.HTTP_201_CREATED)
-def add_catalog_item(business_id: UUID, payload: CatalogCreate, db: Session = Depends(get_db)):
+def add_catalog_item(
+    business_id: UUID,
+    payload: CatalogCreate,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     """Add a menu item, subscription, or catalog asset to the business's relational data store."""
+    if current_user.business_id != business_id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this business.")
     # Verify business exists
     biz = db.query(Business).filter(Business.id == business_id).first()
     if not biz:
@@ -95,20 +116,51 @@ def add_catalog_item(business_id: UUID, payload: CatalogCreate, db: Session = De
 
 
 @router.get("/{business_id}/catalog", response_model=List[CatalogOut])
-def get_business_catalog(business_id: UUID, db: Session = Depends(get_db)):
+def get_business_catalog(
+    business_id: UUID,
+    skip: int = 0,
+    limit: int = 100,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     """Retrieve catalog list representing items owned by this business tenant."""
-    return db.query(Catalog).filter(Catalog.business_id == business_id).all()
+    if current_user.business_id != business_id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this business.")
+    return (
+        db.query(Catalog)
+        .filter(Catalog.business_id == business_id)
+        .order_by(Catalog.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
 
 @router.get("/{business_id}/orders", response_model=List[OrderOut])
-def get_business_orders(business_id: UUID, db: Session = Depends(get_db)):
+def get_business_orders(
+    business_id: UUID,
+    skip: int = 0,
+    limit: int = 100,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     """Retrieve all orders placed by customers for this business tenant."""
+    if current_user.business_id != business_id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this business.")
     # Verify business exists
     biz = db.query(Business).filter(Business.id == business_id).first()
     if not biz:
         raise HTTPException(status_code=404, detail="Business not found.")
         
-    orders = db.query(Order).filter(Order.business_id == business_id).order_by(Order.created_at.desc()).all()
+    orders = (
+        db.query(Order)
+        .filter(Order.business_id == business_id)
+        .options(joinedload(Order.customer))
+        .order_by(Order.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
     out = []
     for o in orders:
         out.append(OrderOut(
@@ -125,8 +177,16 @@ def get_business_orders(business_id: UUID, db: Session = Depends(get_db)):
 
 
 @router.patch("/{business_id}/orders/{order_id}", response_model=OrderOut)
-async def update_order_status(business_id: UUID, order_id: UUID, payload: dict, db: Session = Depends(get_db)):
+async def update_order_status(
+    business_id: UUID,
+    order_id: UUID,
+    payload: dict,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     """Update status of a specific order ('pending', 'confirmed', or 'cancelled') and notify the customer via WhatsApp."""
+    if current_user.business_id != business_id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this business.")
     # Verify business exists
     biz = db.query(Business).filter(Business.id == business_id).first()
     if not biz:
@@ -209,8 +269,16 @@ async def update_order_status(business_id: UUID, order_id: UUID, payload: dict, 
 
 
 @router.get("/{business_id}/chats", response_model=List[ConversationOut])
-def get_business_chats(business_id: UUID, db: Session = Depends(get_db)):
+def get_business_chats(
+    business_id: UUID,
+    skip: int = 0,
+    limit: int = 100,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     """Fetch all conversations representing active WhatsApp customer channels for this business."""
+    if current_user.business_id != business_id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this business.")
     # Verify business exists
     biz = db.query(Business).filter(Business.id == business_id).first()
     if not biz:
@@ -219,19 +287,17 @@ def get_business_chats(business_id: UUID, db: Session = Depends(get_db)):
     conversations = (
         db.query(Conversation)
         .filter(Conversation.business_id == business_id, Conversation.channel == "whatsapp")
+        .options(joinedload(Conversation.customer), selectinload(Conversation.messages))
         .order_by(Conversation.created_at.desc())
+        .offset(skip)
+        .limit(limit)
         .all()
     )
     
     out = []
     for conv in conversations:
-        # Load associated messages in chronological order
-        msgs = (
-            db.query(Message)
-            .filter(Message.conversation_id == conv.id)
-            .order_by(Message.created_at.asc())
-            .all()
-        )
+        # Load associated messages sorted in chronological order (done in-memory to avoid N+1 query)
+        msgs = sorted(conv.messages, key=lambda m: m.created_at)
         mapped_msgs = [
             MessageOut(
                 id=m.id,
@@ -265,9 +331,12 @@ async def send_manual_chat_reply(
     business_id: UUID,
     conversation_id: UUID,
     payload: MessageCreate,
+    current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Save a manual agent message response and transmit it back to the customer's WhatsApp number."""
+    if current_user.business_id != business_id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this business.")
     # Verify business exists
     biz = db.query(Business).filter(Business.id == business_id).first()
     if not biz:
@@ -316,9 +385,12 @@ def update_conversation_status(
     business_id: UUID,
     conversation_id: UUID,
     payload: dict,
+    current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Toggle the AI Agent pause flag or update the conversation status."""
+    if current_user.business_id != business_id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this business.")
     biz = db.query(Business).filter(Business.id == business_id).first()
     if not biz:
         raise HTTPException(status_code=404, detail="Business not found.")

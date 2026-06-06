@@ -10,6 +10,7 @@ from app.models import Document, Business
 from app.schemas import DocumentOut
 from app.services.parser import parser_registry
 from app.services.vector_db import index_document_text
+from app.services.security import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -19,9 +20,12 @@ router = APIRouter(prefix="/api/ingest", tags=["Document & URL Ingestion"])
 async def upload_document_file(
     business_id: UUID = Form(...),
     file: UploadFile = File(...),
+    current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Uploads a file (PDF, TXT, Image), extracts text using local parsers/OCR, and indexes embeddings into Pinecone."""
+    if current_user.business_id != business_id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this business.")
     # 1. Verify business exists
     biz = db.query(Business).filter(Business.id == business_id).first()
     if not biz:
@@ -86,9 +90,12 @@ async def upload_document_file(
 async def crawl_website_url(
     business_id: UUID = Form(...),
     url: str = Form(...),
+    current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Crawls a website URL, scrapes text content via HTML parser, and indexes embeddings into Pinecone."""
+    if current_user.business_id != business_id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this business.")
     # Verify business exists
     biz = db.query(Business).filter(Business.id == business_id).first()
     if not biz:
@@ -145,6 +152,21 @@ async def crawl_website_url(
 
 
 @router.get("/{business_id}", response_model=List[DocumentOut])
-def list_business_documents(business_id: UUID, db: Session = Depends(get_db)):
+def list_business_documents(
+    business_id: UUID,
+    skip: int = 0,
+    limit: int = 100,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     """Fetch status and list of documents uploaded by the tenant."""
-    return db.query(Document).filter(Document.business_id == business_id).all()
+    if current_user.business_id != business_id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this business.")
+    return (
+        db.query(Document)
+        .filter(Document.business_id == business_id)
+        .order_by(Document.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )

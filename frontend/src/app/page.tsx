@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import type { Business, CatalogItem, DocumentInfo, ChatMessage, Order, Conversation, Message } from "@/lib/api";
+import { Loader2 } from "lucide-react";
 
 // Modular UI Components
-import OnboardingHero from "@/components/onboarding/OnboardingHero";
 import DashboardShell from "@/components/layout/DashboardShell";
 import TabTransition from "@/components/ui/TabTransition";
 import OverviewTab from "@/components/overview/OverviewTab";
@@ -19,10 +20,9 @@ import ChatsTab from "@/components/chats/ChatsTab";
 type Tab = "overview" | "ingest" | "catalog" | "playground" | "integrations" | "orders" | "chats";
 
 export default function Dashboard() {
+  const router = useRouter();
   const [activeBusiness, setActiveBusiness] = useState<Business | null>(null);
-  const [businessName, setBusinessName] = useState("");
-  const [businessIdInput, setBusinessIdInput] = useState("");
-  const [loadingBusiness, setLoadingBusiness] = useState(false);
+  const [loadingBusiness, setLoadingBusiness] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -67,22 +67,25 @@ export default function Dashboard() {
     setTheme(savedTheme);
     document.documentElement.classList.toggle("dark", savedTheme === "dark");
 
-    const savedBizId = localStorage.getItem("anytimellm-active-business-id");
-    if (savedBizId) {
-      setLoadingBusiness(true);
-      api.getBusiness(savedBizId)
+    const savedToken = localStorage.getItem("anytimellm-token");
+    if (savedToken) {
+      api.getMyBusiness()
         .then(biz => {
           setActiveBusiness(biz);
         })
         .catch(err => {
           console.error("Failed to load saved business session:", err);
           localStorage.removeItem("anytimellm-active-business-id");
+          localStorage.removeItem("anytimellm-token");
+          router.push("/login");
         })
         .finally(() => {
           setLoadingBusiness(false);
         });
+    } else {
+      router.push("/login");
     }
-  }, []);
+  }, [router]);
 
   const toggleTheme = () => {
     const nextTheme = theme === "dark" ? "light" : "dark";
@@ -211,37 +214,7 @@ export default function Dashboard() {
     }
   };
 
-  const handleCreateBusiness = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!businessName.trim()) return;
-    setLoadingBusiness(true);
-    setError(null);
-    try {
-      const biz = await api.registerBusiness(businessName);
-      setActiveBusiness(biz);
-      localStorage.setItem("anytimellm-active-business-id", biz.id);
-    } catch (err: any) {
-      setError(err.message || "Failed to register business.");
-    } finally {
-      setLoadingBusiness(false);
-    }
-  };
 
-  const handleLoadBusiness = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!businessIdInput.trim()) return;
-    setLoadingBusiness(true);
-    setError(null);
-    try {
-      const biz = await api.getBusiness(businessIdInput.trim());
-      setActiveBusiness(biz);
-      localStorage.setItem("anytimellm-active-business-id", biz.id);
-    } catch (err: any) {
-      setError("Business ID not found or database error.");
-    } finally {
-      setLoadingBusiness(false);
-    }
-  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -410,21 +383,16 @@ export default function Dashboard() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // If no business tenant is active, render the premium full-screen onboarding hero
-  if (!activeBusiness) {
+  // If loading business or not logged in, show the premium loading sequence
+  if (loadingBusiness || !activeBusiness) {
     return (
-      <OnboardingHero
-        businessName={businessName}
-        setBusinessName={setBusinessName}
-        businessIdInput={businessIdInput}
-        setBusinessIdInput={setBusinessIdInput}
-        loadingBusiness={loadingBusiness}
-        error={error}
-        handleCreateBusiness={handleCreateBusiness}
-        handleLoadBusiness={handleLoadBusiness}
-        theme={theme}
-        toggleTheme={toggleTheme}
-      />
+      <div className="min-h-screen w-full bg-black flex flex-col items-center justify-center text-white">
+        <div className="flex flex-col items-center gap-4">
+          <span className="font-display-lg text-lg tracking-[0.4em] font-medium uppercase text-white animate-pulse">ANYTIMELLM</span>
+          <Loader2 className="w-6 h-6 animate-spin text-muted-gold" />
+          <span className="font-mono text-[9px] tracking-[0.2em] text-muted uppercase">VERIFYING SECURE CONSOLE SESSION...</span>
+        </div>
+      </div>
     );
   }
 
@@ -437,6 +405,7 @@ export default function Dashboard() {
       onLogout={() => {
         setActiveBusiness(null);
         localStorage.removeItem("anytimellm-active-business-id");
+        localStorage.removeItem("anytimellm-token");
       }}
       error={error}
       onDismissError={() => setError(null)}
