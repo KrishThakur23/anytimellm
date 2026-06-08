@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import engine, Base
-from app.routers import auth, ingest, chat, webhook, users
+from app.routers import auth, ingest, chat, webhook, users, integrations
 
 # Setup logger
 logging.basicConfig(
@@ -94,6 +94,7 @@ app.include_router(auth.router)
 app.include_router(ingest.router)
 app.include_router(chat.router)
 app.include_router(webhook.router)
+app.include_router(integrations.router)
 
 @app.api_route("/", methods=["GET", "HEAD"])
 def health_check():

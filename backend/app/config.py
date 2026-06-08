@@ -13,6 +13,11 @@ class Settings(BaseSettings):
     META_WA_ACCESS_TOKEN: str = Field(default="")
     META_WA_VERIFY_TOKEN: str = Field(default="anytimellm_verify_token")
     
+    # Meta App Credentials for Embedded Signup Oauth
+    META_APP_ID: str = Field(default="")
+    META_APP_SECRET: str = Field(default="")
+    META_WEBHOOK_VERIFY_TOKEN: str = Field(default="anytimellm_global_webhook_verify_token")
+    
     # Twilio WhatsApp Config
     TWILIO_ACCOUNT_SID: str = Field(default="")
     TWILIO_AUTH_TOKEN: str = Field(default="")

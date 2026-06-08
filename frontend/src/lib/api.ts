@@ -290,5 +290,26 @@ export const api = {
     });
     if (!res.ok) throw new Error("Failed to update business settings.");
     return res.json();
-  }
+  },
+
+  async saveMetaAuthCode(code: string, redirectUri?: string): Promise<any> {
+    const res = await fetch(`${BACKEND_URL}/api/integrations/whatsapp/meta/auth`, {
+      method: "POST",
+      headers: getHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ code, redirect_uri: redirectUri }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || "Failed to exchange Meta auth code.");
+    }
+    return res.json();
+  },
+
+  async getMetaIntegrationStatus(): Promise<{ connected: boolean; provider?: string; phone_number_id?: string; display_name?: string; verify_token?: string }> {
+    const res = await fetch(`${BACKEND_URL}/api/integrations/whatsapp/meta/status`, {
+      headers: getHeaders(),
+    });
+    if (!res.ok) throw new Error("Failed to fetch integration status.");
+    return res.json();
+  },
 };

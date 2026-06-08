@@ -14,6 +14,107 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/webhooks/whatsapp", tags=["Meta WhatsApp Webhooks"])
 
+@router.get("/incoming")
+def verify_whatsapp_unified_webhook(
+    mode: str = Query(None, alias="hub.mode"),
+    verify_token: str = Query(None, alias="hub.verify_token"),
+    challenge: str = Query(None, alias="hub.challenge")
+):
+    """Meta unified webhook verification endpoint. Responds to verification challenges globally."""
+    print("\n==================================================")
+    print(f"[UNIFIED WEBHOOK GET VERIFY] Verification request.")
+    print(f"  hub.mode     : {mode}")
+    print(f"  hub.challenge: {challenge}")
+    print(f"  hub.verify_token: {verify_token}")
+    print("==================================================\n")
+    logger.info(f"Meta unified webhook verification challenge received")
+    
+    expected_token = settings.META_WEBHOOK_VERIFY_TOKEN
+    if mode == "subscribe" and verify_token == expected_token:
+        logger.info("Unified Webhook verification succeeded!")
+        print("[UNIFIED WEBHOOK GET VERIFY SUCCESS] Verification tokens match!")
+        return Response(content=challenge, media_type="text/plain")
+        
+    logger.warning(f"Unified Webhook verification failed. Expected: {expected_token}, Got: {verify_token}")
+    print("[UNIFIED WEBHOOK GET VERIFY ERROR] Verification failed!")
+    raise HTTPException(status_code=403, detail="Verification token mismatch.")
+
+@router.post("/incoming")
+async def handle_incoming_unified_message(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """Processes incoming WhatsApp messages from the unified App webhook, resolves the business by phone_number_id, and triggers the agent."""
+    try:
+        body_bytes = await request.body()
+        body_str = body_bytes.decode("utf-8")
+        print("\n==================================================")
+        print(f"[UNIFIED WEBHOOK RECEIVE] Incoming payload.")
+        print(f"[BODY]: {body_str}")
+        print("==================================================\n")
+        
+        import json
+        payload = json.loads(body_str)
+        
+        entries = payload.get("entry", [])
+        for entry in entries:
+            changes = entry.get("changes", [])
+            for change in changes:
+                value = change.get("value", {})
+                metadata = value.get("metadata", {})
+                phone_number_id = metadata.get("phone_number_id")
+                
+                messages = value.get("messages", [])
+                contacts = value.get("contacts", [])
+                
+                if not phone_number_id or not messages:
+                    continue
+                    
+                # Resolve Business dynamically by phone_number_id
+                try:
+                    biz = db.query(Business).filter(Business.api_settings['meta_phone_number_id'].astext == phone_number_id).first()
+                except Exception:
+                    # In-memory fallback
+                    businesses = db.query(Business).all()
+                    biz = next((b for b in businesses if b.api_settings.get("meta_phone_number_id") == phone_number_id), None)
+                    
+                if not biz:
+                    logger.error(f"Business workspace with phone_number_id '{phone_number_id}' not found in database.")
+                    print(f"[UNIFIED WEBHOOK ERROR] Business workspace not found for phone_number_id: {phone_number_id}")
+                    continue
+                    
+                msg = messages[0]
+                if msg.get("type") != "text":
+                    logger.warning(f"Unsupported message type received on unified webhook: {msg.get('type')}")
+                    continue
+                    
+                customer_phone = msg.get("from")
+                message_body = msg.get("text", {}).get("body", "").strip()
+                
+                if not customer_phone or not message_body:
+                    continue
+                    
+                customer_name = "WhatsApp User"
+                if contacts:
+                    customer_name = contacts[0].get("profile", {}).get("name", "WhatsApp User")
+                    
+                print(f"[UNIFIED WEBHOOK ROUTE SUCCESS] Resolved Business ID: {biz.id} ({biz.name})")
+                await process_single_whatsapp_event(
+                    business_id=biz.id,
+                    phone=customer_phone,
+                    name=customer_name,
+                    text=message_body,
+                    db=db
+                )
+                
+    except Exception as e:
+        logger.error(f"Failed to parse incoming unified webhook payload: {e}")
+        print(f"[UNIFIED WEBHOOK PARSE ERROR]: {e}")
+        return {"status": "error", "message": "Failed to parse body"}
+
+    return {"status": "accepted"}
+
+
 @router.get("/{business_id}")
 def verify_whatsapp_webhook(
     business_id: UUID,
@@ -259,10 +360,14 @@ async def process_single_whatsapp_event(
         db.commit()
         print(f"[WEBHOOK PROCESS] Logged messages to DB (Conversation ID: {conversation.id})")
 
-        # 6. Send outgoing reply message via Twilio WhatsApp API
-        print(f"[WEBHOOK PROCESS] Sending reply via Twilio WhatsApp API to phone {phone}...")
-        await send_whatsapp_message(to_phone=phone, text=agent_reply_text)
-        print(f"[WEBHOOK PROCESS] Reply sent successfully!")
+        # 6. Send outgoing reply message via Twilio or Meta WhatsApp API
+        biz = db.query(Business).filter(Business.id == business_id).first()
+        if biz:
+            print(f"[WEBHOOK PROCESS] Sending reply via WhatsApp API for business: {biz.name} to {phone}...")
+            await send_whatsapp_message(business=biz, to_phone=phone, text=agent_reply_text)
+            print(f"[WEBHOOK PROCESS] Reply sent successfully!")
+        else:
+            print(f"[WEBHOOK PROCESS ERROR] Business {business_id} not found on reply step.")
 
     except Exception as e:
         db.rollback()

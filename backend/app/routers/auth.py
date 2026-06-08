@@ -249,8 +249,9 @@ async def update_order_status(
                 db.commit()
                 
                 # Send the actual WhatsApp message
+                biz = db.query(Business).filter(Business.id == business_id).first()
                 from app.services.twilio_whatsapp import send_whatsapp_message
-                await send_whatsapp_message(to_phone=recipient_phone, text=notification_text)
+                await send_whatsapp_message(business=biz, to_phone=recipient_phone, text=notification_text)
 
         return OrderOut(
             id=order.id,
@@ -365,7 +366,7 @@ async def send_manual_chat_reply(
         
         # Dispatch WhatsApp outbox
         from app.services.twilio_whatsapp import send_whatsapp_message
-        await send_whatsapp_message(to_phone=customer.phone_number, text=payload.content)
+        await send_whatsapp_message(business=biz, to_phone=customer.phone_number, text=payload.content)
         
         return MessageOut(
             id=new_msg.id,
