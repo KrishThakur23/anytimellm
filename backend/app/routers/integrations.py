@@ -48,7 +48,7 @@ async def exchange_meta_auth_code(
         meta_settings = {
             "whatsapp_provider": "meta",
             "meta_access_token": "EAAQ_MOCK_LONG_LIVED_ACCESS_TOKEN_XYZ",
-            "meta_phone_number_id": "1088451004357858", # Default mock ID matching tests
+            "meta_phone_number_id": settings.META_WA_PHONE_NUMBER_ID or "1088451004357858",
             "meta_waba_id": "waba_mock_9999888877",
             "meta_display_name": f"{biz.name} (Automated)",
             "wa_verify_token": f"anytimellm_verify_{biz.id.hex[:12]}"
