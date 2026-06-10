@@ -38,27 +38,22 @@ To enable local testing without immediately requiring API keys:
 Follow these steps to run AnytimeLLM locally on your Windows machine.
 
 ### 📋 Prerequisites
-Make sure you have the following installed on your machine:
-- **Docker Desktop** (to run PostgreSQL)
+Make sure you have the following ready on your machine or cloud account:
+- **Supabase Account** (with a provisioned PostgreSQL database)
 - **Node.js** (v18.0.0+ or v20.0.0+ recommended)
 - **Python 3.10+**
 
 ---
 
-### Step 1: Run the Database Container
+### Step 1: Set Up Supabase Database Connection
 
-The repository includes a `docker-compose.yml` file that provisions a pre-configured PostgreSQL database.
+Instead of running a local PostgreSQL container, the AnytimeLLM system connects to your remote Supabase PostgreSQL database instance.
 
-1. Open a terminal (PowerShell or Command Prompt).
-2. Start the database service in detached (background) mode:
-   ```powershell
-   docker compose up -d
-   ```
-3. To verify that the database is running, execute:
-   ```powershell
-   docker ps
-   ```
-   You should see a running container named `anytimellm-postgres` mapped to port `5432`.
+1. Log in to your [Supabase Dashboard](https://supabase.com).
+2. Create a new project or select an existing one.
+3. Navigate to **Project Settings** -> **Database**.
+4. Under **Connection string**, copy the URI (URI format). 
+   * *Note: For serverless execution, use the connection pooling URI (port 6543) or direct connection (port 5432) depending on network policies.*
 
 ---
 
@@ -78,7 +73,7 @@ The repository includes a `docker-compose.yml` file that provisions a pre-config
      copy .env.example .env
      ```
 3. Open `backend/.env` in your editor and configure the parameters:
-   * **Database Config**: The default connection string (`postgresql://postgres:postgrespassword@localhost:5432/anytimellm`) matches the PostgreSQL container started in Step 1.
+   * **Database Config**: Set `DATABASE_URL` to the connection URI copied from Supabase in Step 1.
    * **Google Gemini API Key**: Insert your API key as `GEMINI_API_KEY`. If left blank, mock chatbot responses will be used.
    * **Pinecone API Key**: Paste your `PINECONE_API_KEY` and define your index name as `PINECONE_INDEX_NAME`. Note that if using Gemini Embeddings, your Pinecone index must be created with **768 dimensions** (using cosine or dot product distance).
 
@@ -87,18 +82,18 @@ The repository includes a `docker-compose.yml` file that provisions a pre-config
 ### Step 3: Run the FastAPI Backend Server
 
 1. **Activate the Virtual Environment**:
-   A virtual environment (`venv`) is already present in the workspace root. Run the appropriate command for your terminal:
+   A virtual environment (`venv`) is located inside the `backend` directory. From the `backend` directory, run the appropriate command for your terminal:
    * **PowerShell**:
      ```powershell
-     
+     .\venv\Scripts\Activate.ps1
      ```
    * **CMD / Command Prompt**:
      ```cmd
-     ..\venv\Scripts\activate.bat
+     .\venv\Scripts\activate
      ```
-   * **Git Bash / Linux / macOS**:
+   * **Git Bash / Terminal**:
      ```bash
-     source ../venv/bin/activate
+     source venv/Scripts/activate
      ```
 2. **Install Dependencies**:
    Ensure all Python packages are up-to-date:
@@ -106,11 +101,11 @@ The repository includes a `docker-compose.yml` file that provisions a pre-config
    pip install -r requirements.txt
    ```
 3. **Start the FastAPI Application**:
-   Run uvicorn to start the local development server:
-   ```powershell..\venv\Scripts\Activate.ps1
+   Run the application module to start the local development server:
+   ```powershell
    python -m app.main
    ```
-   *Alternatively, you can run:*
+   *Alternatively, you can run uvicorn directly:*
    ```powershell
    uvicorn app.main:app --reload --port 8000
    ```
