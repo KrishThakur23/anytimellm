@@ -1,4 +1,5 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr, field_validator
+import re
 from uuid import UUID
 from datetime import datetime
 from typing import Optional, Dict, Any, List
@@ -11,6 +12,8 @@ class BusinessOut(BaseModel):
     id: UUID
     name: str
     api_settings: Dict[str, Any]
+    business_type: Optional[str] = None
+    onboarding_status: str = "pending"
     created_at: datetime
 
     class Config:
@@ -115,11 +118,26 @@ class MessageCreate(BaseModel):
 # Authentication Schemas
 class UserRegister(BaseModel):
     business_name: str
-    email: str
+    email: EmailStr
     password: str
 
+    @field_validator("password")
+    @classmethod
+    def validate_password_strength(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters long.")
+        if not re.search(r"[A-Z]", v):
+            raise ValueError("Password must contain at least one uppercase letter.")
+        if not re.search(r"[a-z]", v):
+            raise ValueError("Password must contain at least one lowercase letter.")
+        if not re.search(r"\d", v):
+            raise ValueError("Password must contain at least one numeric digit.")
+        if not re.search(r"[@$!%*?&_#^()-+=]", v):
+            raise ValueError("Password must contain at least one special character (e.g. @$!%*?&_#^()-+=).")
+        return v
+
 class UserLogin(BaseModel):
-    email: str
+    email: EmailStr
     password: str
 
 class TokenOut(BaseModel):
@@ -135,4 +153,28 @@ class UserOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+class GoogleAuthPayload(BaseModel):
+    credential: str
+    business_name: Optional[str] = None
+
+class GoogleAuthResponse(BaseModel):
+    is_registered: bool
+    access_token: Optional[str] = None
+    token_type: Optional[str] = "bearer"
+    business_id: Optional[UUID] = None
+
+# Onboarding Schemas
+class OnboardingStart(BaseModel):
+    business_type: str
+
+class OnboardingChatInput(BaseModel):
+    message: str
+
+class OnboardingChatResponse(BaseModel):
+    reply: str
+    status: str
+    chat_history: List[Dict[str, Any]]
+    collected: Dict[str, Any]
+
 

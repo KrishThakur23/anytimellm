@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { api } from "@/lib/api";
+import { api, BACKEND_URL } from "@/lib/api";
 import type { Business, CatalogItem, DocumentInfo, ChatMessage, Order, Conversation, Message } from "@/lib/api";
 import { Loader2 } from "lucide-react";
 
@@ -16,6 +16,7 @@ import PlaygroundTab from "@/components/playground/PlaygroundTab";
 import IntegrationsTab from "@/components/integrations/IntegrationsTab";
 import OrdersTab from "@/components/orders/OrdersTab";
 import ChatsTab from "@/components/chats/ChatsTab";
+import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 
 type Tab = "overview" | "ingest" | "catalog" | "playground" | "integrations" | "orders" | "chats";
 
@@ -77,13 +78,13 @@ export default function Dashboard() {
           console.error("Failed to load saved business session:", err);
           localStorage.removeItem("anytimellm-active-business-id");
           localStorage.removeItem("anytimellm-token");
-          router.push("/login");
+          window.location.href = "/login";
         })
         .finally(() => {
           setLoadingBusiness(false);
         });
     } else {
-      router.push("/login");
+      window.location.href = "/login";
     }
   }, [router]);
 
@@ -116,6 +117,57 @@ export default function Dashboard() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages]);
+
+  // Background polling for orders & Real-time Server-Sent Events (SSE) for chats
+  useEffect(() => {
+    if (!activeBusiness) return;
+    
+    let timer: any = null;
+    let eventSource: EventSource | null = null;
+    
+    if (tab === "chats") {
+      // Connect to Server-Sent Events for real-time reactive updates
+      const token = localStorage.getItem("anytimellm-token") || "";
+      const sseUrl = `${BACKEND_URL}/api/businesses/${activeBusiness.id}/chats/stream?token=${encodeURIComponent(token)}`;
+      
+      console.log("Establishing real-time SSE chat stream...");
+      eventSource = new EventSource(sseUrl);
+      
+      eventSource.onmessage = (event) => {
+        if (event.data === "refresh") {
+          console.log("Real-time message received via SSE. Refreshing chats...");
+          api.getChats(activeBusiness.id)
+            .then(data => setChats(data))
+            .catch(err => console.error("Real-time chats update failed:", err));
+        }
+      };
+      
+      eventSource.onerror = (err) => {
+        console.error("SSE connection error, falling back to 5s polling:", err);
+        if (eventSource) {
+          eventSource.close();
+          eventSource = null;
+        }
+        // Fallback polling in case of connection drop
+        timer = setInterval(() => {
+          api.getChats(activeBusiness.id)
+            .then(data => setChats(data))
+            .catch(err => console.error("Fallback chats update failed:", err));
+        }, 5000);
+      };
+    } else if (tab === "orders") {
+      timer = setInterval(() => {
+        api.getOrders(activeBusiness.id)
+          .then(data => setOrders(data))
+          .catch(err => console.error("Silent background orders refresh failed:", err));
+      }, 5000);
+    }
+    
+    return () => {
+      if (timer) clearInterval(timer);
+      if (eventSource) eventSource.close();
+    };
+  }, [tab, activeBusiness]);
 
   const fetchBusinessData = async () => {
     if (!activeBusiness) return;
@@ -182,10 +234,11 @@ export default function Dashboard() {
       const newMsg = await api.sendChatMessage(activeBusiness.id, conversationId, content);
       setChats(prevChats => prevChats.map(c => {
         if (c.id === conversationId) {
+          const exists = newMsg.id ? c.messages.some(m => m.id === newMsg.id) : false;
           return {
             ...c,
             last_message_content: content,
-            messages: [...c.messages, newMsg]
+            messages: exists ? c.messages : [...c.messages, newMsg]
           };
         }
         return c;
@@ -394,6 +447,19 @@ export default function Dashboard() {
     );
   }
 
+  // If onboarding is incomplete, render the setup wizard
+  if (activeBusiness && activeBusiness.onboarding_status !== "completed") {
+    return (
+      <OnboardingWizard
+        activeBusiness={activeBusiness}
+        onComplete={(updatedBiz) => {
+          setActiveBusiness(updatedBiz);
+          fetchBusinessData();
+        }}
+      />
+    );
+  }
+
   // Once tenant is active, render modular shell & feature tabs
   return (
     <DashboardShell
@@ -421,6 +487,7 @@ export default function Dashboard() {
             copied={copied}
             copyToClipboard={copyToClipboard}
             onTabChange={setTab}
+            onUpdateBusiness={setActiveBusiness}
           />
         )}
         {tab === "ingest" && (

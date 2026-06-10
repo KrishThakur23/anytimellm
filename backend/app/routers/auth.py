@@ -1,13 +1,18 @@
 import logging
-from fastapi import APIRouter, Depends, HTTPException, status
+import asyncio
+import jwt
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Query
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session, joinedload, selectinload
 from uuid import UUID
 from typing import List
+from datetime import datetime
 
 from app.database import get_db
 from app.models import Business, Catalog, Order, Conversation, Message
 from app.schemas import BusinessCreate, BusinessOut, CatalogCreate, CatalogOut, OrderOut, ConversationOut, MessageOut, MessageCreate
 from app.services.security import get_current_user
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -250,7 +255,7 @@ async def update_order_status(
                 
                 # Send the actual WhatsApp message
                 biz = db.query(Business).filter(Business.id == business_id).first()
-                from app.services.twilio_whatsapp import send_whatsapp_message
+                from app.services.whatsapp import send_whatsapp_message
                 await send_whatsapp_message(business=biz, to_phone=recipient_phone, text=notification_text)
 
         return OrderOut(
@@ -327,6 +332,59 @@ def get_business_chats(
     return out
 
 
+@router.get("/{business_id}/chats/stream")
+async def chat_stream(
+    business_id: UUID,
+    request: Request,
+    token: str = Query(..., description="Authentication token passed via query param for EventSource compatibility"),
+    db: Session = Depends(get_db)
+):
+    """
+    Server-Sent Events (SSE) endpoint to push real-time refresh signals to the client
+    when new messages are received in any chat for this business.
+    """
+    # 1. Verify token & permissions
+    try:
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+        user_id_str = payload.get("user_id")
+        user_biz_id_str = payload.get("business_id")
+        if not user_id_str or not user_biz_id_str:
+            raise HTTPException(status_code=401, detail="Invalid token payload")
+        
+        if UUID(user_biz_id_str) != business_id:
+            raise HTTPException(status_code=403, detail="Not authorized to access this business.")
+    except Exception:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    # 2. Generator that monitors messages via PubSub
+    async def event_generator():
+        from app.services.pubsub import chat_pubsub
+        
+        # Subscribe a queue for this business
+        queue = chat_pubsub.subscribe(str(business_id))
+        
+        try:
+            while True:
+                # If the client disconnected, clean up immediately
+                if await request.is_disconnected():
+                    break
+                
+                try:
+                    # Wait for a publish signal (suspends execution, 0% CPU/DB load)
+                    msg = await asyncio.wait_for(queue.get(), timeout=30.0)
+                    yield f"data: {msg}\n\n"
+                except asyncio.TimeoutError:
+                    # Send a heartbeat comment to keep EventSource connection alive
+                    yield ": keepalive\n\n"
+        except Exception as e:
+            logger.error(f"Error in SSE event stream: {e}")
+        finally:
+            # Always clean up listener queue on disconnect
+            chat_pubsub.unsubscribe(str(business_id), queue)
+            
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
 @router.post("/{business_id}/chats/{conversation_id}/messages", response_model=MessageOut)
 async def send_manual_chat_reply(
     business_id: UUID,
@@ -364,8 +422,12 @@ async def send_manual_chat_reply(
         db.commit()
         db.refresh(new_msg)
         
+        # Publish real-time event to sync other dashboard tabs/sessions
+        from app.services.pubsub import chat_pubsub
+        chat_pubsub.publish(str(business_id), "refresh")
+        
         # Dispatch WhatsApp outbox
-        from app.services.twilio_whatsapp import send_whatsapp_message
+        from app.services.whatsapp import send_whatsapp_message
         await send_whatsapp_message(business=biz, to_phone=customer.phone_number, text=payload.content)
         
         return MessageOut(

@@ -23,3 +23,5 @@ google-cloud-vision>=3.7.2
 langchain-openai
 PyJWT>=2.8.0
 bcrypt>=4.1.0
+email-validator>=2.0.0
+google-auth>=2.20.0

@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from sqlalchemy.orm import Session
 from uuid import UUID
@@ -8,7 +9,7 @@ from app.database import get_db
 from app.config import settings
 from app.models import Business, Customer, Conversation, Message
 from app.services.agent import agent_graph
-from app.services.twilio_whatsapp import send_whatsapp_message
+from app.services.whatsapp import send_whatsapp_message
 
 logger = logging.getLogger(__name__)
 
@@ -30,12 +31,14 @@ def verify_whatsapp_unified_webhook(
     logger.info(f"Meta unified webhook verification challenge received")
     
     expected_token = settings.META_WEBHOOK_VERIFY_TOKEN
-    if mode == "subscribe" and verify_token == expected_token:
+    fallback_token = settings.META_WA_VERIFY_TOKEN
+    
+    if mode == "subscribe" and (verify_token == expected_token or verify_token == fallback_token):
         logger.info("Unified Webhook verification succeeded!")
         print("[UNIFIED WEBHOOK GET VERIFY SUCCESS] Verification tokens match!")
         return Response(content=challenge, media_type="text/plain")
         
-    logger.warning(f"Unified Webhook verification failed. Expected: {expected_token}, Got: {verify_token}")
+    logger.warning(f"Unified Webhook verification failed. Expected: {expected_token} or {fallback_token}, Got: {verify_token}")
     print("[UNIFIED WEBHOOK GET VERIFY ERROR] Verification failed!")
     raise HTTPException(status_code=403, detail="Verification token mismatch.")
 
@@ -64,23 +67,65 @@ async def handle_incoming_unified_message(
                 metadata = value.get("metadata", {})
                 phone_number_id = metadata.get("phone_number_id")
                 
+                # Check for standard messages vs message echoes vs status updates
                 messages = value.get("messages", [])
+                message_echoes = value.get("message_echoes", [])
+                statuses = value.get("statuses", [])
                 contacts = value.get("contacts", [])
                 
-                if not phone_number_id or not messages:
+                if not phone_number_id:
                     continue
                     
-                # Resolve Business dynamically by phone_number_id
+                # Resolve Business dynamically by phone_number_id and active provider
                 try:
-                    biz = db.query(Business).filter(Business.api_settings['meta_phone_number_id'].astext == phone_number_id).first()
+                    biz = db.query(Business).filter(
+                        Business.api_settings['meta_phone_number_id'].astext == phone_number_id,
+                        Business.api_settings['whatsapp_provider'].astext == 'meta'
+                    ).first()
                 except Exception:
                     # In-memory fallback
                     businesses = db.query(Business).all()
-                    biz = next((b for b in businesses if b.api_settings.get("meta_phone_number_id") == phone_number_id), None)
+                    biz = next((b for b in businesses if b.api_settings.get("meta_phone_number_id") == phone_number_id and b.api_settings.get("whatsapp_provider") == "meta"), None)
                     
                 if not biz:
                     logger.error(f"Business workspace with phone_number_id '{phone_number_id}' not found in database.")
                     print(f"[UNIFIED WEBHOOK ERROR] Business workspace not found for phone_number_id: {phone_number_id}")
+                    continue
+                
+                # Handle status updates (outbound delivery reports or external API messages)
+                if statuses:
+                    status_item = statuses[0]
+                    status_type = status_item.get("status")
+                    recipient_phone = status_item.get("recipient_id")
+                    
+                    if status_type == "sent" and recipient_phone:
+                        print(f"[UNIFIED WEBHOOK STATUS] Sent status received for Business ID: {biz.id} ({biz.name}) to: {recipient_phone}")
+                        await process_status_sent_event(
+                            business_id=biz.id,
+                            phone=recipient_phone,
+                            db=db
+                        )
+                    continue
+                
+                # Handle message echoes (messages sent by the business/agent from external platforms)
+                if message_echoes:
+                    echo_msg = message_echoes[0]
+                    # We only care about text messages for now
+                    if echo_msg.get("type") == "text" or "text" in echo_msg:
+                        customer_phone = echo_msg.get("to")  # The recipient is the customer
+                        message_body = echo_msg.get("text", {}).get("body", "").strip()
+                        
+                        if customer_phone and message_body:
+                            print(f"[UNIFIED WEBHOOK ECHO] Echo received for Business ID: {biz.id} ({biz.name}) to customer: {customer_phone}")
+                            await process_outgoing_echo_event(
+                                business_id=biz.id,
+                                phone=customer_phone,
+                                text=message_body,
+                                db=db
+                            )
+                    continue
+                    
+                if not messages:
                     continue
                     
                 msg = messages[0]
@@ -104,7 +149,8 @@ async def handle_incoming_unified_message(
                     phone=customer_phone,
                     name=customer_name,
                     text=message_body,
-                    db=db
+                    db=db,
+                    meta_message_id=msg.get("id")
                 )
                 
     except Exception as e:
@@ -161,83 +207,85 @@ async def handle_incoming_whatsapp_message(
     request: Request,
     db: Session = Depends(get_db)
 ):
-    """Processes incoming WhatsApp messages from Meta or Twilio, runs the business's LangGraph agent, and sends back replies."""
+    """Processes incoming WhatsApp messages from Meta, runs the business's LangGraph agent, and sends back replies."""
     try:
-        content_type = request.headers.get("content-type", "")
+        # Meta Webhook (JSON)
+        body_bytes = await request.body()
+        body_str = body_bytes.decode("utf-8")
+        print("\n==================================================")
+        print(f"[META WEBHOOK RECEIVE] Business: {business_id}")
+        print(f"[META WEBHOOK BODY]: {body_str}")
+        print("==================================================\n")
         
-        if "application/x-www-form-urlencoded" in content_type:
-            # Twilio Webhook (Form urlencoded)
-            form_data = await request.form()
-            body_str = str(dict(form_data))
-            print("\n==================================================")
-            print(f"[TWILIO WEBHOOK RECEIVE] Business: {business_id}")
-            print(f"[TWILIO WEBHOOK BODY]: {body_str}")
-            print("==================================================\n")
-            
-            customer_phone = form_data.get("From", "")
-            if customer_phone.startswith("whatsapp:"):
-                customer_phone = customer_phone.replace("whatsapp:", "").strip()
+        import json
+        payload = json.loads(body_str)
+        
+        entries = payload.get("entry", [])
+        for entry in entries:
+            changes = entry.get("changes", [])
+            for change in changes:
+                value = change.get("value", {})
+                messages = value.get("messages", [])
+                message_echoes = value.get("message_echoes", [])
+                statuses = value.get("statuses", [])
+                contacts = value.get("contacts", [])
                 
-            message_body = form_data.get("Body", "").strip()
-            customer_name = form_data.get("ProfileName", "WhatsApp User")
-            
-            if not customer_phone or not message_body:
-                print("[TWILIO WEBHOOK] Missing 'From' or 'Body' field in payload.")
-                return {"status": "ignored", "reason": "missing fields"}
+                if statuses:
+                    status_item = statuses[0]
+                    status_type = status_item.get("status")
+                    recipient_phone = status_item.get("recipient_id")
+                    
+                    if status_type == "sent" and recipient_phone:
+                        print(f"[META WEBHOOK STATUS] Sent status received for Business ID: {business_id} to: {recipient_phone}")
+                        await process_status_sent_event(
+                            business_id=business_id,
+                            phone=recipient_phone,
+                            db=db
+                        )
+                    continue
+                    
+                if message_echoes:
+                    echo_msg = message_echoes[0]
+                    if echo_msg.get("type") == "text" or "text" in echo_msg:
+                        customer_phone = echo_msg.get("to")
+                        message_body = echo_msg.get("text", {}).get("body", "").strip()
+                        
+                        if customer_phone and message_body:
+                            print(f"[META WEBHOOK ECHO] Echo received for Business ID: {business_id} to customer: {customer_phone}")
+                            await process_outgoing_echo_event(
+                                business_id=business_id,
+                                phone=customer_phone,
+                                text=message_body,
+                                db=db
+                            )
+                    continue
+                    
+                if not messages:
+                    continue
+                    
+                msg = messages[0]
+                if msg.get("type") != "text":
+                    logger.warning(f"Unsupported message type received: {msg.get('type')}")
+                    continue
+                    
+                customer_phone = msg.get("from")
+                message_body = msg.get("text", {}).get("body", "").strip()
                 
-            await process_single_whatsapp_event(
-                business_id=business_id,
-                phone=customer_phone,
-                name=customer_name,
-                text=message_body,
-                db=db
-            )
-            
-        else:
-            # Meta Webhook (JSON)
-            body_bytes = await request.body()
-            body_str = body_bytes.decode("utf-8")
-            print("\n==================================================")
-            print(f"[META WEBHOOK RECEIVE] Business: {business_id}")
-            print(f"[META WEBHOOK BODY]: {body_str}")
-            print("==================================================\n")
-            
-            import json
-            payload = json.loads(body_str)
-            
-            entries = payload.get("entry", [])
-            for entry in entries:
-                changes = entry.get("changes", [])
-                for change in changes:
-                    value = change.get("value", {})
-                    messages = value.get("messages", [])
-                    contacts = value.get("contacts", [])
+                if not customer_phone or not message_body:
+                    continue
                     
-                    if not messages:
-                        continue
-                        
-                    msg = messages[0]
-                    if msg.get("type") != "text":
-                        logger.warning(f"Unsupported message type received: {msg.get('type')}")
-                        continue
-                        
-                    customer_phone = msg.get("from")
-                    message_body = msg.get("text", {}).get("body", "").strip()
+                customer_name = "WhatsApp User"
+                if contacts:
+                    customer_name = contacts[0].get("profile", {}).get("name", "WhatsApp User")
                     
-                    if not customer_phone or not message_body:
-                        continue
-                        
-                    customer_name = "WhatsApp User"
-                    if contacts:
-                        customer_name = contacts[0].get("profile", {}).get("name", "WhatsApp User")
-                        
-                    await process_single_whatsapp_event(
-                        business_id=business_id,
-                        phone=customer_phone,
-                        name=customer_name,
-                        text=message_body,
-                        db=db
-                    )
+                await process_single_whatsapp_event(
+                    business_id=business_id,
+                    phone=customer_phone,
+                    name=customer_name,
+                    text=message_body,
+                    db=db,
+                    meta_message_id=msg.get("id")
+                )
                     
     except Exception as e:
         logger.error(f"Failed to parse incoming webhook payload: {e}")
@@ -254,10 +302,19 @@ async def process_single_whatsapp_event(
     phone: str,
     name: str,
     text: str,
-    db: Session
+    db: Session,
+    meta_message_id: Optional[str] = None
 ):
     """Performs customer retrieval, state restoration, LangGraph invocation, and outbound message delivery."""
     try:
+        # Check for message deduplication using meta_message_id
+        if meta_message_id:
+            existing_msg = db.query(Message).filter(Message.meta_message_id == meta_message_id).first()
+            if existing_msg:
+                print(f"[WEBHOOK DEDUPLICATOR] Duplicate message detected: {meta_message_id}. Skipping execution.")
+                return
+
+
         # 1. Get or create Customer
         customer = (
             db.query(Customer)
@@ -319,11 +376,33 @@ async def process_single_whatsapp_event(
             cust_msg = Message(
                 conversation_id=conversation.id,
                 sender="customer",
-                content=text
+                content=text,
+                meta_message_id=meta_message_id
             )
             db.add(cust_msg)
-            db.commit()
+            try:
+                db.commit()
+            except Exception as e:
+                db.rollback()
+                print(f"[WEBHOOK DEDUPLICATOR] Duplicate message detected on paused flow: {e}")
+                return
             print(f"[WEBHOOK PROCESS] Logged messages to DB (Conversation ID: {conversation.id})")
+            return
+
+        # Insert customer message early to claim the message ID and prevent duplicate concurrent runs
+        cust_msg = Message(
+            conversation_id=conversation.id,
+            sender="customer",
+            content=text,
+            meta_message_id=meta_message_id
+        )
+        db.add(cust_msg)
+        try:
+            db.commit()
+            db.refresh(cust_msg)
+        except Exception as e:
+            db.rollback()
+            print(f"[WEBHOOK DEDUPLICATOR] Failed to insert customer message (possible duplicate): {e}")
             return
 
         # 4. Invoke LangGraph agent
@@ -344,21 +423,19 @@ async def process_single_whatsapp_event(
         agent_reply_text = agent_reply_msg.content
         print(f"[WEBHOOK PROCESS] Agent response generated: '{agent_reply_text}'")
 
-        # 5. Log messages to DB
-        cust_msg = Message(
-            conversation_id=conversation.id,
-            sender="customer",
-            content=text
-        )
+        # 5. Log agent message to DB
         agent_msg = Message(
             conversation_id=conversation.id,
             sender="agent",
             content=agent_reply_text
         )
-        db.add(cust_msg)
         db.add(agent_msg)
         db.commit()
         print(f"[WEBHOOK PROCESS] Logged messages to DB (Conversation ID: {conversation.id})")
+        
+        # Publish real-time event to refresh front-end UI
+        from app.services.pubsub import chat_pubsub
+        chat_pubsub.publish(str(business_id), "refresh")
 
         # 6. Send outgoing reply message via Twilio or Meta WhatsApp API
         biz = db.query(Business).filter(Business.id == business_id).first()
@@ -375,3 +452,151 @@ async def process_single_whatsapp_event(
         print(f"[WEBHOOK PROCESS ERROR] Exception occurred: {e}")
         import traceback
         traceback.print_exc()
+
+
+async def process_outgoing_echo_event(
+    business_id: UUID,
+    phone: str,
+    text: str,
+    db: Session
+):
+    """Processes an outgoing message echo event. Logs the message as 'agent' without invoking the AI graph."""
+    try:
+        # 1. Get or create Customer
+        customer = (
+            db.query(Customer)
+            .filter(Customer.business_id == business_id, Customer.phone_number == phone)
+            .first()
+        )
+        if not customer:
+            customer = Customer(
+                business_id=business_id,
+                phone_number=phone,
+                name="WhatsApp User"
+            )
+            db.add(customer)
+            db.commit()
+            db.refresh(customer)
+
+        # 2. Get or create active Conversation
+        conversation = (
+            db.query(Conversation)
+            .filter(
+                Conversation.business_id == business_id,
+                Conversation.customer_id == customer.id,
+                Conversation.channel == "whatsapp",
+                Conversation.status == "active"
+            )
+            .first()
+        )
+        if not conversation:
+            conversation = Conversation(
+                business_id=business_id,
+                customer_id=customer.id,
+                channel="whatsapp",
+                status="active"
+            )
+            db.add(conversation)
+            db.commit()
+            db.refresh(conversation)
+
+        # 3. Log the message to DB as 'agent'
+        agent_msg = Message(
+            conversation_id=conversation.id,
+            sender="agent",
+            content=text
+        )
+        db.add(agent_msg)
+        db.commit()
+        print(f"[WEBHOOK PROCESS ECHO] Successfully logged outgoing echo message to DB (Conversation ID: {conversation.id})")
+        
+        # Publish real-time event to refresh front-end UI
+        from app.services.pubsub import chat_pubsub
+        chat_pubsub.publish(str(business_id), "refresh")
+
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error processing outgoing WhatsApp echo event: {e}")
+        print(f"[WEBHOOK PROCESS ECHO ERROR] Exception occurred: {e}")
+
+
+async def process_status_sent_event(
+    business_id: UUID,
+    phone: str,
+    db: Session
+):
+    """Logs a placeholder message if the message was sent externally (i.e. no agent message was logged in the database in the last 5 seconds)."""
+    try:
+        # 1. Get or create Customer
+        customer = (
+            db.query(Customer)
+            .filter(Customer.business_id == business_id, Customer.phone_number == phone)
+            .first()
+        )
+        if not customer:
+            customer = Customer(
+                business_id=business_id,
+                phone_number=phone,
+                name="WhatsApp User"
+            )
+            db.add(customer)
+            db.commit()
+            db.refresh(customer)
+
+        # 2. Get or create active Conversation
+        conversation = (
+            db.query(Conversation)
+            .filter(
+                Conversation.business_id == business_id,
+                Conversation.customer_id == customer.id,
+                Conversation.channel == "whatsapp",
+                Conversation.status == "active"
+            )
+            .first()
+        )
+        if not conversation:
+            conversation = Conversation(
+                business_id=business_id,
+                customer_id=customer.id,
+                channel="whatsapp",
+                status="active"
+            )
+            db.add(conversation)
+            db.commit()
+            db.refresh(conversation)
+
+        # 3. Check for recently logged agent messages to avoid duplicating our own outbound dashboard replies
+        from datetime import datetime, timedelta
+        recent_cutoff = datetime.utcnow() - timedelta(seconds=60)
+        
+        recent_agent_msg = (
+            db.query(Message)
+            .filter(
+                Message.conversation_id == conversation.id,
+                Message.sender == "agent",
+                Message.created_at >= recent_cutoff
+            )
+            .first()
+        )
+        
+        if not recent_agent_msg:
+            # No recent message logged -> must have been sent externally via cURL / developer platform
+            agent_msg = Message(
+                conversation_id=conversation.id,
+                sender="agent",
+                content="[Message sent externally / via Developer Platform]"
+            )
+            db.add(agent_msg)
+            db.commit()
+            print(f"[WEBHOOK PROCESS STATUS] Logged external API message placeholder to DB (Conversation ID: {conversation.id})")
+            
+            # Publish real-time event to refresh front-end UI
+            from app.services.pubsub import chat_pubsub
+            chat_pubsub.publish(str(business_id), "refresh")
+        else:
+            print(f"[WEBHOOK PROCESS STATUS] Status 'sent' matched a recent internal outbound reply. Skipping duplicate logging.")
+
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error processing status sent event: {e}")
+        print(f"[WEBHOOK PROCESS STATUS ERROR] Exception occurred: {e}")

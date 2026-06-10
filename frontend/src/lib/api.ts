@@ -1,4 +1,4 @@
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+export const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
 export interface Business {
   id: string;
@@ -8,6 +8,8 @@ export interface Business {
     wa_verify_token?: string;
     [key: string]: any;
   };
+  business_type?: string;
+  onboarding_status: string;
   created_at: string;
 }
 
@@ -90,6 +92,26 @@ function getHeaders(extraHeaders: Record<string, string> = {}): Record<string, s
 
 export const api = {
   // Authentication methods
+  async loginWithGoogle(credential: string, businessName?: string): Promise<{ is_registered: boolean, access_token?: string, business_id?: string }> {
+    const res = await fetch(`${BACKEND_URL}/api/auth/google`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ credential, business_name: businessName }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || "Google authentication failed.");
+    }
+    const data = await res.json();
+    if (data.is_registered && data.access_token && data.business_id) {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("anytimellm-token", data.access_token);
+        localStorage.setItem("anytimellm-active-business-id", data.business_id);
+      }
+    }
+    return data;
+  },
+
   async login(email: string, password: string): Promise<{ access_token: string, business_id: string }> {
     const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
       method: "POST",
@@ -279,6 +301,26 @@ export const api = {
       body: JSON.stringify(settings),
     });
     if (!res.ok) throw new Error("Failed to update conversation settings.");
+    return res.json();
+  },
+
+  async startOnboarding(businessType: string): Promise<any> {
+    const res = await fetch(`${BACKEND_URL}/api/onboarding/start`, {
+      method: "POST",
+      headers: getHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ business_type: businessType }),
+    });
+    if (!res.ok) throw new Error("Failed to start onboarding.");
+    return res.json();
+  },
+
+  async sendOnboardingChatMessage(message: string): Promise<any> {
+    const res = await fetch(`${BACKEND_URL}/api/onboarding/chat`, {
+      method: "POST",
+      headers: getHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ message }),
+    });
+    if (!res.ok) throw new Error("Failed to send onboarding chat message.");
     return res.json();
   },
 

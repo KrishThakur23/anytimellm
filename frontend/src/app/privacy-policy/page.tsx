@@ -88,7 +88,7 @@ export default function PrivacyPolicyPage() {
               <li>Power the LangGraph cognitive loop to answer customer catalog questions.</li>
               <li>Parse uploaded documents, extract product metadata, and build search indexes.</li>
               <li>Process checkout commands and populate your relational order database.</li>
-              <li>Send real-time updates and notification webhooks to Meta and Twilio servers.</li>
+              <li>Send real-time updates and notification webhooks to Meta servers.</li>
             </ul>
           </div>
 

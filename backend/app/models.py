@@ -11,6 +11,8 @@ class Business(Base):
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     api_settings: Mapped[dict] = mapped_column(JSON, default=dict, server_default='{}')
+    business_type: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    onboarding_status: Mapped[str] = mapped_column(String(50), default="pending", server_default="'pending'")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
     
     documents: Mapped[List["Document"]] = relationship(back_populates="business", cascade="all, delete-orphan")
@@ -90,6 +92,7 @@ class Message(Base):
     conversation_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False, index=True)
     sender: Mapped[str] = mapped_column(String(50), nullable=False) # 'customer' or 'agent'
     content: Mapped[str] = mapped_column(Text, nullable=False)
+    meta_message_id: Mapped[Optional[str]] = mapped_column(String(255), unique=True, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
     
     conversation: Mapped["Conversation"] = relationship(back_populates="messages")

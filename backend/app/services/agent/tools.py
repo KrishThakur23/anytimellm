@@ -4,7 +4,7 @@ from typing import Dict, Any, List
 from sqlalchemy import text
 from app.database import SessionLocal
 from app.services.vector_db import search_vector_store
-from app.models import Catalog, Order, Customer
+from app.models import Catalog, Order, Customer, Business
 
 logger = logging.getLogger(__name__)
 
@@ -62,15 +62,32 @@ def query_catalog_sql_tool(search_query: str, business_id: str) -> str:
         if not results:
             return f"No products or catalog items matching '{search_query}' were found in the structured catalog. If you think the menu or item is in an uploaded image or document, try calling query_vector_store_tool."
             
+        # Fetch business to check business_type
+        biz = db.query(Business).filter(Business.id == biz_uuid).first()
+        b_type = biz.business_type if (biz and biz.business_type) else "dining"
+
         catalog_list = []
         for item in results:
-            catalog_list.append({
+            item_data = {
                 "name": item.name,
                 "price": float(item.price) if item.price else 0.0,
                 "description": item.description or "",
-                "category": item.category or "",
-                "attributes": item.attributes
-            })
+                "category": item.category or ""
+            }
+            attrs = item.attributes or {}
+            if b_type == "clothing":
+                item_data["variants"] = attrs.get("variants", [])
+                item_data["available_sizes"] = attrs.get("sizes", [])
+            elif b_type == "grocery":
+                item_data["unit"] = attrs.get("unit", "piece")
+                item_data["stock_quantity"] = attrs.get("stock_quantity", 0)
+            elif b_type == "salon":
+                item_data["duration_minutes"] = attrs.get("duration", 30)
+                item_data["available_staff"] = attrs.get("staff_member", "Any Staff")
+            else:  # dining / default
+                item_data["available"] = attrs.get("available", True)
+                
+            catalog_list.append(item_data)
             
         return json.dumps(catalog_list, indent=2)
     except Exception as e:
@@ -99,6 +116,20 @@ def place_order_tool(customer_id: str, business_id: str, order_items_json: str) 
         if not customer:
             return "Error: Customer profile not found or invalid business tenant."
 
+        # Fetch business to check business_type
+        biz = db.query(Business).filter(Business.id == biz_uuid).first()
+        b_type = biz.business_type if (biz and biz.business_type) else "dining"
+
+        # Type-specific validation checks
+        if b_type == "clothing":
+            for item in items:
+                if not item.get("size") or not item.get("color"):
+                    return "Error: Please specify both 'size' and 'color' for the clothing item you wish to order."
+        elif b_type == "salon":
+            for item in items:
+                if not item.get("time_slot") or not item.get("date"):
+                    return "Error: Please specify both 'date' and 'time_slot' for your salon appointment booking."
+
         # Create structured order
         new_order = Order(
             business_id=biz_uuid,
@@ -111,10 +142,15 @@ def place_order_tool(customer_id: str, business_id: str, order_items_json: str) 
         db.refresh(new_order)
         
         logger.info(f"Order created successfully: {new_order.id}")
+        
+        msg = "Order placed successfully. A representative will contact you to confirm."
+        if b_type == "salon":
+            msg = "Appointment booked successfully. A representative will contact you to confirm."
+
         return json.dumps({
             "status": "success",
             "order_id": str(new_order.id),
-            "message": "Order placed successfully. A representative will contact you to confirm.",
+            "message": msg,
             "details": new_order.details
         })
     except Exception as e:

@@ -47,11 +47,13 @@ export default function ChatsTab({
   useEffect(() => {
     if (listRef.current) {
       const items = listRef.current.querySelectorAll(".chat-item-card");
-      gsap.fromTo(
-        items,
-        { opacity: 0, x: -15 },
-        { opacity: 1, x: 0, duration: 0.4, stagger: 0.05, ease: "power2.out" }
-      );
+      if (items.length > 0) {
+        gsap.fromTo(
+          items,
+          { opacity: 0, x: -15 },
+          { opacity: 1, x: 0, duration: 0.4, stagger: 0.05, ease: "power2.out" }
+        );
+      }
     }
   }, [chats]);
 

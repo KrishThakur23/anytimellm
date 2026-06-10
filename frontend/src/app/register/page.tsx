@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import { Loader2 } from "lucide-react";
 import gsap from "gsap";
 import Link from "next/link";
+import Script from "next/script";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -17,6 +18,21 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Google Sign-In registration states
+  const [showBusinessPrompt, setShowBusinessPrompt] = useState(false);
+  const [googleCredential, setGoogleCredential] = useState<string | null>(null);
+  const [googleBusinessName, setGoogleBusinessName] = useState("");
+  const [registeringGoogle, setRegisteringGoogle] = useState(false);
+
+  // Validation checks
+  const isLengthValid = password.length >= 8;
+  const hasUppercase = /[A-Z]/.test(password);
+  const hasLowercase = /[a-z]/.test(password);
+  const hasNumber = /\d/.test(password);
+  const hasSpecial = /[@$!%*?&_#^()-+=]/.test(password);
+  const isPasswordStrong = isLengthValid && hasUppercase && hasLowercase && hasNumber && hasSpecial;
+  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
   useEffect(() => {
     // If user is already logged in, redirect them immediately to dashboard
@@ -47,16 +63,93 @@ export default function RegisterPage() {
     }
   }, [router]);
 
+  const handleGoogleCallback = async (response: any) => {
+    const credential = response.credential;
+    if (!credential) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await api.loginWithGoogle(credential);
+      if (res.is_registered) {
+        router.push("/dashboard");
+      } else {
+        setGoogleCredential(credential);
+        setShowBusinessPrompt(true);
+        setLoading(false);
+      }
+    } catch (err: any) {
+      setError(err.message || "Google authentication failed.");
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const initGoogle = () => {
+      if (typeof window !== "undefined" && (window as any).google) {
+        const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "mock-google-client-id.apps.googleusercontent.com";
+        (window as any).google.accounts.id.initialize({
+          client_id: clientId,
+          callback: handleGoogleCallback,
+        });
+        
+        const btnElem = document.getElementById("google-signin-btn");
+        if (btnElem) {
+          (window as any).google.accounts.id.renderButton(btnElem, {
+            theme: "dark",
+            size: "large",
+            width: btnElem.clientWidth || 320,
+            text: "continue_with",
+            shape: "square"
+          });
+        }
+      }
+    };
+
+    const timer = setInterval(() => {
+      if ((window as any).google) {
+        initGoogle();
+        clearInterval(timer);
+      }
+    }, 200);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleCompleteGoogleRegistration = async () => {
+    if (!googleBusinessName.trim() || !googleCredential) return;
+    
+    setRegisteringGoogle(true);
+    setError(null);
+    try {
+      await api.loginWithGoogle(googleCredential, googleBusinessName.trim());
+      router.push("/dashboard");
+    } catch (err: any) {
+      setError(err.message || "Failed to finalize registration.");
+      setRegisteringGoogle(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!businessName.trim() || !email.trim() || !password.trim()) return;
+
+    if (!isEmailValid) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    if (!isPasswordStrong) {
+      setError("Please satisfy all password strength requirements.");
+      return;
+    }
 
     setLoading(true);
     setError(null);
 
     try {
       await api.register(businessName.trim(), email.trim(), password);
-      // Success: redirect to dashboard
       router.push("/dashboard");
     } catch (err: any) {
       setError(err.message || "Registration failed. Email might already be taken.");
@@ -66,6 +159,9 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-black text-white relative overflow-x-hidden">
+      {/* Script to load Google Identity Services */}
+      <Script src="https://accounts.google.com/gsi/client" strategy="lazyOnload" />
+
       {/* Background Hero Photo Band */}
       <div className="absolute inset-0 h-[65vh] w-full overflow-hidden z-0">
         <div 
@@ -147,6 +243,36 @@ export default function RegisterPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-transparent border-b border-border-subtle focus:border-white rounded-none py-2 text-sm text-white placeholder-muted-soft focus:outline-none transition-all duration-300"
               />
+              {password && (
+                <div className="mt-3 p-4 bg-black/40 border border-border-subtle/50 text-[10px] font-mono space-y-1.5 transition-all duration-300">
+                  <span className="block text-muted-gold uppercase tracking-[0.1em] mb-1 font-bold">Password Requirements:</span>
+                  <div className="flex items-center gap-2">
+                    <span className={isLengthValid ? "text-emerald-400" : "text-muted"}>
+                      {isLengthValid ? "✓" : "○"} At least 8 characters
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={hasUppercase ? "text-emerald-400" : "text-muted"}>
+                      {hasUppercase ? "✓" : "○"} One uppercase letter (A-Z)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={hasLowercase ? "text-emerald-400" : "text-muted"}>
+                      {hasLowercase ? "✓" : "○"} One lowercase letter (a-z)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={hasNumber ? "text-emerald-400" : "text-muted"}>
+                      {hasNumber ? "✓" : "○"} One number (0-9)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={hasSpecial ? "text-emerald-400" : "text-muted"}>
+                      {hasSpecial ? "✓" : "○"} One special character (@$!%*?&_#^()-+=)
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
             <button
               type="submit"
@@ -160,6 +286,12 @@ export default function RegisterPage() {
               )}
             </button>
           </form>
+
+          {/* Google Sign-In Section */}
+          <div className="w-full flex flex-col items-center gap-4 mt-6 border-t border-border-subtle/30 pt-6">
+            <span className="font-mono text-[9px] tracking-[0.2em] text-muted uppercase">OR CONTINUE WITH</span>
+            <div id="google-signin-btn" className="w-full flex justify-center min-h-[40px] z-10"></div>
+          </div>
 
           <div className="mt-8 border-t border-border-subtle/30 pt-6 text-center">
             <span className="font-body-sm text-xs text-on-surface-variant">Already have a workspace? </span>
@@ -177,6 +309,58 @@ export default function RegisterPage() {
           <span>🔒 SECURE WORKSPACE INGESTION</span>
         </footer>
       </main>
+
+      {/* Glassmorphic Prompt Modal for Workspace Name */}
+      {showBusinessPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]">
+          <div className="w-full max-w-[420px] bg-surface-2 border border-border-subtle p-8 font-mono text-left relative flex flex-col justify-between shadow-2xl">
+            <div>
+              <span className="text-[9px] tracking-[0.2em] text-muted-gold uppercase block mb-1">REGISTRATION</span>
+              <h4 className="text-lg tracking-[0.08em] uppercase text-white font-bold mb-3">NAME YOUR WORKSPACE</h4>
+              <p className="font-body-sm text-[11px] text-muted leading-relaxed mb-6 font-semibold italic">
+                Welcome! It looks like you're signing in with Google for the first time. Please specify a brand name to initialize your tenant workspace.
+              </p>
+              
+              <div>
+                <label className="block text-[8px] tracking-[0.15em] text-muted uppercase mb-1">BUSINESS NAME</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="ENTER BUSINESS NAME"
+                  value={googleBusinessName}
+                  onChange={(e) => setGoogleBusinessName(e.target.value)}
+                  className="w-full bg-transparent border-b border-border-subtle focus:border-white rounded-none py-2 text-xs text-white placeholder-muted-soft focus:outline-none uppercase tracking-widest transition-all duration-300"
+                />
+              </div>
+            </div>
+            
+            <div className="mt-8 flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowBusinessPrompt(false);
+                  setGoogleCredential(null);
+                }}
+                className="flex-1 h-10 border border-border-subtle hover:border-white text-muted hover:text-white rounded-none bg-transparent font-mono text-[10px] tracking-[0.15em] uppercase transition-all duration-300 cursor-pointer"
+              >
+                CANCEL
+              </button>
+              <button
+                type="button"
+                disabled={registeringGoogle || !googleBusinessName.trim()}
+                onClick={handleCompleteGoogleRegistration}
+                className="flex-1 h-10 border border-white hover:bg-white hover:text-black text-white bg-transparent rounded-none font-mono text-[10px] tracking-[0.15em] uppercase flex items-center justify-center gap-1 transition-all duration-300 disabled:opacity-40 cursor-pointer"
+              >
+                {registeringGoogle ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  "CREATE WORKSPACE"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

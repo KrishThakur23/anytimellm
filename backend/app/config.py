@@ -18,10 +18,7 @@ class Settings(BaseSettings):
     META_APP_SECRET: str = Field(default="")
     META_WEBHOOK_VERIFY_TOKEN: str = Field(default="anytimellm_global_webhook_verify_token")
     
-    # Twilio WhatsApp Config
-    TWILIO_ACCOUNT_SID: str = Field(default="")
-    TWILIO_AUTH_TOKEN: str = Field(default="")
-    TWILIO_PHONE_NUMBER: str = Field(default="")
+
     
     # Google Cloud Vision Config
     GOOGLE_VISION_API_KEY: str = Field(default="")
@@ -35,6 +32,8 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY: str = Field(default="anytimellm_secret_key_change_me_in_production")
     JWT_ALGORITHM: str = Field(default="HS256")
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=1440)
+    GOOGLE_CLIENT_ID: str = Field(default="")
+
 
     model_config = SettingsConfigDict(
         env_file=".env",

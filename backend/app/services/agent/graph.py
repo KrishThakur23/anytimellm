@@ -186,6 +186,7 @@ def agent_node(state: AgentState) -> Dict[str, Any]:
     db = SessionLocal()
     business_name = "AnytimeLLM Client"
     system_prompt = "You are a helpful, professional business AI assistant. You have tools to search catalog databases, retrieve document files, and place customer orders."
+    b_type = "dining"
     try:
         import uuid
         biz_uuid = uuid.UUID(state["business_id"]) if isinstance(state["business_id"], str) else state["business_id"]
@@ -193,10 +194,28 @@ def agent_node(state: AgentState) -> Dict[str, Any]:
         if business:
             business_name = business.name
             system_prompt = business.api_settings.get("system_prompt", system_prompt)
+            b_type = business.business_type or "dining"
     except Exception as e:
         logger.error(f"Error querying business settings: {e}")
     finally:
         db.close()
+
+    # Build type-specific descriptions
+    place_tool_desc = (
+        "To place orders or reserve catalog items, use place_order_tool. Once placed, always state clearly: 'Order placed' or 'Order placed successfully'."
+        if b_type != "salon" else
+        "To book service slots or appointments, use place_order_tool. Once booked, always state clearly: 'Appointment booked' or 'Appointment booked successfully'."
+    )
+    cancel_tool_desc = (
+        "To cancel a specific order, use cancel_order_tool. Always call get_customer_orders_tool first to identify the correct order ID. Once cancelled, always state clearly: 'Your order was cancelled' or 'Your order has been cancelled successfully'."
+        if b_type != "salon" else
+        "To cancel a specific appointment, use cancel_order_tool. Always call get_customer_orders_tool first to identify the correct booking ID. Once cancelled, always state clearly: 'Your appointment was cancelled' or 'Your appointment has been cancelled successfully'."
+    )
+    history_tool_desc = (
+        "To retrieve the customer's order history or check order status, use get_customer_orders_tool."
+        if b_type != "salon" else
+        "To retrieve the customer's appointment history or check booking status, use get_customer_orders_tool."
+    )
 
     # Prepend business guidelines system message
     full_prompt = (
@@ -209,14 +228,14 @@ def agent_node(state: AgentState) -> Dict[str, Any]:
         f"Instructions:\n"
         f"1. To check catalogs, pricing, or menus, call the query_catalog_sql_tool first. If it returns that the catalog is empty or has no matching items, you MUST query the unstructured files using query_vector_store_tool to find the menu, price lists, or catalog details.\n"
         f"2. To fetch company details, policies, hours, or generic guidelines, call query_vector_store_tool.\n"
-        f"3. To place orders or reserve catalog items, use place_order_tool. Once placed, always state clearly in your response: 'Order placed' or 'Order placed successfully' along with the details.\n"
-        f"4. To retrieve the customer's order history or check order status, use get_customer_orders_tool.\n"
-        f"5. To cancel a specific order, use cancel_order_tool. Always call get_customer_orders_tool first to identify the correct order ID, or ask the customer if there are multiple orders. Once cancelled, always state clearly in your response: 'Your order was cancelled' or 'Your order has been cancelled successfully'.\n"
+        f"3. {place_tool_desc}\n"
+        f"4. {history_tool_desc}\n"
+        f"5. {cancel_tool_desc}\n"
         f"6. Keep answers clean, direct, and tailored to the business information retrieved.\n"
         f"7. CRITICAL: Never mention filenames, file extensions (e.g. 'WhatsApp Image...', '.jpeg', '.pdf', '.png'), document sources, or database queries to the customer. State information directly.\n"
         f"8. CRITICAL: Avoid meta-talk like 'Based on the retrieved document...', 'I have searched...', or 'According to the file...'. Respond directly and conversationally.\n"
         f"9. CRITICAL: If you do not have enough information to answer the question, state that politely or ask for clarification, rather than summarizing your search attempts.\n"
-        f"10. CRITICAL: You must remain strictly on-topic and focus only on the business, store catalog, menu, services, opening hours, policies, or placing/cancelling orders. If the customer asks random, off-topic, or irrelevant questions (such as video games, sports, general knowledge, math, coding, personal chat, or opinions about other topics), politely decline to answer, state that you can only assist with store-related inquiries, and steer them back to your business offerings."
+        f"10. CRITICAL: You must remain strictly on-topic and focus only on the business, store catalog, menu, services, opening hours, policies, or placing/cancelling orders/appointments. If the customer asks random, off-topic, or irrelevant questions (such as video games, sports, general knowledge, math, coding, personal chat, or opinions about other topics), politely decline to answer, state that you can only assist with store-related inquiries, and steer them back to your business offerings."
     )
     
     sys_msg = SystemMessage(content=full_prompt)

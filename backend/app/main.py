@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import engine, Base
-from app.routers import auth, ingest, chat, webhook, users, integrations
+from app.routers import auth, ingest, chat, webhook, users, integrations, onboarding
 
 # Setup logger
 logging.basicConfig(
@@ -36,6 +36,9 @@ try:
         conn.execute(text("CREATE INDEX IF NOT EXISTS ix_users_business_id ON users (business_id);"))
 
         conn.execute(text("ALTER TABLE conversations ADD COLUMN IF NOT EXISTS is_ai_paused BOOLEAN DEFAULT FALSE;"))
+        conn.execute(text("ALTER TABLE messages ADD COLUMN IF NOT EXISTS meta_message_id VARCHAR(255) UNIQUE;"))
+        conn.execute(text("ALTER TABLE businesses ADD COLUMN IF NOT EXISTS business_type VARCHAR(50);"))
+        conn.execute(text("ALTER TABLE businesses ADD COLUMN IF NOT EXISTS onboarding_status VARCHAR(50) DEFAULT 'pending';"))
         
         # Create missing indexes for critical foreign keys and filter fields
         conn.execute(text("CREATE INDEX IF NOT EXISTS ix_documents_business_id ON documents (business_id);"))
@@ -95,6 +98,7 @@ app.include_router(ingest.router)
 app.include_router(chat.router)
 app.include_router(webhook.router)
 app.include_router(integrations.router)
+app.include_router(onboarding.router)
 
 @app.api_route("/", methods=["GET", "HEAD"])
 def health_check():

@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import gsap from "gsap";
+import { api } from "@/lib/api";
 import type { Business, CatalogItem, DocumentInfo, Order } from "@/lib/api";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, Edit2, Save, X, Loader2 } from "lucide-react";
 import AnimatedCounter from "../ui/AnimatedCounter";
 
 interface OverviewTabProps {
@@ -14,6 +15,7 @@ interface OverviewTabProps {
   copied: boolean;
   copyToClipboard: (text: string) => void;
   onTabChange?: (tab: "overview" | "ingest" | "catalog" | "playground" | "integrations" | "orders" | "chats") => void;
+  onUpdateBusiness?: (updatedBiz: Business) => void;
 }
 
 export default function OverviewTab({
@@ -24,9 +26,35 @@ export default function OverviewTab({
   copied,
   copyToClipboard,
   onTabChange,
+  onUpdateBusiness
 }: OverviewTabProps) {
   const cardsRef = useRef<HTMLDivElement>(null);
   const logRef = useRef<HTMLDivElement>(null);
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedPrompt, setEditedPrompt] = useState(activeBusiness.api_settings?.system_prompt || "");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setEditedPrompt(activeBusiness.api_settings?.system_prompt || "");
+  }, [activeBusiness]);
+
+  const handleSavePrompt = async () => {
+    setSaving(true);
+    try {
+      const updatedBusiness = await api.updateBusinessSettings(activeBusiness.id, {
+        system_prompt: editedPrompt
+      });
+      if (onUpdateBusiness) {
+        onUpdateBusiness(updatedBusiness);
+      }
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Failed to save system prompt", error);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   useEffect(() => {
     if (cardsRef.current) {
@@ -254,11 +282,61 @@ export default function OverviewTab({
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <span className="font-mono text-[8px] text-muted uppercase tracking-[0.15em]">ACTIVE PROMPT MODEL</span>
-                  <div className="bg-surface-2 border border-border-subtle p-3.5 rounded-none text-xs text-text-secondary leading-relaxed italic max-h-36 overflow-y-auto custom-scrollbar font-body-sm">
-                    {activeBusiness.api_settings?.system_prompt || "No custom instructions registered in database settings."}
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[8px] text-muted uppercase tracking-[0.15em]">ACTIVE PROMPT MODEL</span>
+                    {!isEditing && (
+                      <button
+                        onClick={() => setIsEditing(true)}
+                        className="text-[8px] font-mono text-muted-gold hover:text-white uppercase tracking-wider flex items-center gap-1 cursor-pointer bg-transparent border-0"
+                      >
+                        <Edit2 className="w-2.5 h-2.5" /> Edit Instructions
+                      </button>
+                    )}
                   </div>
+                  
+                  {isEditing ? (
+                    <div className="flex flex-col gap-2.5">
+                      <textarea
+                        value={editedPrompt}
+                        onChange={(e) => setEditedPrompt(e.target.value)}
+                        className="w-full min-h-[120px] bg-surface-2 border border-border-subtle p-3 text-xs text-white focus:outline-none focus:border-purple-500/50 resize-y font-body-sm"
+                        placeholder="Enter system prompt instructions for the AI assistant..."
+                        disabled={saving}
+                      />
+                      <div className="flex justify-end gap-2 shrink-0">
+                        <button
+                          onClick={() => {
+                            setEditedPrompt(activeBusiness.api_settings?.system_prompt || "");
+                            setIsEditing(false);
+                          }}
+                          disabled={saving}
+                          className="px-3 py-1.5 border border-border-subtle hover:border-white bg-transparent text-white font-mono text-[9px] uppercase tracking-widest flex items-center gap-1 cursor-pointer"
+                        >
+                          <X className="w-2.5 h-2.5" /> Cancel
+                        </button>
+                        <button
+                          onClick={handleSavePrompt}
+                          disabled={saving}
+                          className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 border border-purple-500/30 hover:border-white text-white font-mono text-[9px] uppercase tracking-widest flex items-center gap-1 cursor-pointer"
+                        >
+                          {saving ? (
+                            <>
+                              <Loader2 className="w-2.5 h-2.5 animate-spin" /> Saving...
+                            </>
+                          ) : (
+                            <>
+                              <Save className="w-2.5 h-2.5" /> Save Changes
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-surface-2 border border-border-subtle p-3.5 rounded-none text-xs text-text-secondary leading-relaxed italic max-h-36 overflow-y-auto custom-scrollbar font-body-sm">
+                      {activeBusiness.api_settings?.system_prompt || "No custom instructions registered in database settings."}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

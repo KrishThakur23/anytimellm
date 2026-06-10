@@ -85,7 +85,7 @@ export default function TermsOfServicePage() {
               3. WhatsApp API Integration & Third-Party Terms
             </h2>
             <p>
-              To connect your AI assistant live, you must utilize Meta Cloud API keys or Twilio connection webhooks. You agree to:
+              To connect your AI assistant live, you must utilize Meta Cloud API keys. You agree to:
             </p>
             <ul className="list-disc pl-6 space-y-1">
               <li>Strictly adhere to Meta's WhatsApp Business Policy and Terms of Service.</li>

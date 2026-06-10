@@ -25,6 +25,19 @@ class MetaStatusResponse(BaseModel):
     display_name: Optional[str] = None
     verify_token: Optional[str] = None
 
+def deactivate_duplicate_connections(db: Session, current_biz_id, phone_number_id: str):
+    if not phone_number_id:
+        return
+    logger.info(f"Checking for other businesses connected to phone number: {phone_number_id}")
+    other_businesses = db.query(Business).filter(Business.id != current_biz_id).all()
+    for ob in other_businesses:
+        if ob.api_settings.get("meta_phone_number_id") == phone_number_id and ob.api_settings.get("whatsapp_provider") == "meta":
+            logger.info(f"Deactivating duplicate WhatsApp connection for business ID: {ob.id} ({ob.name})")
+            updated_settings = dict(ob.api_settings)
+            updated_settings["whatsapp_provider"] = "mock"
+            ob.api_settings = updated_settings
+    db.commit()
+
 @router.post("/meta/auth")
 async def exchange_meta_auth_code(
     payload: MetaAuthRequest,
@@ -47,12 +60,15 @@ async def exchange_meta_auth_code(
         # Populate simulated Meta parameters
         meta_settings = {
             "whatsapp_provider": "meta",
-            "meta_access_token": "EAAQ_MOCK_LONG_LIVED_ACCESS_TOKEN_XYZ",
+            "meta_access_token": settings.META_WA_ACCESS_TOKEN or "EAAQ_MOCK_LONG_LIVED_ACCESS_TOKEN_XYZ",
             "meta_phone_number_id": settings.META_WA_PHONE_NUMBER_ID or "1088451004357858",
             "meta_waba_id": "waba_mock_9999888877",
             "meta_display_name": f"{biz.name} (Automated)",
             "wa_verify_token": f"anytimellm_verify_{biz.id.hex[:12]}"
         }
+        
+        # Deactivate any other business that is currently linked to the same phone number
+        deactivate_duplicate_connections(db, biz.id, meta_settings["meta_phone_number_id"])
         
         # Save directly to JSON settings
         biz.api_settings = {**biz.api_settings, **meta_settings}
@@ -121,6 +137,9 @@ async def exchange_meta_auth_code(
                 "wa_verify_token": f"anytimellm_verify_{biz.id.hex[:12]}"
             }
             
+            # Deactivate any other business that is currently linked to the same phone number
+            deactivate_duplicate_connections(db, biz.id, meta_settings["meta_phone_number_id"])
+
             biz.api_settings = {**biz.api_settings, **meta_settings}
             db.commit()
             db.refresh(biz)
@@ -162,14 +181,6 @@ def get_meta_status(
             phone_number_id=biz.api_settings.get("meta_phone_number_id"),
             display_name=biz.api_settings.get("meta_display_name"),
             verify_token=biz.api_settings.get("wa_verify_token")
-        )
-    elif provider == "twilio":
-        return MetaStatusResponse(
-            connected=True,
-            provider="twilio",
-            phone_number_id=biz.api_settings.get("twilio_phone_number"),
-            display_name="Twilio Sandbox/Number",
-            verify_token=None
         )
         
     return MetaStatusResponse(connected=False)
