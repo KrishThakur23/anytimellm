@@ -68,17 +68,17 @@ export default function CatalogTab({
       {/* Page Header & Controls */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-6 mb-8">
         <div>
-          <h1 className="font-display-lg text-4xl tracking-[0.08em] uppercase text-white">Items & Prices List</h1>
-          <p className="font-body-md text-sm text-muted mt-1 italic max-w-2xl">
+          <h1 className="font-display text-3xl font-extrabold tracking-tight text-slate-900 uppercase">Items & Prices List</h1>
+          <p className="font-body text-sm text-slate-500 mt-1 max-w-2xl">
             Add all products, catalog items, services, and prices here. Your automated AI chatbot assistant will automatically search this list to answer customer questions correctly.
           </p>
         </div>
         
         {/* Agent Access Toggle control */}
-        <div className="flex items-center gap-3 bg-surface-1 border border-border-subtle rounded-none px-4 py-3 shrink-0">
-          <div className="flex flex-col">
-            <span className="font-mono text-[10px] text-white uppercase tracking-widest font-bold">Allow Chatbot to Read Items</span>
-            <span className="font-mono text-[8px] text-muted uppercase font-bold mt-0.5" id="agent-status-text">
+        <div className="flex items-center gap-3 bg-white border border-slate-200 rounded-none px-4 py-3 shrink-0 shadow-xs" style={{ borderRadius: 14 }}>
+          <div className="flex flex-col text-left">
+            <span className="font-mono text-[9px] text-slate-700 uppercase tracking-widest font-bold">Allow Chatbot to Read Items</span>
+            <span className="font-mono text-[8px] text-slate-400 uppercase font-bold mt-0.5" id="agent-status-text">
               {agentAccessActive ? "Online & Enabled" : "Disabled"}
             </span>
           </div>
@@ -86,9 +86,10 @@ export default function CatalogTab({
             onClick={() => setAgentAccessActive(!agentAccessActive)}
             className={`w-12 h-6 border transition-all duration-300 font-mono text-[9px] uppercase tracking-wider font-bold ml-4 rounded-none flex items-center justify-center cursor-pointer ${
               agentAccessActive 
-                ? "bg-white text-black border-white" 
-                : "bg-transparent text-muted border-border-subtle"
+                ? "bg-[#128C7E] text-white border-[#128C7E] shadow-xs" 
+                : "bg-transparent text-slate-400 border-slate-200"
             }`}
+            style={{ borderRadius: 6 }}
           >
             {agentAccessActive ? "ON" : "OFF"}
           </button>
@@ -98,15 +99,15 @@ export default function CatalogTab({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Seeding Form */}
         <div ref={formRef} className="lg:col-span-4 animate-[fadeIn_0.2s_ease-out]">
-          <div className="bg-surface-1 border border-border-subtle p-6 space-y-4 rounded-none">
-            <h3 className="font-mono text-[10px] tracking-wider uppercase text-white flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px] text-muted-gold">add_shopping_cart</span>
+          <div className="bg-white border border-slate-200 p-6 space-y-4 shadow-xs" style={{ borderRadius: 16 }}>
+            <h3 className="font-mono text-[9px] tracking-wider uppercase text-[#128C7E] flex items-center gap-2 font-bold">
+              <span className="material-symbols-outlined text-[18px] text-[#128C7E]">add_shopping_cart</span>
               Add Product to Price List
             </h3>
 
-            <form onSubmit={handleAddCatalogItem} className="space-y-4 pt-2 font-mono text-xs">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-muted uppercase tracking-wider block">
+            <form onSubmit={handleAddCatalogItem} className="space-y-4 pt-2 font-mono text-base">
+              <div className="space-y-1.5 text-left">
+                <label className="text-sm font-bold text-slate-400 uppercase tracking-wider block">
                   Item Name
                 </label>
                 <input
@@ -115,13 +116,14 @@ export default function CatalogTab({
                   value={catalogName}
                   onChange={(e) => setCatalogName(e.target.value)}
                   required
-                  className="w-full bg-surface-2 border border-border-subtle rounded-none px-3 py-2.5 text-xs focus:outline-none focus:border-white text-white placeholder:text-muted transition-all duration-200"
+                  className="w-full bg-slate-50 border border-slate-200 px-3 py-2.5 text-base focus:outline-none focus:ring-1 focus:ring-[#25D366] focus:border-[#25D366] text-slate-800 placeholder:text-slate-400 transition-all duration-200"
+                  style={{ borderRadius: 10 }}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-muted uppercase tracking-wider block">
+                <div className="space-y-1.5 text-left">
+                  <label className="text-sm font-bold text-slate-400 uppercase tracking-wider block">
                     Price
                   </label>
                   <input
@@ -131,12 +133,13 @@ export default function CatalogTab({
                     value={catalogPrice}
                     onChange={(e) => setCatalogPrice(e.target.value)}
                     required
-                    className="w-full bg-surface-2 border border-border-subtle rounded-none px-3 py-2.5 text-xs focus:outline-none focus:border-white text-white placeholder:text-muted transition-all duration-200"
+                    className="w-full bg-slate-50 border border-slate-200 px-3 py-2.5 text-base focus:outline-none focus:ring-1 focus:ring-[#25D366] focus:border-[#25D366] text-slate-800 placeholder:text-slate-400 transition-all duration-200"
+                    style={{ borderRadius: 10 }}
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-muted uppercase tracking-wider block">
+                <div className="space-y-1.5 text-left">
+                  <label className="text-sm font-bold text-slate-400 uppercase tracking-wider block">
                     Category
                   </label>
                   <input
@@ -145,13 +148,14 @@ export default function CatalogTab({
                     value={catalogCategory}
                     onChange={(e) => setCatalogCategory(e.target.value)}
                     required
-                    className="w-full bg-surface-2 border border-border-subtle rounded-none px-3 py-2.5 text-xs focus:outline-none focus:border-white text-white placeholder:text-muted transition-all duration-200"
+                    className="w-full bg-slate-50 border border-slate-200 px-3 py-2.5 text-base focus:outline-none focus:ring-1 focus:ring-[#25D366] focus:border-[#25D366] text-slate-800 placeholder:text-slate-400 transition-all duration-200"
+                    style={{ borderRadius: 10 }}
                   />
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-muted uppercase tracking-wider block">
+              <div className="space-y-1.5 text-left">
+                <label className="text-sm font-bold text-slate-400 uppercase tracking-wider block">
                   Short Description
                 </label>
                 <textarea
@@ -159,14 +163,16 @@ export default function CatalogTab({
                   rows={4}
                   value={catalogDesc}
                   onChange={(e) => setCatalogDesc(e.target.value)}
-                  className="w-full bg-surface-2 border border-border-subtle rounded-none px-3 py-2.5 text-xs focus:outline-none focus:border-white text-white placeholder:text-muted resize-none transition-all duration-200 leading-relaxed font-body-md"
+                  className="w-full bg-slate-50 border border-slate-200 px-3 py-2.5 text-base focus:outline-none focus:ring-1 focus:ring-[#25D366] focus:border-[#25D366] text-slate-800 placeholder:text-slate-400 resize-none transition-all duration-200 leading-relaxed font-body"
+                  style={{ borderRadius: 10 }}
                 ></textarea>
               </div>
 
               <button
                 type="submit"
                 disabled={savingCatalog}
-                className="w-full border border-white hover:bg-white hover:text-black text-white bg-transparent py-3.5 rounded-none flex items-center justify-center gap-2 transition-all disabled:opacity-50 font-mono tracking-[0.2em] uppercase text-xs cursor-pointer"
+                className="w-full bg-gradient-to-r from-[#128C7E] to-[#25D366] hover:opacity-95 text-white py-3.5 flex items-center justify-center gap-2 transition-all disabled:opacity-50 font-mono tracking-[0.2em] uppercase text-base cursor-pointer shadow-xs"
+                style={{ borderRadius: 10 }}
               >
                 {savingCatalog ? (
                   <Loader2 className="w-4 h-4 animate-spin shrink-0" />
@@ -183,21 +189,21 @@ export default function CatalogTab({
 
         {/* Seeded Catalog List */}
         <div ref={dbRef} className="lg:col-span-8 animate-[fadeIn_0.2s_ease-out]">
-          <div className="bg-surface-1 border border-border-subtle rounded-none overflow-hidden">
+          <div className="bg-white border border-slate-200 overflow-hidden shadow-xs" style={{ borderRadius: 16 }}>
             {catalog.length === 0 ? (
-              <div className="text-center py-20 text-muted font-mono text-xs tracking-wider uppercase">
+              <div className="text-center py-20 text-slate-400 font-mono text-base tracking-wider uppercase font-semibold">
                 No products added yet. Add your products using the form on the left!
               </div>
             ) : (
               <div className="flex flex-col">
                 {Object.entries(groupedCatalog).map(([categoryName, items]) => (
-                  <div key={categoryName} className="border-b border-border-subtle last:border-b-0">
+                  <div key={categoryName} className="border-b border-slate-200 last:border-b-0">
                     {/* Category Title bar */}
-                    <div className="bg-surface-2 px-6 py-4 border-b border-border-subtle flex justify-between items-center">
-                      <h2 className="font-mono text-xs text-white uppercase tracking-wider font-bold">
+                    <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+                      <h2 className="font-mono text-base text-slate-800 uppercase tracking-wider font-bold">
                         {categoryName}
                       </h2>
-                      <span className="font-mono text-[9px] text-white uppercase bg-surface-0 px-2 py-0.5 rounded-none border border-border-subtle">
+                      <span className="font-mono text-[9px] text-slate-500 bg-white px-2 py-0.5 border border-slate-200 font-bold" style={{ borderRadius: 6 }}>
                         {items.length} Items
                       </span>
                     </div>
@@ -207,11 +213,11 @@ export default function CatalogTab({
                       {items.map((item, idx) => (
                         <li
                           key={idx}
-                          className="group flex flex-col sm:flex-row sm:items-center justify-between px-6 py-4 border-b border-border-subtle last:border-b-0 hover:bg-surface-2/30 transition-colors duration-200 cursor-pointer"
+                          className="group flex flex-col sm:flex-row sm:items-center justify-between px-6 py-4 border-b border-slate-100 last:border-b-0 hover:bg-slate-50/50 transition-colors duration-200 cursor-pointer"
                         >
-                          <div className="flex items-start sm:items-center gap-4">
-                            <div className="w-10 h-10 rounded-none bg-surface-2 flex items-center justify-center flex-shrink-0 border border-border-subtle">
-                              <span className="material-symbols-outlined text-[20px] text-muted-gold">
+                          <div className="flex items-start sm:items-center gap-4 text-left">
+                            <div className="w-10 h-10 bg-slate-50 flex items-center justify-center flex-shrink-0 border border-slate-200" style={{ borderRadius: 8 }}>
+                              <span className="material-symbols-outlined text-[20px] text-[#128C7E]">
                                 {categoryName.toLowerCase().includes("jewel") ? "diamond" : 
                                  categoryName.toLowerCase().includes("grocer") ? "local_grocery_store" : 
                                  categoryName.toLowerCase().includes("service") || categoryName.toLowerCase().includes("rent") ? "local_mall" : "storefront"}
@@ -219,27 +225,27 @@ export default function CatalogTab({
                             </div>
                             <div>
                               <div className="flex items-center gap-2">
-                                <h3 className="font-mono text-xs text-white font-bold leading-none">{item.name}</h3>
-                                <div className="flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-none border border-emerald-500/20">
-                                  <div className="w-1.5 h-1.5 bg-emerald-500"></div>
-                                  <span className="font-mono text-[9px] text-emerald-400 font-bold uppercase">Available</span>
+                                <h3 className="font-mono text-base text-slate-800 font-bold leading-none">{item.name}</h3>
+                                <div className="flex items-center gap-1 bg-emerald-50 px-2 py-0.5 border border-emerald-250/60" style={{ borderRadius: 6 }}>
+                                  <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+                                  <span className="font-mono text-[9px] text-emerald-700 font-bold uppercase">Available</span>
                                 </div>
                               </div>
-                              <p className="font-body-md text-xs text-muted mt-1.5 italic">
+                              <p className="font-body text-base text-slate-500 mt-1.5">
                                 {item.description || "No description configured."}
                               </p>
                             </div>
                           </div>
                           <div className="flex items-center justify-between sm:justify-end gap-8 mt-4 sm:mt-0">
                             <div className="flex flex-col sm:text-right font-mono">
-                              <span className="text-sm font-bold text-white">₹ {item.price?.toFixed(2)}</span>
-                              <span className="text-[8px] text-muted uppercase tracking-wider mt-0.5">price</span>
+                              <span className="text-sm font-bold text-slate-850">₹ {item.price?.toFixed(2)}</span>
+                              <span className="text-[8px] text-slate-400 uppercase tracking-wider mt-0.5 font-bold">price</span>
                             </div>
                             <div className="w-8 flex justify-end" title={agentAccessActive ? "AI Assistant Enabled" : "AI Assistant Disabled"}>
                               {agentAccessActive ? (
-                                <span className="material-symbols-outlined text-white text-[20px]">smart_toy</span>
+                                <span className="material-symbols-outlined text-[#128C7E] text-[20px]">smart_toy</span>
                               ) : (
-                                <span className="material-symbols-outlined text-muted text-[20px] opacity-30">block</span>
+                                <span className="material-symbols-outlined text-slate-300 text-[20px]">block</span>
                               )}
                             </div>
                           </div>

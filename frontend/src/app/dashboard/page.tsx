@@ -28,7 +28,7 @@ export default function Dashboard() {
   const [copied, setCopied] = useState(false);
 
   // Theme Mode Settings
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [theme, setTheme] = useState<"dark" | "light">("light");
 
   // Dashboard Stats & State
   const [tab, setTab] = useState<Tab>("overview");
@@ -64,9 +64,9 @@ export default function Dashboard() {
 
   // Synchronize client-side theme loading on mount and auto-load active business session
   useEffect(() => {
-    const savedTheme = localStorage.getItem("anytimellm-theme") as "dark" | "light" || "dark";
-    setTheme(savedTheme);
-    document.documentElement.classList.toggle("dark", savedTheme === "dark");
+    localStorage.setItem("anytimellm-theme", "light");
+    setTheme("light");
+    document.documentElement.classList.remove("dark");
 
     const savedToken = localStorage.getItem("anytimellm-token");
     if (savedToken) {
@@ -437,10 +437,10 @@ export default function Dashboard() {
   // If loading business or not logged in, show the premium loading sequence
   if (loadingBusiness || !activeBusiness) {
     return (
-      <div className="min-h-screen w-full bg-black flex flex-col items-center justify-center text-white">
+      <div className="min-h-screen w-full bg-background flex flex-col items-center justify-center text-foreground">
         <div className="flex flex-col items-center gap-4">
-          <span className="font-display-lg text-lg tracking-[0.4em] font-medium uppercase text-white animate-pulse">ANYTIMELLM</span>
-          <Loader2 className="w-6 h-6 animate-spin text-muted-gold" />
+          <span className="font-display-lg text-lg tracking-[0.4em] font-medium uppercase animate-pulse">ANYTIMELLM</span>
+          <Loader2 className="w-6 h-6 animate-spin text-primary" />
           <span className="font-mono text-[9px] tracking-[0.2em] text-muted uppercase">VERIFYING SECURE CONSOLE SESSION...</span>
         </div>
       </div>

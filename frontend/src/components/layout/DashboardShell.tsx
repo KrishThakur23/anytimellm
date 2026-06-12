@@ -32,7 +32,7 @@ export default function DashboardShell({
   children,
 }: DashboardShellProps) {
   return (
-    <div className="min-h-screen flex bg-black text-white relative">
+    <div className="min-h-screen flex bg-background text-foreground relative">
       {/* Sidebar */}
       <Sidebar
         activeBusiness={activeBusiness}
@@ -47,7 +47,7 @@ export default function DashboardShell({
       <main className="flex-1 p-8 overflow-y-auto max-w-6xl relative z-10">
         {/* Grid pattern overlay */}
         <div
-          className="fixed inset-0 bg-grid-pattern pointer-events-none opacity-[0.03]"
+          className="fixed inset-0 bg-grid-pattern pointer-events-none opacity-[0.015]"
           aria-hidden="true"
         />
 

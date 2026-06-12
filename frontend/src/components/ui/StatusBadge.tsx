@@ -41,7 +41,7 @@ export default function StatusBadge({ variant, label, className = "" }: StatusBa
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${colors} ${
+      className={`inline-flex items-center gap-1.5 text-sm font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${colors} ${
         isAnimated ? "animate-pulse" : ""
       } ${className}`}
     >

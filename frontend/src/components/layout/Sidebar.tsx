@@ -56,20 +56,20 @@ export default function Sidebar({
   }, []);
 
   return (
-    <aside className="w-64 border-r border-border-subtle bg-surface-1 flex flex-col justify-between shrink-0 relative overflow-hidden">
+    <aside className="w-64 border-r border-slate-200 bg-white flex flex-col justify-between shrink-0 relative overflow-hidden">
       <div className="relative z-10">
         {/* Business Identity Header */}
         <div className="px-6 pt-6 pb-4">
-          <div className="p-4 rounded-none bg-surface-2 border border-border-subtle flex flex-col gap-2">
-            <span className="font-mono text-[9px] tracking-[0.2em] text-muted-gold uppercase">
+          <div className="p-4 rounded-none bg-slate-50 border border-slate-200 flex flex-col gap-2" style={{ borderRadius: 12 }}>
+            <span className="font-mono text-[9px] tracking-[0.2em] text-[#128C7E] uppercase font-bold">
               ACTIVE SESSION
             </span>
-            <h2 className="font-display-lg text-lg tracking-[0.1em] text-white truncate uppercase">
+            <h2 className="font-display text-base font-extrabold text-slate-800 truncate uppercase">
               {activeBusiness.name}
             </h2>
-            <div className="flex items-center gap-1.5 mt-1 border-t border-border-subtle/50 pt-2">
+            <div className="flex items-center gap-1.5 mt-1 border-t border-slate-200 pt-2">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="font-mono text-[8px] text-emerald-400 tracking-[0.15em] uppercase">
+              <span className="font-mono text-[8px] text-emerald-600 tracking-[0.15em] uppercase font-bold">
                 STATUS: RUNNING
               </span>
             </div>
@@ -87,8 +87,8 @@ export default function Sidebar({
                 onClick={() => onTabChange(item.id)}
                 className={`nav-item w-full text-left py-3.5 px-6 font-mono text-[11px] tracking-[0.2em] transition-all duration-300 border-l-[3px] cursor-pointer ${
                   isActive
-                    ? "border-white text-white bg-surface-2/20"
-                    : "border-transparent text-muted hover:text-white hover:pl-7"
+                    ? "border-[#128C7E] text-[#075E54] bg-[#25D366]/10 font-bold"
+                    : "border-transparent text-slate-500 hover:text-slate-850 hover:bg-slate-50 hover:pl-7"
                 }`}
               >
                 {item.label}
@@ -99,29 +99,14 @@ export default function Sidebar({
       </div>
 
       {/* Bottom Actions */}
-      <div className="p-6 border-t border-border-subtle space-y-4">
-        {/* Mode Toggle Button */}
-        <button
-          onClick={toggleTheme}
-          className="w-full flex items-center justify-center gap-2 h-9 border border-border-subtle hover:border-white rounded-none bg-transparent text-white font-mono text-[10px] tracking-[0.2em] uppercase transition-all duration-300 active:scale-[0.98] cursor-pointer"
-        >
-          {theme === "dark" ? (
-            <>
-              <span className="material-symbols-outlined text-[13px]">light_mode</span>
-              DAY LIGHTS ON
-            </>
-          ) : (
-            <>
-              <span className="material-symbols-outlined text-[13px]">dark_mode</span>
-              NIGHT SHADOWS ON
-            </>
-          )}
-        </button>
+      <div className="p-6 border-t border-slate-200 space-y-4">
+
  
         {/* Switch Shop */}
         <button
           onClick={onLogout}
-          className="w-full flex items-center justify-center gap-2 h-9 border border-red-950/40 hover:border-red-600 rounded-none bg-transparent text-red-400 hover:text-red-300 font-mono text-[10px] tracking-[0.2em] uppercase transition-all duration-300 active:scale-[0.98] cursor-pointer"
+          className="w-full flex items-center justify-center gap-2 h-9 border border-red-200 hover:border-red-500 hover:bg-red-50/50 rounded-none bg-transparent text-red-600 hover:text-red-500 font-mono text-sm tracking-[0.2em] uppercase transition-all duration-300 active:scale-[0.98] cursor-pointer"
+          style={{ borderRadius: 8 }}
         >
           <span className="material-symbols-outlined text-[13px]">logout</span>
           EXIT CONSOLE

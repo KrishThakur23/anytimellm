@@ -83,10 +83,10 @@ export default function IngestTab({
     <div className="space-y-8">
       {/* Page Header */}
       <div>
-        <h1 className="font-display-lg text-4xl tracking-[0.08em] uppercase text-white">
+        <h1 className="font-display text-3xl font-extrabold tracking-tight text-slate-900 uppercase">
           Upload Store Details
         </h1>
-        <p className="font-body-md text-sm text-muted mt-1 italic max-w-2xl">
+        <p className="font-body text-sm text-slate-500 mt-1 max-w-2xl">
           Upload your product sheets, price lists, pamphlets, bills, or store policy docs. Your AI chatbot assistant will read these files to answer customer questions automatically.
         </p>
       </div>
@@ -95,13 +95,13 @@ export default function IngestTab({
       <div ref={gridRef} className="grid grid-cols-12 gap-6">
         {/* Left Column: Tabbed list & Search & Ingested Table */}
         <div className="col-span-12 lg:col-span-8 space-y-6">
-          <div className="bg-surface-1 border border-border-subtle rounded-none overflow-hidden shadow-none">
+          <div className="bg-white border border-slate-200 overflow-hidden shadow-xs" style={{ borderRadius: 16 }}>
             {/* Header Tabs */}
-            <div className="flex p-2 gap-2 bg-surface-2 border-b border-border-subtle">
-              <button className="flex-1 px-4 py-2 bg-surface-0 border border-border-subtle rounded-none font-mono text-[10px] tracking-wider uppercase text-white font-bold">
+            <div className="flex p-2 gap-2 bg-slate-50 border-b border-slate-200">
+              <button className="flex-1 px-4 py-2 bg-white border border-slate-200 font-mono text-sm tracking-wider uppercase text-slate-800 font-bold" style={{ borderRadius: 8 }}>
                 Uploaded Store Files
               </button>
-              <button className="flex-1 px-4 py-2 rounded-none font-mono text-[10px] tracking-wider uppercase text-muted hover:text-white hover:bg-surface-0 transition-colors font-semibold">
+              <button className="flex-1 px-4 py-2 font-mono text-sm tracking-wider uppercase text-slate-400 hover:text-slate-700 hover:bg-white/60 transition-colors font-semibold" style={{ borderRadius: 8 }}>
                 Website Links
               </button>
             </div>
@@ -110,12 +110,13 @@ export default function IngestTab({
               {/* Search bar */}
               <div className="relative mb-6 flex gap-2">
                 <div className="relative flex-1">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted text-[18px]">search</span>
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-surface-2 border border-border-subtle rounded-none pl-9 pr-4 py-2.5 focus:outline-none focus:border-white transition-all font-mono text-xs text-white placeholder-muted"
+                    className="w-full bg-slate-50 border border-slate-200 px-3 pl-9 pr-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-[#25D366] focus:border-[#25D366] font-mono text-base text-slate-800 placeholder-slate-400"
+                    style={{ borderRadius: 10 }}
                     placeholder="SEARCH UPLOADED FILES"
                   />
                 </div>
@@ -124,61 +125,61 @@ export default function IngestTab({
               {/* Data Table */}
               <div ref={tableRef} className="overflow-x-auto">
                 {filteredDocs.length === 0 ? (
-                  <div className="text-center py-16 text-muted font-mono text-xs tracking-wider uppercase">
+                  <div className="text-center py-16 text-slate-400 font-mono text-base tracking-wider uppercase font-semibold">
                     {searchQuery ? "No matches found." : "No store details uploaded yet. Upload a file on the right side!"}
                   </div>
                 ) : (
                   <table className="w-full text-left font-mono border-collapse">
-                    <thead className="border-b border-border-subtle bg-surface-2 text-muted text-[10px] uppercase font-bold tracking-wider">
+                    <thead className="border-b border-slate-200 bg-slate-50 text-slate-400 text-sm uppercase font-bold tracking-wider">
                       <tr>
-                        <th className="py-3 px-4 font-semibold w-7/12">Source Name</th>
-                        <th className="py-3 px-2 font-semibold">Type</th>
-                        <th className="py-3 px-2 font-semibold text-center w-28">Status</th>
-                        <th className="py-3 px-4 font-semibold text-right w-24">Uploaded</th>
+                        <th className="py-3 px-4 font-bold w-7/12">Source Name</th>
+                        <th className="py-3 px-2 font-bold">Type</th>
+                        <th className="py-3 px-2 font-bold text-center w-28">Status</th>
+                        <th className="py-3 px-4 font-bold text-right w-24">Uploaded</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-border-subtle">
+                    <tbody className="divide-y divide-slate-100">
                       {filteredDocs.map((doc) => (
-                        <tr key={doc.id} className="hover:bg-surface-2/50 transition-colors">
+                        <tr key={doc.id} className="hover:bg-slate-50/50 transition-colors">
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-2 max-w-md">
-                              <span className="material-symbols-outlined text-muted text-[16px]">
+                              <span className="material-symbols-outlined text-slate-450 text-[16px]">
                                 {doc.file_type === "html" ? "link" : "description"}
                               </span>
-                              <span className="text-[12px] text-white truncate font-bold" title={doc.file_name}>
+                              <span className="text-[12px] text-slate-800 truncate font-bold" title={doc.file_name}>
                                 {doc.file_name}
                               </span>
                             </div>
                             {doc.summary && (
-                              <p className="text-[9px] text-muted line-clamp-1 mt-1 pl-6">
+                              <p className="text-[9px] text-slate-400 line-clamp-1 mt-1 pl-6">
                                 {doc.summary}
                               </p>
                             )}
                           </td>
-                          <td className="py-3 px-2 text-[10px] text-muted font-bold uppercase">
+                          <td className="py-3 px-2 text-sm text-slate-400 font-bold uppercase">
                             {doc.file_type}
                           </td>
                           <td className="py-3 px-2">
                             {doc.status === "completed" && (
-                              <div className="flex items-center justify-center gap-1.5 px-2 py-0.5 rounded-none bg-emerald-500/10 w-fit mx-auto border border-emerald-500/20">
-                                <div className="w-1.5 h-1.5 bg-emerald-500"></div>
-                                <span className="text-[9px] text-emerald-400 font-bold tracking-wide uppercase">INDEXED</span>
+                              <div className="flex items-center justify-center gap-1.5 px-2 py-0.5 rounded-none bg-emerald-50 text-emerald-700 border border-emerald-250/60 w-fit mx-auto" style={{ borderRadius: 6 }}>
+                                <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+                                <span className="text-[9px] font-bold tracking-wide uppercase">INDEXED</span>
                               </div>
                             )}
                             {doc.status === "processing" && (
-                              <div className="flex items-center justify-center gap-1.5 px-2 py-0.5 rounded-none bg-amber-500/10 w-fit mx-auto border border-amber-500/20">
-                                <div className="w-1.5 h-1.5 bg-amber-500 animate-pulse"></div>
-                                <span className="text-[9px] text-amber-400 font-bold tracking-wide uppercase">SYNCING</span>
+                              <div className="flex items-center justify-center gap-1.5 px-2 py-0.5 rounded-none bg-amber-50 text-amber-700 border border-amber-250/60 w-fit mx-auto" style={{ borderRadius: 6 }}>
+                                <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></div>
+                                <span className="text-[9px] font-bold tracking-wide uppercase">SYNCING</span>
                               </div>
                             )}
                             {doc.status === "failed" && (
-                              <div className="flex items-center justify-center gap-1.5 px-2 py-0.5 rounded-none bg-red-500/10 w-fit mx-auto border border-red-500/20">
-                                <div className="w-1.5 h-1.5 bg-red-500"></div>
-                                <span className="text-[9px] text-red-400 font-bold tracking-wide uppercase">ERROR</span>
+                              <div className="flex items-center justify-center gap-1.5 px-2 py-0.5 rounded-none bg-red-50 text-red-700 border border-red-250/60 w-fit mx-auto" style={{ borderRadius: 6 }}>
+                                <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
+                                <span className="text-[9px] font-bold tracking-wide uppercase">ERROR</span>
                               </div>
                             )}
                           </td>
-                          <td className="py-3 px-4 text-right text-[10px] text-muted">
+                          <td className="py-3 px-4 text-right text-sm text-slate-400">
                             {doc.created_at ? new Date(doc.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "just now"}
                           </td>
                         </tr>
@@ -199,11 +200,12 @@ export default function IngestTab({
             onDragOver={onDragOver}
             onDragLeave={onDragLeave}
             onDrop={onDrop}
-            className={`bg-surface-1 border border-dashed border-border-subtle rounded-none p-6 flex flex-col items-center justify-center text-center transition-all cursor-pointer group hover:border-white ${
+            className={`bg-white border-2 border-dashed border-slate-200 p-6 flex flex-col items-center justify-center text-center transition-all cursor-pointer group hover:border-[#25D366] hover:bg-[#F0F2F5]/15 ${
               isDragOver
-                ? "border-white bg-surface-2"
+                ? "border-[#25D366] bg-[#F0F2F5]/20"
                 : ""
             }`}
+            style={{ borderRadius: 16 }}
           >
             <input
               type="file"
@@ -212,31 +214,31 @@ export default function IngestTab({
               className="hidden"
               accept=".pdf,.png,.jpg,.jpeg,.txt"
             />
-            <div className="w-12 h-12 bg-surface-2 border border-border-subtle rounded-none flex items-center justify-center mb-3 group-hover:bg-white group-hover:text-black transition-colors">
+            <div className="w-12 h-12 bg-slate-50 border border-slate-250 rounded-none flex items-center justify-center mb-3 group-hover:bg-[#128C7E] group-hover:text-white group-hover:border-[#128C7E] transition-colors" style={{ borderRadius: 10 }}>
               {uploadingFile ? (
-                <Loader2 className="w-5 h-5 animate-spin text-white group-hover:text-black" />
+                <Loader2 className="w-5 h-5 animate-spin text-slate-700 group-hover:text-white" />
               ) : (
-                <span className="material-symbols-outlined text-[24px] text-muted-gold group-hover:text-black font-bold">upload</span>
+                <span className="material-symbols-outlined text-[24px] text-[#128C7E] group-hover:text-white font-bold">upload</span>
               )}
             </div>
-            <h3 className="font-mono text-xs text-white mb-1 font-bold uppercase tracking-wider">
+            <h3 className="font-mono text-base text-slate-800 mb-1 font-bold uppercase tracking-wider">
               {uploadingFile ? "Saving file details..." : "Upload New File"}
             </h3>
-            <p className="text-muted text-[10px] font-mono mb-4 uppercase tracking-wider">
+            <p className="text-slate-400 text-sm font-mono mb-4 uppercase tracking-wider">
               Select bills, leaflets, PDFs, or photos (Max 10MB)
             </p>
-            <button className="border border-white hover:bg-white hover:text-black text-white font-mono text-[10px] uppercase tracking-[0.2em] px-4 py-2.5 rounded-none bg-transparent transition-all cursor-pointer">
+            <button className="border border-slate-200 group-hover:border-[#25D366] group-hover:bg-[#128C7E] group-hover:text-white text-slate-700 font-mono text-sm uppercase tracking-[0.2em] px-4 py-2.5 bg-white transition-all cursor-pointer" style={{ borderRadius: 8 }}>
               Choose File
             </button>
           </div>
 
           {/* Web crawler form */}
-          <div className="bg-surface-1 border border-border-subtle rounded-none p-5">
-            <h3 className="font-mono text-[10px] text-muted-gold uppercase tracking-widest mb-3 font-bold flex items-center gap-2">
-              <span className="material-symbols-outlined text-[15px] text-white">language</span>
+          <div className="bg-white border border-slate-200 p-5 shadow-xs" style={{ borderRadius: 16 }}>
+            <h3 className="font-mono text-[9px] text-[#128C7E] uppercase tracking-widest mb-3 font-bold flex items-center gap-2">
+              <span className="material-symbols-outlined text-[15px] text-[#128C7E]">language</span>
               Copy from Website
             </h3>
-            <p className="text-muted text-[11px] font-body-md mb-4 leading-relaxed italic">
+            <p className="text-slate-400 text-[11px] mb-4 leading-relaxed font-normal">
               If your shop has a website or Facebook page, paste the link below to copy details automatically.
             </p>
             <form onSubmit={handleCrawlUrl} className="space-y-3">
@@ -246,12 +248,14 @@ export default function IngestTab({
                 value={urlInput}
                 onChange={(e) => setUrlInput(e.target.value)}
                 placeholder="ENTER WEBSITE LINK"
-                className="w-full bg-surface-2 border border-border-subtle rounded-none px-3 py-2.5 text-xs focus:outline-none focus:border-white text-white placeholder:text-muted font-mono"
+                className="w-full bg-slate-50 border border-slate-200 px-3 py-2.5 text-base focus:outline-none focus:ring-1 focus:ring-[#25D366] focus:border-[#25D366] text-slate-800 placeholder:text-slate-400 font-mono"
+                style={{ borderRadius: 10 }}
               />
               <button
                 type="submit"
                 disabled={ingestingUrl}
-                className="w-full border border-white hover:bg-white hover:text-black text-white bg-transparent font-mono text-xs py-3 px-4 rounded-none flex items-center justify-center gap-2 transition-all disabled:opacity-50 tracking-[0.2em] uppercase cursor-pointer"
+                className="w-full bg-gradient-to-r from-[#128C7E] to-[#25D366] hover:opacity-95 text-white font-mono text-base py-3 px-4 flex items-center justify-center gap-2 transition-all disabled:opacity-50 tracking-[0.2em] uppercase cursor-pointer shadow-xs"
+                style={{ borderRadius: 10 }}
               >
                 {ingestingUrl ? (
                   <Loader2 className="w-4 h-4 animate-spin shrink-0" />
@@ -263,36 +267,36 @@ export default function IngestTab({
           </div>
 
           {/* System Health Progress Indicators */}
-          <div className="bg-surface-1 border border-border-subtle rounded-none p-5">
-            <h3 className="font-mono text-[10px] text-muted-gold uppercase tracking-widest mb-4 font-bold flex items-center gap-2">
-              <span className="material-symbols-outlined text-[14px] text-white">memory</span>
+          <div className="bg-white border border-slate-200 p-5 shadow-xs" style={{ borderRadius: 16 }}>
+            <h3 className="font-mono text-[9px] text-[#128C7E] uppercase tracking-widest mb-4 font-bold flex items-center gap-2">
+              <span className="material-symbols-outlined text-[14px] text-[#128C7E]">memory</span>
               Assistant Memory Status
             </h3>
-            <div className="space-y-4 font-mono text-xs">
+            <div className="space-y-4 font-mono text-base">
               <div className="flex justify-between items-end">
-                <span className="text-muted text-[10px] uppercase font-bold tracking-wider">Learned Details</span>
-                <span className="text-white text-xs font-bold">
+                <span className="text-slate-400 text-sm uppercase font-bold tracking-wider">Learned Details</span>
+                <span className="text-slate-700 text-base font-bold">
                   {documents.length > 0 ? (documents.length * 42).toLocaleString() + " memory points" : "125 details"}
                 </span>
               </div>
-              <div className="w-full bg-surface-2 h-2 rounded-none overflow-hidden border border-border-subtle">
-                <div className="bg-white h-full transition-all duration-500" style={{ width: documents.length > 0 ? `${Math.min(100, documents.length * 8)}%` : "20%" }}></div>
+              <div className="w-full bg-slate-50 h-2 overflow-hidden border border-slate-200" style={{ borderRadius: 9999 }}>
+                <div className="bg-[#128C7E] h-full transition-all duration-500 animate-pulse" style={{ width: documents.length > 0 ? `${Math.min(100, documents.length * 8)}%` : "20%" }}></div>
               </div>
-              <div className="flex justify-between items-center text-[9px] text-muted pt-2 border-t border-border-subtle uppercase font-bold tracking-wider">
+              <div className="flex justify-between items-center text-[9px] text-slate-400 pt-2 border-t border-slate-100 uppercase font-bold tracking-wider">
                 <span>Memory Capacity</span>
                 <span>[{documents.length > 0 ? Math.min(100, documents.length * 8) : "20"}% USED]</span>
               </div>
             </div>
           </div>
 
-          {/* Technical Directive Help Box */}
-          <div className="bg-surface-1 border border-border-subtle rounded-none p-5 overflow-hidden relative">
+          {/* Technical Help Box */}
+          <div className="bg-[#25D366]/10 border border-violet-100 p-5 overflow-hidden relative" style={{ borderRadius: 16 }}>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-muted-gold text-[18px]">lightbulb</span>
-                <span className="font-mono text-muted-gold tracking-wide text-[10px] uppercase font-bold">Shopkeeper Tip</span>
+                <span className="material-symbols-outlined text-[#128C7E] text-[18px]">lightbulb</span>
+                <span className="font-mono text-[#128C7E] tracking-wide text-[9px] uppercase font-bold">Shopkeeper Tip</span>
               </div>
-              <p className="text-white font-body-md text-xs leading-relaxed italic">
+              <p className="text-slate-650 font-normal text-base leading-relaxed">
                 Upload clear photos of your product price list, or type a simple text file with product names and prices. This helps your WhatsApp assistant answer customers instantly without mistakes!
               </p>
             </div>

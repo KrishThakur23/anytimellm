@@ -1,6 +1,12 @@
 import logging
+import os
 from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 
 from app.config import settings
 from app.database import engine, Base
@@ -12,6 +18,9 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
 logger = logging.getLogger(__name__)
+
+# Setup Rate Limiting
+limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
 
 # Initialize DB tables on startup (in production, use Alembic migrations, but for developer-first build we create all tables automatically)
 try:
@@ -35,10 +44,26 @@ try:
         conn.execute(text("CREATE INDEX IF NOT EXISTS ix_users_email ON users (email);"))
         conn.execute(text("CREATE INDEX IF NOT EXISTS ix_users_business_id ON users (business_id);"))
 
-        conn.execute(text("ALTER TABLE conversations ADD COLUMN IF NOT EXISTS is_ai_paused BOOLEAN DEFAULT FALSE;"))
-        conn.execute(text("ALTER TABLE messages ADD COLUMN IF NOT EXISTS meta_message_id VARCHAR(255) UNIQUE;"))
-        conn.execute(text("ALTER TABLE businesses ADD COLUMN IF NOT EXISTS business_type VARCHAR(50);"))
-        conn.execute(text("ALTER TABLE businesses ADD COLUMN IF NOT EXISTS onboarding_status VARCHAR(50) DEFAULT 'pending';"))
+        # Helper to safely add column depending on the database dialect
+        def safe_add_column(table, column, definition):
+            try:
+                if engine.dialect.name == "sqlite":
+                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {definition};"))
+                else:
+                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column} {definition};"))
+                conn.commit()
+            except Exception as e:
+                # If column already exists, we can ignore the error
+                err_msg = str(e).lower()
+                if "duplicate column name" in err_msg or "already exists" in err_msg:
+                    pass
+                else:
+                    logger.warning(f"Could not add column {column} to {table}: {e}")
+
+        safe_add_column("conversations", "is_ai_paused", "BOOLEAN DEFAULT FALSE")
+        safe_add_column("messages", "meta_message_id", "VARCHAR(255) UNIQUE")
+        safe_add_column("businesses", "business_type", "VARCHAR(50)")
+        safe_add_column("businesses", "onboarding_status", "VARCHAR(50) DEFAULT 'pending'")
         
         # Create missing indexes for critical foreign keys and filter fields
         conn.execute(text("CREATE INDEX IF NOT EXISTS ix_documents_business_id ON documents (business_id);"))
@@ -64,32 +89,54 @@ app = FastAPI(
     version="1.0.0"
 )
 
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
+
 # CORS configuration
+allowed_origins = os.environ.get("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Adjust for production domains
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+MAX_BODY_SIZE = 25 * 1024 * 1024 # 25MB max to accommodate large file uploads, strict file limit enforced in ingest.py
+
 @app.middleware("http")
-async def log_requests(request: Request, call_next):
+async def security_and_logging_middleware(request: Request, call_next):
     import time
     start_time = time.time()
     path = request.url.path
     query = request.url.query
     method = request.method
+    
+    # Enforce global payload size limit
+    content_length = request.headers.get('content-length')
+    if content_length and int(content_length) > MAX_BODY_SIZE:
+        logger.warning(f"Rejected oversized payload: {content_length} bytes from {request.client.host}")
+        return JSONResponse(status_code=413, content={"detail": "Payload too large."})
+
     print(f"\n>>> [REQUEST START] {method} {path}" + (f"?{query}" if query else ""))
     try:
         response = await call_next(request)
         process_time = (time.time() - start_time) * 1000
         print(f"<<< [REQUEST END] {method} {path} -> Status {response.status_code} ({process_time:.2f}ms)\n")
-        return response
     except Exception as e:
         process_time = (time.time() - start_time) * 1000
-        print(f"<<< [REQUEST ERROR] {method} {path} -> {e} ({process_time:.2f}ms)\n")
-        raise e
+        logger.error(f"<<< [REQUEST ERROR] {method} {path} -> {e} ({process_time:.2f}ms)\n", exc_info=True)
+        response = JSONResponse(
+            status_code=500,
+            content={"detail": "An internal server error occurred. Please try again later."}
+        )
+    
+    # Apply Security Headers
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return response
 
 # Include routers
 app.include_router(users.router)

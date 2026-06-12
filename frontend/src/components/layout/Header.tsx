@@ -9,11 +9,18 @@ export default function Header() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("anytimellm-token");
     setIsLoggedIn(!!token);
   }, [pathname]);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const navLinks = [
     { name: "Features", href: "/#features" },
@@ -24,22 +31,28 @@ export default function Header() {
   ];
 
   return (
-    <header className="fixed top-0 w-full z-50 bg-[#02000f]/90 backdrop-blur-md h-20 flex items-center justify-between px-6 md:px-12 border-b border-border-subtle/30">
-      {/* Brand logo */}
+    <header
+      className={`sticky top-0 w-full z-50 h-16 flex items-center justify-between px-6 md:px-12 transition-all duration-300 ${
+        scrolled
+          ? "bg-white/80 backdrop-blur-xl border-b border-slate-200/60 shadow-sm"
+          : "bg-transparent"
+      }`}
+    >
+      {/* Brand */}
       <Link href="/" className="flex items-center gap-1 group">
-        <span className="font-display-lg text-lg md:text-xl tracking-[0.4em] font-bold uppercase text-white group-hover:text-purple-400 transition-colors duration-300">
+        <span className="text-[15px] font-extrabold tracking-[0.12em] text-slate-900 group-hover:text-[#128C7E] transition-colors duration-300">
           ANYTIMELLM
         </span>
       </Link>
 
       {/* Desktop Navigation */}
-      <nav className="hidden md:flex items-center gap-8">
+      <nav className="hidden md:flex items-center gap-7">
         {navLinks.map((link) => (
           <Link
             key={link.name}
             href={link.href}
-            className={`font-mono text-[10px] tracking-[0.25em] uppercase transition-colors duration-300 hover:text-purple-400 ${
-              pathname === link.href ? "text-purple-300 font-bold" : "text-text-muted"
+            className={`text-[13px] font-medium transition-colors duration-300 hover:text-[#128C7E] ${
+              pathname === link.href ? "text-[#128C7E] font-semibold" : "text-slate-500"
             }`}
           >
             {link.name}
@@ -47,74 +60,72 @@ export default function Header() {
         ))}
       </nav>
 
-      {/* Action CTA Buttons */}
-      <div className="hidden md:flex items-center gap-4">
+      {/* CTA Buttons */}
+      <div className="hidden md:flex items-center gap-3">
         {isLoggedIn ? (
-          <>
-            <Link
-              href="/dashboard"
-              className="font-mono text-[10px] tracking-[0.2em] uppercase border border-purple-500/30 px-5 py-2.5 hover:bg-white hover:text-black transition-all duration-300 font-bold"
-              style={{ borderRadius: 'var(--radius-md)' }}
-            >
-              Dashboard
-            </Link>
-          </>
+          <Link
+            href="/dashboard"
+            className="text-[13px] font-semibold text-[#128C7E] border border-[#128C7E]/20 px-4 py-2 hover:bg-[#128C7E]/5 transition-all duration-300"
+            style={{ borderRadius: 10 }}
+          >
+            Dashboard
+          </Link>
         ) : (
           <>
             <Link
               href="/login"
-              className="font-mono text-[10px] tracking-[0.25em] uppercase text-text-muted hover:text-white transition-colors duration-300"
+              className="text-[13px] font-medium text-slate-500 hover:text-slate-800 transition-colors duration-300"
             >
-              Login
+              Log in
             </Link>
-            <Link
-              href="/register"
-              className="font-mono text-[10px] tracking-[0.2em] uppercase bg-white text-black px-5 py-2.5 hover:bg-purple-600 hover:text-white transition-all duration-300 flex items-center gap-2 group font-bold"
-              style={{ borderRadius: 'var(--radius-md)' }}
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent("open-ai-assistant"))}
+              className="magnetic-btn text-[13px] font-semibold text-white bg-gradient-to-r from-[#128C7E] to-[#25D366] px-5 py-2.5 hover:shadow-lg hover:shadow-[#25D366]/40 transition-all duration-300 flex items-center gap-1.5 group"
+              style={{ borderRadius: 10 }}
             >
-              Start Free Trial
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-            </Link>
+              Start Free
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+            </button>
           </>
         )}
       </div>
 
-      {/* Mobile Hamburger menu */}
+      {/* Mobile Hamburger */}
       <button
         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        className="md:hidden text-white hover:text-purple-400 transition-colors focus:outline-none"
+        className="md:hidden text-slate-700 hover:text-[#128C7E] transition-colors focus:outline-none"
         aria-label="Toggle menu"
       >
-        {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
       </button>
 
       {/* Mobile Menu Panel */}
       {mobileMenuOpen && (
-        <div className="absolute top-20 left-0 w-full bg-[#02000f]/98 border-b border-border-subtle flex flex-col p-8 gap-6 z-40 md:hidden animate-in fade-in slide-in-from-top-5 duration-200">
-          <nav className="flex flex-col gap-5">
+        <div className="absolute top-16 left-0 w-full bg-white/95 backdrop-blur-xl border-b border-slate-200 flex flex-col p-6 gap-4 z-40 md:hidden shadow-lg">
+          <nav className="flex flex-col gap-3">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`font-mono text-xs tracking-[0.2em] uppercase hover:text-purple-400 transition-colors ${
-                  pathname === link.href ? "text-purple-300" : "text-text-muted"
+                className={`text-sm font-medium hover:text-[#128C7E] transition-colors ${
+                  pathname === link.href ? "text-[#128C7E]" : "text-slate-600"
                 }`}
               >
                 {link.name}
               </Link>
             ))}
           </nav>
-          
-          <div className="w-full h-[1px] bg-border-subtle/50 my-2" />
 
-          <div className="flex flex-col gap-4">
+          <div className="w-full h-[1px] bg-slate-200 my-1" />
+
+          <div className="flex flex-col gap-3">
             {isLoggedIn ? (
               <Link
                 href="/dashboard"
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full text-center font-mono text-xs tracking-[0.2em] uppercase border border-purple-500/30 py-3 hover:bg-white hover:text-black transition-all font-bold"
-                style={{ borderRadius: 'var(--radius-md)' }}
+                className="w-full text-center text-sm font-semibold text-[#128C7E] border border-[#128C7E]/20 py-2.5"
+                style={{ borderRadius: 10 }}
               >
                 Go to Dashboard
               </Link>
@@ -123,19 +134,21 @@ export default function Header() {
                 <Link
                   href="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center font-mono text-xs tracking-[0.2em] uppercase text-text-muted hover:text-white py-2"
+                  className="w-full text-center text-sm text-slate-600 hover:text-slate-900 py-2"
                 >
-                  Login
+                  Log in
                 </Link>
-                <Link
-                  href="/register"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center font-mono text-xs tracking-[0.2em] uppercase bg-white text-black py-3 hover:bg-purple-600 hover:text-white transition-all flex items-center justify-center gap-2 font-bold"
-                  style={{ borderRadius: 'var(--radius-md)' }}
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    window.dispatchEvent(new CustomEvent("open-ai-assistant"));
+                  }}
+                  className="w-full text-center text-sm font-semibold text-white bg-gradient-to-r from-[#128C7E] to-[#25D366] py-2.5 flex items-center justify-center gap-1.5"
+                  style={{ borderRadius: 10 }}
                 >
-                  Start Free Trial
+                  Start Free
                   <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
+                </button>
               </>
             )}
           </div>

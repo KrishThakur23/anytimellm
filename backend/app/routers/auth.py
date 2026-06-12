@@ -67,14 +67,22 @@ def update_business_settings(
     if not biz:
         raise HTTPException(status_code=404, detail="Business not found.")
     
-    settings_data = dict(biz.api_settings or {})
-    for k, v in payload.items():
-        settings_data[k] = v
-        
     try:
-        biz.api_settings = settings_data
-        from sqlalchemy.orm.attributes import flag_modified
-        flag_modified(biz, "api_settings")
+        # Handle direct business field updates
+        if "onboarding_status" in payload:
+            biz.onboarding_status = payload.pop("onboarding_status")
+        if "business_type" in payload:
+            biz.business_type = payload.pop("business_type")
+        
+        # Handle API settings updates
+        if payload:  # If there are remaining fields to update in api_settings
+            settings_data = dict(biz.api_settings or {})
+            for k, v in payload.items():
+                settings_data[k] = v
+            biz.api_settings = settings_data
+            from sqlalchemy.orm.attributes import flag_modified
+            flag_modified(biz, "api_settings")
+        
         db.commit()
         db.refresh(biz)
         return biz

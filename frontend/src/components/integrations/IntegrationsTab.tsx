@@ -133,13 +133,13 @@ export default function IntegrationsTab({ activeBusiness, copyToClipboard }: Int
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 text-left">
       {/* Page Header */}
       <div>
-        <h1 className="font-display-lg text-4xl tracking-[0.08em] uppercase text-white">
+        <h1 className="font-display text-3xl font-extrabold tracking-tight text-slate-900 uppercase">
           Integrations & Channels
         </h1>
-        <p className="font-body-md text-sm text-muted mt-1 italic">
+        <p className="font-body text-sm text-slate-500 mt-1">
           Link your automated AI assistant directly to messaging channels.
         </p>
       </div>
@@ -147,88 +147,91 @@ export default function IntegrationsTab({ activeBusiness, copyToClipboard }: Int
       <div ref={containerRef} className="space-y-6">
         {/* Error Alert */}
         {error && (
-          <div className="p-4 bg-red-950/20 border border-red-900/40 rounded-none flex items-start gap-3 text-red-300 text-xs font-mono">
-            <span className="material-symbols-outlined text-[16px] text-red-500 shrink-0 mt-0.5">error</span>
+          <div className="p-4 bg-red-50 border border-red-200 rounded-none flex items-start gap-3 text-red-750 text-base font-mono" style={{ borderRadius: 12 }}>
+            <span className="material-symbols-outlined text-[16px] text-red-600 shrink-0 mt-0.5">error</span>
             <span className="tracking-wider">{error}</span>
           </div>
         )}
 
         {/* Loading Spinner */}
         {loadingStatus ? (
-          <div className="bg-surface-1 border border-border-subtle p-12 flex flex-col items-center justify-center space-y-4">
-            <Loader2 className="w-8 h-8 animate-spin text-muted-gold" />
-            <span className="font-mono text-[10px] tracking-widest text-muted uppercase">Querying WhatsApp Status...</span>
+          <div className="bg-white border border-slate-200 p-12 flex flex-col items-center justify-center space-y-4 shadow-xs" style={{ borderRadius: 16 }}>
+            <Loader2 className="w-8 h-8 animate-spin text-[#128C7E]" />
+            <span className="font-mono text-[9px] tracking-widest text-slate-400 uppercase font-bold">Querying WhatsApp Status...</span>
           </div>
         ) : (
           <>
             {/* Status Section */}
             {integrationStatus?.connected ? (
-              <div className="bg-surface-1 border border-emerald-900/30 p-6 space-y-6 rounded-none">
-                <div className="flex justify-between items-start">
+              <div className="bg-white border border-slate-200 p-6 space-y-6 shadow-xs" style={{ borderRadius: 16 }}>
+                <div className="flex flex-col md:flex-row justify-between items-start gap-4">
                   <div>
-                    <span className="font-mono text-[9px] text-emerald-400 tracking-widest font-bold uppercase bg-emerald-950/40 border border-emerald-900/40 px-2 py-0.5">
+                    <span className="font-mono text-[9px] text-emerald-700 tracking-widest font-bold uppercase bg-emerald-50 border border-emerald-200 px-2.5 py-1" style={{ borderRadius: 6 }}>
                       CONNECTED (COEXISTENCE ACTIVE)
                     </span>
-                    <h3 className="font-display-lg text-xl tracking-[0.05em] text-white uppercase mt-2">
+                    <h3 className="font-display text-xl font-extrabold text-slate-800 uppercase mt-4">
                       {integrationStatus.display_name || "WhatsApp Business Account"}
                     </h3>
-                    <p className="font-body-sm text-xs text-muted mt-1">
+                    <p className="font-body text-base text-slate-500 mt-1 leading-relaxed">
                       Incoming messages to your business number are processed by your AI agent, while you retain manual chat controls on your WhatsApp Business app.
                     </p>
                   </div>
                   <button
                     onClick={handleDisconnect}
-                    className="border border-red-900/40 text-red-400 hover:bg-red-500 hover:text-white rounded-none py-1.5 px-4 font-mono text-[10px] tracking-wider uppercase transition-all duration-300 cursor-pointer"
+                    className="border border-red-200 hover:border-red-500 hover:bg-red-50/50 text-red-650 rounded-none py-1.5 px-4 font-mono text-[9px] tracking-wider uppercase transition-all duration-305 cursor-pointer font-bold shrink-0"
+                    style={{ borderRadius: 8 }}
                   >
                     Disconnect Channel
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-border-subtle/50 pt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-6">
                   {/* Phone ID */}
-                  <div className="p-4 bg-surface-2 border border-border-subtle font-mono text-xs">
-                    <span className="block text-muted text-[9px] uppercase tracking-wider font-bold mb-1">WhatsApp Phone ID</span>
-                    <span className="text-white font-bold select-all">{integrationStatus.phone_number_id || "N/A"}</span>
+                  <div className="p-4 bg-slate-50 border border-slate-200 font-mono text-base text-left" style={{ borderRadius: 12 }}>
+                    <span className="block text-slate-400 text-[9px] uppercase tracking-wider font-bold mb-1">WhatsApp Phone ID</span>
+                    <span className="text-slate-800 font-bold select-all">{integrationStatus.phone_number_id || "N/A"}</span>
                   </div>
                   {/* Provider */}
-                  <div className="p-4 bg-surface-2 border border-border-subtle font-mono text-xs">
-                    <span className="block text-muted text-[9px] uppercase tracking-wider font-bold mb-1">API Provider</span>
-                    <span className="text-white font-bold uppercase tracking-wider">{integrationStatus.provider || "N/A"}</span>
+                  <div className="p-4 bg-slate-50 border border-slate-200 font-mono text-base text-left" style={{ borderRadius: 12 }}>
+                    <span className="block text-slate-400 text-[9px] uppercase tracking-wider font-bold mb-1">API Provider</span>
+                    <span className="text-slate-800 font-bold uppercase tracking-wider">{integrationStatus.provider || "N/A"}</span>
                   </div>
                 </div>
 
                 {integrationStatus.verify_token && (
-                  <div className="space-y-4 border-t border-border-subtle/50 pt-6 font-mono text-xs">
-                    <h4 className="font-bold text-white uppercase tracking-wider text-[11px]">System Webhook Details:</h4>
-                    <p className="text-muted leading-relaxed">
+                  <div className="space-y-4 border-t border-slate-100 pt-6 font-mono text-base text-left">
+                    <h4 className="font-bold text-slate-700 uppercase tracking-wider text-sm">System Webhook Details:</h4>
+                    <p className="text-slate-500 leading-relaxed font-body text-base">
                       Below is your unified webhook callback URL. When deploying in production, ensure this endpoint is subscribed in your Meta Developer Portal.
                     </p>
                     
                     <div className="space-y-3">
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 rounded-none bg-surface-2 border border-border-subtle items-center">
-                        <div className="col-span-1 text-muted font-bold uppercase tracking-wider text-[9px]">Webhook URL:</div>
-                        <div className="col-span-2 text-white truncate font-bold select-all pl-2">
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 rounded-none bg-slate-50 border border-slate-200 items-center" style={{ borderRadius: 12 }}>
+                        <div className="col-span-1 text-slate-450 font-bold uppercase tracking-wider text-[9px]">Webhook URL:</div>
+                        <div className="col-span-2 text-slate-850 truncate font-bold select-all pl-2">
                           {typeof window !== "undefined" ? window.location.origin : "http://localhost:8000"}/api/webhooks/whatsapp/incoming
                         </div>
                         <div className="col-span-1 text-right">
                           <button
                             onClick={handleCopyWebhook}
-                            className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.1em] px-3.5 py-1.5 bg-surface-1 hover:bg-white hover:text-black rounded-none border border-border-subtle transition duration-200 cursor-pointer"
+                            className="inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.15em] px-3.5 py-1.5 bg-white hover:bg-slate-50 rounded-none border border-slate-200 transition duration-200 cursor-pointer font-bold text-slate-700"
+                            style={{ borderRadius: 8 }}
                           >
                             {copiedWebhook ? "Copied" : "Copy URL"}
                           </button>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 rounded-none bg-surface-2 border border-border-subtle items-center">
-                        <div className="col-span-1 text-muted font-bold uppercase tracking-wider text-[9px]">Verify Token:</div>
-                        <div className="col-span-2 text-white font-bold select-all pl-2">
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 rounded-none bg-slate-50 border border-slate-200 items-center" style={{ borderRadius: 12 }}>
+                        <div className="col-span-1 text-slate-450 font-bold uppercase tracking-wider text-[9px]">Verify Token:</div>
+                        <div className="col-span-2 text-slate-850 font-bold select-all pl-2">
                           {integrationStatus.verify_token}
                         </div>
                         <div className="col-span-1 text-right">
                           <button
                             onClick={() => handleCopyVerify(integrationStatus.verify_token || "")}
-                            className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.1em] px-3.5 py-1.5 bg-surface-1 hover:bg-white hover:text-black rounded-none border border-border-subtle transition duration-200 cursor-pointer"
+                            className="inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.15em] px-3.5 py-1.5 bg-white hover:bg-slate-50 rounded-none border border-slate-200 transition duration-200 cursor-pointer font-bold text-slate-700"
+                            style={{ borderRadius: 8 }}
                           >
                             {copiedVerify ? "Copied" : "Copy Token"}
                           </button>
@@ -239,51 +242,51 @@ export default function IntegrationsTab({ activeBusiness, copyToClipboard }: Int
                 )}
               </div>
             ) : (
-              <div className="bg-surface-1 border border-border-subtle p-8 space-y-8 rounded-none">
+              <div className="bg-white border border-slate-200 p-8 space-y-8 shadow-xs" style={{ borderRadius: 16 }}>
                 <div>
-                  <span className="font-mono text-[9px] text-muted-gold tracking-widest uppercase">META WHATSAPP INTEGRATION</span>
-                  <h3 className="font-display-lg text-2xl tracking-[0.05em] text-white uppercase mt-1 mb-3">
+                  <span className="font-mono text-[9px] text-[#128C7E] tracking-widest uppercase font-bold">META WHATSAPP INTEGRATION</span>
+                  <h3 className="font-display text-2xl font-extrabold text-slate-800 uppercase mt-1 mb-3">
                     Connect via Embedded Signup
                   </h3>
-                  <p className="font-body-md text-sm text-on-surface-variant leading-relaxed max-w-2xl">
+                  <p className="font-body text-sm text-slate-500 leading-relaxed max-w-2xl">
                     Upgrade your business phone number to the official WhatsApp Business Cloud API. This enables automated catalog lookup, order placement, and AI chats without losing access to your mobile WhatsApp Business App.
                   </p>
                 </div>
 
                 {/* Coexistence Features Bento */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono text-xs">
-                  <div className="p-5 bg-black/40 border border-border-subtle">
-                    <span className="block font-bold text-white uppercase tracking-wider mb-2">💬 WhatsApp App Access</span>
-                    <span className="text-muted leading-relaxed">Keep your iOS/Android WhatsApp app. Both the app and our AI bot operate on the same number simultaneously.</span>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono text-base text-left">
+                  <div className="p-5 bg-slate-50 border border-slate-200" style={{ borderRadius: 12 }}>
+                    <span className="block font-bold text-slate-850 uppercase tracking-wider mb-2">💬 WhatsApp App Access</span>
+                    <span className="text-slate-500 leading-relaxed font-body text-base">Keep your iOS/Android WhatsApp app. Both the app and our AI bot operate on the same number simultaneously.</span>
                   </div>
-                  <div className="p-5 bg-black/40 border border-border-subtle">
-                    <span className="block font-bold text-white uppercase tracking-wider mb-2">⚡ Real-Time Sync</span>
-                    <span className="text-muted leading-relaxed">All conversation threads are mirrored across your phone and this dashboard console instantly.</span>
+                  <div className="p-5 bg-slate-50 border border-slate-200" style={{ borderRadius: 12 }}>
+                    <span className="block font-bold text-slate-850 uppercase tracking-wider mb-2">⚡ Real-Time Sync</span>
+                    <span className="text-slate-500 leading-relaxed font-body text-base">All conversation threads are mirrored across your phone and this dashboard console instantly.</span>
                   </div>
-                  <div className="p-5 bg-black/40 border border-border-subtle">
-                    <span className="block font-bold text-white uppercase tracking-wider mb-2">🔒 Secure OAuth Setup</span>
-                    <span className="text-muted leading-relaxed">No manual webhook setups. Simply verify your number in Meta's popup and we handle tokens automatically.</span>
+                  <div className="p-5 bg-slate-50 border border-slate-200" style={{ borderRadius: 12 }}>
+                    <span className="block font-bold text-slate-850 uppercase tracking-wider mb-2">🔒 Secure OAuth Setup</span>
+                    <span className="text-slate-500 leading-relaxed font-body text-base">No manual webhook setups. Simply verify your number in Meta's popup and we handle tokens automatically.</span>
                   </div>
                 </div>
 
                 {/* Onboarding Trigger Controls */}
-                <div className="p-6 bg-surface-2 border border-border-subtle flex flex-col md:flex-row items-center justify-between gap-6">
-                  <div>
-                    <h4 className="font-display-lg text-sm text-white uppercase tracking-wider">Start Verification Flow</h4>
-                    <p className="font-body-sm text-xs text-muted mt-1">
+                <div className="p-6 bg-slate-50 border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-6" style={{ borderRadius: 14 }}>
+                  <div className="text-left">
+                    <h4 className="font-display text-sm text-slate-800 uppercase font-bold tracking-wider">Start Verification Flow</h4>
+                    <p className="font-body text-base text-slate-500 mt-1">
                       Initiate the 2-minute Facebook setup. You will need your Facebook Login credentials.
                     </p>
                     
                     {/* Developer Mock Toggle */}
-                    <div className="flex items-center gap-2 mt-4 font-mono text-[10px]">
+                    <div className="flex items-center gap-2 mt-4 font-mono text-[9px]">
                       <input
                         type="checkbox"
                         id="dev-mode-checkbox"
                         checked={developerMode}
                         onChange={(e) => setDeveloperMode(e.target.checked)}
-                        className="rounded-none border border-border-subtle bg-transparent text-white focus:ring-0 cursor-pointer"
+                        className="rounded-none border border-slate-250 bg-transparent text-slate-800 focus:ring-0 cursor-pointer"
                       />
-                      <label htmlFor="dev-mode-checkbox" className="text-muted uppercase tracking-wider cursor-pointer">
+                      <label htmlFor="dev-mode-checkbox" className="text-slate-500 uppercase tracking-wider cursor-pointer font-bold">
                         Developer Testing / Mock Verification Mode (Connect instantly)
                       </label>
                     </div>
@@ -292,7 +295,8 @@ export default function IntegrationsTab({ activeBusiness, copyToClipboard }: Int
                   <button
                     onClick={handleConnect}
                     disabled={connecting}
-                    className="w-full md:w-auto h-12 px-8 border border-white hover:bg-white hover:text-black rounded-none bg-transparent text-white font-mono text-xs tracking-[0.2em] uppercase flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-50 cursor-pointer"
+                    className="w-full md:w-auto h-12 px-8 bg-gradient-to-r from-[#128C7E] to-[#25D366] hover:opacity-95 text-white font-mono text-base tracking-[0.2em] uppercase flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-50 cursor-pointer shadow-sm font-bold"
+                    style={{ borderRadius: 10 }}
                   >
                     {connecting ? (
                       <>

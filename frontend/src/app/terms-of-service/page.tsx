@@ -8,62 +8,62 @@ import FloatingParticles from "@/components/effects/FloatingParticles";
 
 export default function TermsOfServicePage() {
   return (
-    <div className="min-h-screen bg-[#02000f] text-white relative flex flex-col justify-between overflow-x-hidden">
+    <div className="min-h-screen bg-white text-slate-900 relative flex flex-col justify-between overflow-x-hidden">
       <FloatingParticles />
       <Header />
 
       {/* Background Glows */}
-      <div className="absolute top-[10%] right-1/4 w-[500px] h-[500px] bg-indigo-600/[0.01] rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-[10%] right-1/4 w-[500px] h-[500px] bg-indigo-600/[0.02] rounded-full blur-[120px] pointer-events-none" />
 
       {/* Hero Header */}
       <section className="relative pt-36 pb-8 px-6 md:px-12 max-w-4xl mx-auto w-full text-center z-10">
-        <div className="mb-4 inline-flex items-center gap-1.5 border border-purple-500/20 bg-purple-950/20 px-3 py-1" style={{ borderRadius: '9999px' }}>
-          <Scale className="w-3.5 h-3.5 text-purple-300 animate-pulse" />
-          <span className="font-mono text-[9px] tracking-[0.25em] text-purple-300 uppercase font-bold">
+        <div className="mb-4 inline-flex items-center gap-1.5 border border-purple-100 bg-purple-50 px-3 py-1" style={{ borderRadius: '9999px' }}>
+          <Scale className="w-3.5 h-3.5 text-purple-600 animate-pulse" />
+          <span className="font-mono text-[9px] tracking-[0.25em] text-purple-600 uppercase font-bold">
             USER AGREEMENT
           </span>
         </div>
-        <h1 className="font-display-lg text-4xl md:text-5xl tracking-wide uppercase text-white mt-2 mb-4 leading-tight">
+        <h1 className="font-display text-4xl md:text-5xl tracking-tight text-slate-900 mt-2 mb-4 leading-tight font-extrabold">
           Terms of Service
         </h1>
-        <p className="font-body-lg text-sm md:text-base text-text-secondary italic max-w-xl mx-auto leading-relaxed">
+        <p className="font-body text-base text-slate-500 italic max-w-xl mx-auto leading-relaxed">
           Last Updated: June 7, 2026. General terms governing access to AnytimeLLM dashboards and WhatsApp APIs.
         </p>
       </section>
 
       {/* Content Section */}
-      <section className="px-6 md:px-12 max-w-4xl mx-auto w-full z-10 mb-24 font-body-md text-xs md:text-sm text-text-secondary space-y-8 leading-relaxed">
+      <section className="px-6 md:px-12 max-w-4xl mx-auto w-full z-10 mb-24 font-body text-xs md:text-sm text-slate-600 space-y-8 leading-relaxed">
         
         {/* Quick Summaries Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div className="p-5 border border-border-subtle bg-[#070518]/40 backdrop-blur-sm" style={{ borderRadius: 'var(--radius-lg)' }}>
-            <FileText className="w-5 h-5 text-purple-400 mb-3" />
-            <h3 className="font-display-lg text-xs uppercase tracking-wider text-white font-bold mb-2">Usage Rights</h3>
-            <p className="text-[11px] text-text-secondary">
+          <div className="p-5 border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-slate-300 transition-all duration-300 rounded-2xl shadow-sm">
+            <FileText className="w-5 h-5 text-purple-600 mb-3" />
+            <h3 className="font-display text-xs uppercase tracking-wider text-slate-900 font-bold mb-2">Usage Rights</h3>
+            <p className="text-[11px] text-slate-500">
               Subject to tier subscription limits, we grant a non-exclusive license to link your WhatsApp numbers and upload catalogs.
             </p>
           </div>
-          <div className="p-5 border border-border-subtle bg-[#070518]/40 backdrop-blur-sm" style={{ borderRadius: 'var(--radius-lg)' }}>
-            <RefreshCw className="w-5 h-5 text-purple-400 mb-3" />
-            <h3 className="font-display-lg text-xs uppercase tracking-wider text-white font-bold mb-2">Subscription & Renewal</h3>
-            <p className="text-[11px] text-text-secondary">
+          <div className="p-5 border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-slate-300 transition-all duration-300 rounded-2xl shadow-sm">
+            <RefreshCw className="w-5 h-5 text-purple-600 mb-3" />
+            <h3 className="font-display text-xs uppercase tracking-wider text-slate-900 font-bold mb-2">Subscription & Renewal</h3>
+            <p className="text-[11px] text-slate-500">
               Billing cycles occur monthly or yearly. Active accounts auto-renew unless cancelled at least 24 hours prior.
             </p>
           </div>
-          <div className="p-5 border border-border-subtle bg-[#070518]/40 backdrop-blur-sm" style={{ borderRadius: 'var(--radius-lg)' }}>
-            <AlertCircle className="w-5 h-5 text-purple-400 mb-3" />
-            <h3 className="font-display-lg text-xs uppercase tracking-wider text-white font-bold mb-2">Liability Limits</h3>
-            <p className="text-[11px] text-text-secondary">
+          <div className="p-5 border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-slate-300 transition-all duration-300 rounded-2xl shadow-sm">
+            <AlertCircle className="w-5 h-5 text-purple-600 mb-3" />
+            <h3 className="font-display text-xs uppercase tracking-wider text-slate-900 font-bold mb-2">Liability Limits</h3>
+            <p className="text-[11px] text-slate-500">
               We are not liable for sales drops, user API bans by Meta, or catalog inaccuracies generated by AI text completions.
             </p>
           </div>
         </div>
 
         {/* Detailed Terms Container */}
-        <div className="border border-border-subtle bg-[#070518]/30 p-8 md:p-10 space-y-8" style={{ borderRadius: 'var(--radius-xl)' }}>
+        <div className="border border-slate-200 bg-slate-50/20 p-8 md:p-10 space-y-8 rounded-3xl shadow-sm">
           
           <div className="space-y-3">
-            <h2 className="font-display-lg text-sm md:text-base uppercase tracking-widest text-white font-bold border-b border-border-subtle/50 pb-2">
+            <h2 className="font-display text-sm md:text-base uppercase tracking-widest text-slate-900 font-bold border-b border-slate-200 pb-2">
               1. Acceptance of Terms
             </h2>
             <p>
@@ -72,7 +72,7 @@ export default function TermsOfServicePage() {
           </div>
 
           <div className="space-y-3">
-            <h2 className="font-display-lg text-sm md:text-base uppercase tracking-widest text-white font-bold border-b border-border-subtle/50 pb-2">
+            <h2 className="font-display text-sm md:text-base uppercase tracking-widest text-slate-900 font-bold border-b border-slate-200 pb-2">
               2. Account Credentials & Security
             </h2>
             <p>
@@ -81,7 +81,7 @@ export default function TermsOfServicePage() {
           </div>
 
           <div className="space-y-3">
-            <h2 className="font-display-lg text-sm md:text-base uppercase tracking-widest text-white font-bold border-b border-border-subtle/50 pb-2">
+            <h2 className="font-display text-sm md:text-base uppercase tracking-widest text-slate-900 font-bold border-b border-slate-200 pb-2">
               3. WhatsApp API Integration & Third-Party Terms
             </h2>
             <p>
@@ -95,7 +95,7 @@ export default function TermsOfServicePage() {
           </div>
 
           <div className="space-y-3">
-            <h2 className="font-display-lg text-sm md:text-base uppercase tracking-widest text-white font-bold border-b border-border-subtle/50 pb-2">
+            <h2 className="font-display text-sm md:text-base uppercase tracking-widest text-slate-900 font-bold border-b border-slate-200 pb-2">
               4. Accuracy of AI-Generated Catalog Responses
             </h2>
             <p>
@@ -107,7 +107,7 @@ export default function TermsOfServicePage() {
           </div>
 
           <div className="space-y-3">
-            <h2 className="font-display-lg text-sm md:text-base uppercase tracking-widest text-white font-bold border-b border-border-subtle/50 pb-2">
+            <h2 className="font-display text-sm md:text-base uppercase tracking-widest text-slate-900 font-bold border-b border-slate-200 pb-2">
               5. Support & Refund Policy
             </h2>
             <p>

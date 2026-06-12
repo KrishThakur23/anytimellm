@@ -4,61 +4,95 @@ import React from "react";
 import Link from "next/link";
 
 export default function Footer() {
+  const currentYear = new Date().getFullYear();
+
   const footerLinks = [
-    { name: "Pricing", href: "/pricing" },
-    { name: "Demo", href: "/demo" },
-    { name: "Use Cases", href: "/use-cases" },
-    { name: "About", href: "/about" },
-    { name: "Privacy Policy", href: "/privacy-policy" },
-    { name: "Terms of Service", href: "/terms-of-service" },
+    {
+      title: "Product",
+      links: [
+        { name: "Features", href: "/#features" },
+        { name: "Pricing", href: "/pricing" },
+        { name: "Demo", href: "/demo" },
+        { name: "Use Cases", href: "/use-cases" },
+      ],
+    },
+    {
+      title: "Company",
+      links: [
+        { name: "About", href: "/about" },
+        { name: "Contact", href: "/about#contact" },
+        { name: "Privacy Policy", href: "/privacy-policy" },
+        { name: "Terms of Service", href: "/terms-of-service" },
+      ],
+    },
+    {
+      title: "Resources",
+      links: [
+        { name: "Documentation", href: "/docs" },
+        { name: "WhatsApp Setup", href: "/demo" },
+        { name: "API Reference", href: "/docs" },
+      ],
+    },
   ];
 
   return (
-    <footer className="w-full bg-[#02000f] border-t border-border-subtle/30 py-16 px-6 md:px-12 relative z-10">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-        
-        {/* Brand Information */}
-        <div className="flex flex-col items-center md:items-start text-center md:text-left gap-2">
-          <span className="font-display-lg text-md md:text-lg tracking-[0.3em] font-bold uppercase text-white">
-            ANYTIMELLM
-          </span>
-          <p className="font-mono text-[9px] tracking-wider text-purple-400 uppercase font-bold">
-            Built for Indian SMBs who live on WhatsApp.
-          </p>
-        </div>
-
-        {/* Quick Links */}
-        <div className="flex flex-wrap justify-center gap-x-6 gap-y-3">
-          {footerLinks.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              className="font-mono text-[10px] tracking-widest text-text-muted uppercase hover:text-purple-300 transition-colors duration-250"
-            >
-              {link.name}
+    <footer className="bg-slate-50 border-t border-slate-200">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 py-14">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
+          {/* Brand Column */}
+          <div className="col-span-2 md:col-span-1">
+            <Link href="/" className="block mb-3">
+              <span className="text-[15px] font-extrabold tracking-[0.12em] text-slate-900">
+                ANYTIMELLM
+              </span>
             </Link>
+            <p className="text-[13px] text-slate-500 leading-relaxed max-w-xs">
+              AI Operating System for local businesses. Every message, order, and question — handled automatically.
+            </p>
+            <div className="flex items-center gap-1.5 mt-4">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="text-sm font-semibold text-emerald-600 tracking-wider uppercase">
+                ALL SYSTEMS OPERATIONAL
+              </span>
+            </div>
+          </div>
+
+          {/* Link Columns */}
+          {footerLinks.map((section) => (
+            <div key={section.title}>
+              <h4 className="text-[11px] font-bold text-slate-800 tracking-[0.15em] uppercase mb-4">
+                {section.title}
+              </h4>
+              <ul className="space-y-2.5">
+                {section.links.map((link) => (
+                  <li key={link.name}>
+                    <Link
+                      href={link.href}
+                      className="text-[13px] text-slate-500 hover:text-[#128C7E] transition-colors duration-300"
+                    >
+                      {link.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
         </div>
 
-        {/* Contact info */}
-        <div className="flex flex-col items-center md:items-end text-center md:text-right gap-1.5 font-mono text-[10px] tracking-widest text-text-muted uppercase">
-          <div>
-            Email: <span className="text-white hover:text-purple-400 transition-colors duration-250 cursor-pointer">hello@anytimellm.com</span>
-          </div>
-          <div>
-            WhatsApp: <span className="text-white hover:text-purple-400 transition-colors duration-250 cursor-pointer">+91 99999 99999</span>
+        {/* Bottom Bar */}
+        <div className="mt-12 pt-6 border-t border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
+          <span className="text-[12px] text-slate-400">
+            © {currentYear} AnytimeLLM. All rights reserved.
+          </span>
+          <div className="flex items-center gap-6">
+            <Link href="/privacy-policy" className="text-[12px] text-slate-400 hover:text-slate-600 transition-colors">
+              Privacy
+            </Link>
+            <Link href="/terms-of-service" className="text-[12px] text-slate-400 hover:text-slate-600 transition-colors">
+              Terms
+            </Link>
           </div>
         </div>
-
-      </div>
-
-      <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-border-subtle/20 flex flex-col md:flex-row justify-between items-center gap-4 text-center">
-        <span className="font-mono text-[9px] tracking-widest text-text-ghost uppercase">
-          © {new Date().getFullYear()} AnytimeLLM. All Rights Reserved.
-        </span>
-        <span className="font-mono text-[9px] tracking-widest text-text-ghost uppercase">
-          🇮🇳 Made with pride in India
-        </span>
       </div>
     </footer>
   );
