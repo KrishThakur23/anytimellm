@@ -180,7 +180,12 @@ def verify_google_token(token: str, client_id: str):
     from google.oauth2 import id_token
     from google.auth.transport import requests as google_requests
     
-    idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), client_id)
+    idinfo = id_token.verify_oauth2_token(
+        token,
+        google_requests.Request(),
+        client_id,
+        clock_skew_in_seconds=60
+    )
     return idinfo
 
 

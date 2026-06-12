@@ -59,7 +59,7 @@ export default function WhatsAppIntegration() {
               </div>
 
               {/* Messages Body */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3 font-sans text-[12px] bg-[#0b141a]" style={{ backgroundImage: "url('https://i.ibb.co/3YxZJ5v/wa-bg.png')", backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.9 }}>
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 font-sans text-[12px] bg-[#0b141a]" style={{ opacity: 0.9 }}>
                 {waMessages.map((msg, idx) => (
                   <div
                     key={idx}

@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 import logging
 import os
 from fastapi import FastAPI, Request
@@ -22,71 +23,75 @@ logger = logging.getLogger(__name__)
 # Setup Rate Limiting
 limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
 
-# Initialize DB tables on startup (in production, use Alembic migrations, but for developer-first build we create all tables automatically)
-try:
-    logger.info("Initializing relational database tables...")
-    Base.metadata.create_all(bind=engine)
-    logger.info("Database tables initialized successfully.")
-    
-    # Safe migration: add column is_ai_paused if it does not exist and create indexes
-    from sqlalchemy import text
-    with engine.connect() as conn:
-        # Create users table if it does not exist
-        conn.execute(text("""
-            CREATE TABLE IF NOT EXISTS users (
-                id UUID PRIMARY KEY,
-                business_id UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
-                email VARCHAR(255) UNIQUE NOT NULL,
-                hashed_password VARCHAR(255) NOT NULL,
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-            );
-        """))
-        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_users_email ON users (email);"))
-        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_users_business_id ON users (business_id);"))
-
-        # Helper to safely add column depending on the database dialect
-        def safe_add_column(table, column, definition):
-            try:
-                if engine.dialect.name == "sqlite":
-                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {definition};"))
-                else:
-                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column} {definition};"))
-                conn.commit()
-            except Exception as e:
-                # If column already exists, we can ignore the error
-                err_msg = str(e).lower()
-                if "duplicate column name" in err_msg or "already exists" in err_msg:
-                    pass
-                else:
-                    logger.warning(f"Could not add column {column} to {table}: {e}")
-
-        safe_add_column("conversations", "is_ai_paused", "BOOLEAN DEFAULT FALSE")
-        safe_add_column("messages", "meta_message_id", "VARCHAR(255) UNIQUE")
-        safe_add_column("businesses", "business_type", "VARCHAR(50)")
-        safe_add_column("businesses", "onboarding_status", "VARCHAR(50) DEFAULT 'pending'")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Initialize DB tables on startup (in production, use Alembic migrations, but for developer-first build we create all tables automatically)
+    try:
+        logger.info("Initializing relational database tables...")
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database tables initialized successfully.")
         
-        # Create missing indexes for critical foreign keys and filter fields
-        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_documents_business_id ON documents (business_id);"))
-        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_catalogs_business_id ON catalogs (business_id);"))
-        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_customers_business_id ON customers (business_id);"))
-        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_customers_phone_number ON customers (phone_number);"))
-        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_conversations_business_id ON conversations (business_id);"))
-        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_conversations_customer_id ON conversations (customer_id);"))
-        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_messages_conversation_id ON messages (conversation_id);"))
-        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_orders_business_id ON orders (business_id);"))
-        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_orders_customer_id ON orders (customer_id);"))
-        
-        conn.commit()
-    logger.info("Database migration check and indexing completed successfully.")
-except Exception as migration_error:
-    logger.warning(f"Database migration check skipped or failed: {migration_error}")
-except Exception as e:
-    logger.error(f"Failed database table creation: {e}. Please ensure PostgreSQL is running.")
+        # Safe migration: add column is_ai_paused if it does not exist and create indexes
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            # Create users table if it does not exist
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id UUID PRIMARY KEY,
+                    business_id UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
+                    email VARCHAR(255) UNIQUE NOT NULL,
+                    hashed_password VARCHAR(255) NOT NULL,
+                    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                );
+            """))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_users_email ON users (email);"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_users_business_id ON users (business_id);"))
+
+            # Helper to safely add column depending on the database dialect
+            def safe_add_column(table, column, definition):
+                try:
+                    if engine.dialect.name == "sqlite":
+                        conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {definition};"))
+                    else:
+                        conn.execute(text(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column} {definition};"))
+                    conn.commit()
+                except Exception as e:
+                    # If column already exists, we can ignore the error
+                    err_msg = str(e).lower()
+                    if "duplicate column name" in err_msg or "already exists" in err_msg:
+                        pass
+                    else:
+                        logger.warning(f"Could not add column {column} to {table}: {e}")
+
+            safe_add_column("conversations", "is_ai_paused", "BOOLEAN DEFAULT FALSE")
+            safe_add_column("messages", "meta_message_id", "VARCHAR(255) UNIQUE")
+            safe_add_column("businesses", "business_type", "VARCHAR(50)")
+            safe_add_column("businesses", "onboarding_status", "VARCHAR(50) DEFAULT 'pending'")
+            
+            # Create missing indexes for critical foreign keys and filter fields
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_documents_business_id ON documents (business_id);"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_catalogs_business_id ON catalogs (business_id);"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_customers_business_id ON customers (business_id);"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_customers_phone_number ON customers (phone_number);"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_conversations_business_id ON conversations (business_id);"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_conversations_customer_id ON conversations (customer_id);"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_messages_conversation_id ON messages (conversation_id);"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_orders_business_id ON orders (business_id);"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_orders_customer_id ON orders (customer_id);"))
+            
+            conn.commit()
+        logger.info("Database migration check and indexing completed successfully.")
+    except Exception as migration_error:
+        logger.warning(f"Database migration check skipped or failed: {migration_error}")
+    except Exception as e:
+        logger.error(f"Failed database table creation: {e}. Please ensure PostgreSQL is running.")
+    yield
 
 app = FastAPI(
     title="AnytimeLLM AI API Backend",
     description="Multi-tenant backend parsing uploads, running LangGraph agents, and servicing Web Widget/Meta WhatsApp chats.",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 app.state.limiter = limiter

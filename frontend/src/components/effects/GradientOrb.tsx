@@ -37,7 +37,6 @@ export default function GradientOrb({
         width: size,
         height: size,
         background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
-        filter: `blur(${size * 0.3}px)`,
         animation: `float-drift ${duration}s ease-in-out infinite`,
         willChange: "transform",
         zIndex: 0,
