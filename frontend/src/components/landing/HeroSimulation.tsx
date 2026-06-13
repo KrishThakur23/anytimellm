@@ -4,16 +4,16 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const SIMULATION_STEPS = [
-  { type: "customer", text: "Do you have black shirts in size M?" },
-  { type: "brain", text: "Analyzing intent: 'Product Availability'" },
-  { type: "brain", text: "Searching catalog for: 'black shirts size M'" },
-  { type: "brain", text: "Found 17 products. 3 in stock." },
-  { type: "operator", text: "Yes, we have 3 black shirts in size M available right now!" },
-  { type: "customer", text: "Great, I'll take one. Deliver to my address." },
-  { type: "brain", text: "Extracting address from customer profile..." },
-  { type: "brain", text: "Creating order #1042..." },
-  { type: "operator", text: "Done! Your order #1042 is confirmed. I'll send the payment link shortly." },
-  { type: "revenue", text: "Order Created" }
+  { id: "step-1", type: "customer", text: "Do you have black shirts in size M?" },
+  { id: "step-2", type: "brain", text: "Analyzing intent: 'Product Availability'" },
+  { id: "step-3", type: "brain", text: "Searching catalog for: 'black shirts size M'" },
+  { id: "step-4", type: "brain", text: "Found 17 products. 3 in stock." },
+  { id: "step-5", type: "operator", text: "Yes, we have 3 black shirts in size M available right now!" },
+  { id: "step-6", type: "customer", text: "Great, I'll take one. Deliver to my address." },
+  { id: "step-7", type: "brain", text: "Extracting address from customer profile..." },
+  { id: "step-8", type: "brain", text: "Creating order #1042..." },
+  { id: "step-9", type: "operator", text: "Done! Your order #1042 is confirmed. I'll send the payment link shortly." },
+  { id: "step-10", type: "revenue", text: "Order Created" }
 ];
 
 export default function HeroSimulation() {
@@ -30,7 +30,7 @@ export default function HeroSimulation() {
   const visibleSteps = SIMULATION_STEPS.slice(0, currentStep === 0 ? 0 : currentStep);
 
   return (
-    <div className="relative w-full max-w-2xl mx-auto mt-12 rounded-2xl border border-slate-200/60 bg-white/80 shadow-xl backdrop-blur-xl overflow-hidden">
+    <div className="relative w-full max-w-2xl mx-auto mt-12 rounded-2xl border border-slate-200/60 bg-white/95 shadow-xl overflow-hidden">
       {/* Mac-like Header */}
       <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-4 py-3">
         <div className="flex gap-1.5">
@@ -45,9 +45,9 @@ export default function HeroSimulation() {
       <div className="p-6">
         <div className="space-y-4 min-h-[320px] flex flex-col justify-end">
           <AnimatePresence initial={false}>
-            {visibleSteps.map((step, idx) => (
+            {visibleSteps.map((step) => (
               <motion.div
-                key={idx}
+                key={step.id}
                 initial={{ opacity: 0, y: 10, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.98 }}

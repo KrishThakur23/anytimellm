@@ -58,6 +58,7 @@ export default function ChatsTab({
   }, [chats]);
 
   const activeChat = chats.find(c => c.id === selectedChatId);
+  const isActiveInstagram = activeChat?.channel === "instagram";
 
   // Filter conversations by customer name or phone number
   const filteredChats = chats.filter(c => {
@@ -112,7 +113,7 @@ export default function ChatsTab({
       <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4 shrink-0">
         <div>
           <h1 className="font-display text-3xl font-extrabold tracking-tight text-slate-900 uppercase">
-            WhatsApp Chat Inbox
+            Omnichannel Chat Inbox
           </h1>
           <p className="font-body text-sm text-slate-500 mt-1">
             Monitor real-time conversations between your automated AI agent and customers. Step in to send manual outbox overrides when needed.
@@ -162,27 +163,40 @@ export default function ChatsTab({
               </div>
             ) : filteredChats.length === 0 ? (
               <div className="p-8 text-center text-slate-450 font-mono text-[9px] uppercase tracking-wider font-bold">
-                {searchQuery ? "No matching chats found" : "No active WhatsApp chats"}
+                {searchQuery ? "No matching chats found" : "No active chats"}
               </div>
             ) : (
               filteredChats.map((c) => {
                 const isSelected = selectedChatId === c.id;
-                const initials = (c.customer_name || "W")
+                const isInstagram = c.channel === "instagram";
+                const initials = (c.customer_name || (isInstagram ? "IG" : "WA"))
                   .split(" ")
                   .map(n => n[0])
                   .join("")
                   .slice(0, 2)
                   .toUpperCase();
                   
+                const selectionClass = isSelected
+                  ? isInstagram
+                    ? "bg-[#D62976]/10 border-l-[3px] border-[#D62976]"
+                    : "bg-[#25D366]/10 border-l-[3px] border-[#128C7E]"
+                  : "hover:bg-slate-50/50 border-l-[3px] border-transparent";
+
+                const channelBadge = isInstagram ? (
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-bold tracking-wider uppercase bg-[#D62976]/10 text-[#D62976] border border-[#D62976]/20">
+                    Instagram
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-bold tracking-wider uppercase bg-[#25D366]/10 text-[#128C7E] border border-[#25D366]/20">
+                    WhatsApp
+                  </span>
+                );
+
                 return (
                   <div
                     key={c.id}
                     onClick={() => setSelectedChatId(c.id)}
-                    className={`chat-item-card p-4 flex gap-3 cursor-pointer transition-all duration-200 relative select-none font-mono ${
-                      isSelected
-                        ? "bg-[#25D366]/10 border-l-[3px] border-[#128C7E]"
-                        : "hover:bg-slate-50/50 border-l-[3px] border-transparent"
-                    }`}
+                    className={`chat-item-card p-4 flex gap-3 cursor-pointer transition-all duration-200 relative select-none font-mono ${selectionClass}`}
                   >
                     {/* Customer avatar */}
                     <div className="w-10 h-10 rounded-none bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-700 font-bold text-base shrink-0" style={{ borderRadius: 8 }}>
@@ -192,7 +206,7 @@ export default function ChatsTab({
                     <div className="flex-1 min-w-0 text-left">
                       <div className="flex justify-between items-baseline">
                         <span className="font-bold text-slate-800 text-base truncate">
-                          {c.customer_name || "WhatsApp Client"}
+                          {c.customer_name || (isInstagram ? "Instagram User" : "WhatsApp User")}
                         </span>
                         <span className="font-mono text-[8px] text-slate-400 font-bold tracking-wider shrink-0 ml-1">
                           {c.messages.length > 0
@@ -201,9 +215,21 @@ export default function ChatsTab({
                         </span>
                       </div>
                       
-                      <div className="flex items-center gap-1 mt-1 text-[9px] text-slate-400 font-mono">
-                        <Phone className="w-2.5 h-2.5 shrink-0" />
-                        <span>{c.customer_phone}</span>
+                      <div className="flex items-center justify-between mt-1">
+                        <div className="flex items-center gap-1 text-[9px] text-slate-400 font-mono">
+                          {isInstagram ? (
+                            <>
+                              <span className="w-2.5 h-2.5 inline-flex items-center justify-center font-bold text-[9px]">@</span>
+                              <span>{c.customer_phone?.startsWith("instagram:") ? c.customer_phone.replace("instagram:", "") : c.customer_phone}</span>
+                            </>
+                          ) : (
+                            <>
+                              <Phone className="w-2.5 h-2.5 shrink-0" />
+                              <span>{c.customer_phone}</span>
+                            </>
+                          )}
+                        </div>
+                        {channelBadge}
                       </div>
 
                       <p className="text-sm text-slate-500 truncate mt-2 leading-relaxed font-body">
@@ -225,13 +251,35 @@ export default function ChatsTab({
               <div className="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center shrink-0">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-none bg-white flex items-center justify-center text-slate-700 font-mono text-base border border-slate-200" style={{ borderRadius: 8 }}>
-                    {activeChat.customer_name?.charAt(0).toUpperCase() || "W"}
+                    {activeChat.customer_name?.charAt(0).toUpperCase() || (isActiveInstagram ? "I" : "W")}
                   </div>
                   <div className="text-left">
-                    <h3 className="font-bold text-base text-slate-800 leading-tight font-mono">{activeChat.customer_name || "WhatsApp Client"}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-base text-slate-800 leading-tight font-mono">
+                        {activeChat.customer_name || (isActiveInstagram ? "Instagram User" : "WhatsApp User")}
+                      </h3>
+                      {isActiveInstagram ? (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-bold tracking-wider uppercase bg-[#D62976]/10 text-[#D62976] border border-[#D62976]/20">
+                          Instagram
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-bold tracking-wider uppercase bg-[#25D366]/10 text-[#128C7E] border border-[#25D366]/20">
+                          WhatsApp
+                        </span>
+                      )}
+                    </div>
                     <span className="text-[9px] font-semibold font-mono text-slate-400 flex items-center gap-1 mt-0.5">
-                      <Phone className="w-2.5 h-2.5" />
-                      {activeChat.customer_phone}
+                      {isActiveInstagram ? (
+                        <>
+                          <span className="w-2.5 h-2.5 inline-flex items-center justify-center font-bold text-[9px]">@</span>
+                          <span>{activeChat.customer_phone?.startsWith("instagram:") ? activeChat.customer_phone.replace("instagram:", "") : activeChat.customer_phone}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Phone className="w-2.5 h-2.5" />
+                          {activeChat.customer_phone}
+                        </>
+                      )}
                     </span>
                   </div>
                 </div>
@@ -242,21 +290,20 @@ export default function ChatsTab({
                     onClick={() => onTogglePause(activeChat.id, !activeChat.is_ai_paused)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-none text-[9px] font-mono border transition-all duration-200 cursor-pointer active:scale-95 font-bold ${
                       activeChat.is_ai_paused
-                        ? "border-red-200 hover:bg-red-50 text-red-650"
-                        : "border-slate-250 hover:bg-slate-100 text-slate-700"
+                        ? "border-[#128C7E]/20 hover:bg-[#128C7E]/5 text-[#128C7E]"
+                        : "border-red-200 hover:bg-red-50 text-red-600"
                     }`}
                     style={{ borderRadius: 8 }}
                   >
-                    <span className="material-symbols-outlined text-[13px] font-bold" style={{ fontVariationSettings: "'FILL' 1" }}>
-                      {activeChat.is_ai_paused ? "smart_toy" : "pause_circle"}
+                    <span className="font-bold">
+                      {activeChat.is_ai_paused ? "🤖" : "⏸️"}
                     </span>
-                    {activeChat.is_ai_paused ? "Resume AI Agent" : "Pause AI Agent"}
+                    {activeChat.is_ai_paused ? "Resume AI Bot" : "Pause AI Bot"}
                   </button>
 
-                  <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-none px-2 py-1" style={{ borderRadius: 8 }}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${activeChat.is_ai_paused ? "bg-amber-500 animate-pulse" : "bg-emerald-500 animate-pulse"}`}></span>
-                    <span className="font-mono text-[8px] uppercase tracking-wider text-slate-500 font-bold">
-                      {activeChat.is_ai_paused ? "Manual Mode" : "Auto Mode"}
+                  <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-none px-2.5 py-1" style={{ borderRadius: 8 }}>
+                    <span className="font-mono text-[9px] uppercase tracking-wider text-slate-700 font-bold flex items-center gap-1">
+                      {activeChat.is_ai_paused ? "👤 Human Handling" : "🤖 AI Handling"}
                     </span>
                   </div>
                 </div>
@@ -280,7 +327,9 @@ export default function ChatsTab({
                         <div
                           className={`max-w-md p-4 rounded-none border flex flex-col font-mono text-left shadow-xs ${
                             isAgent
-                              ? "bg-[#25D366]/10 border-[#DCF8C6]/60 text-slate-850"
+                              ? isActiveInstagram
+                                ? "bg-[#D62976]/10 border-[#D62976]/20 text-slate-850"
+                                : "bg-[#25D366]/10 border-[#DCF8C6]/60 text-slate-850"
                               : "bg-white border-slate-200 text-slate-800"
                           }`}
                           style={{ borderRadius: isAgent ? "14px 4px 14px 14px" : "4px 14px 14px 14px" }}
@@ -312,14 +361,22 @@ export default function ChatsTab({
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
                   disabled={sendingReply}
-                  className="flex-1 bg-white border border-slate-200 rounded-none px-4 py-3 text-base focus:outline-none focus:ring-1 focus:ring-[#25D366] focus:border-[#25D366] text-slate-800 placeholder:text-slate-400 font-mono disabled:opacity-50"
+                  className={`flex-1 bg-white border border-slate-200 rounded-none px-4 py-3 text-base focus:outline-none focus:ring-1 text-slate-800 placeholder:text-slate-400 font-mono disabled:opacity-50 ${
+                    isActiveInstagram
+                      ? "focus:ring-[#D62976] focus:border-[#D62976]"
+                      : "focus:ring-[#25D366] focus:border-[#25D366]"
+                  }`}
                   style={{ borderRadius: 10 }}
                 />
                 
                 <button
                   type="submit"
                   disabled={sendingReply || !replyText.trim()}
-                  className="p-3 bg-gradient-to-r from-[#128C7E] to-[#25D366] hover:opacity-95 text-white rounded-none flex items-center justify-center shrink-0 transition-all duration-200 active:scale-95 disabled:opacity-40 cursor-pointer shadow-xs border-0"
+                  className={`p-3 hover:opacity-95 text-white rounded-none flex items-center justify-center shrink-0 transition-all duration-200 active:scale-95 disabled:opacity-40 cursor-pointer shadow-xs border-0 ${
+                    isActiveInstagram
+                      ? "bg-gradient-to-r from-[#C13584] to-[#E1306C]"
+                      : "bg-gradient-to-r from-[#128C7E] to-[#25D366]"
+                  }`}
                   style={{ borderRadius: 10 }}
                 >
                   {sendingReply ? (

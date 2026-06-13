@@ -28,7 +28,10 @@ export default function TrustedBy() {
       <div className="absolute top-0 right-0 w-32 h-full bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
 
       <div className="flex w-full overflow-hidden">
-        <div className="flex w-max animate-[scroll_40s_linear_infinite] items-center gap-16 px-8">
+        <div 
+          className="flex w-max animate-[scroll_40s_linear_infinite] items-center gap-16 px-8"
+          style={{ willChange: "transform" }}
+        >
           {infiniteLogos.map((logo, idx) => (
             <div key={idx} className="flex items-center gap-2 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300">
               {logo.icon}

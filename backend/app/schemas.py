@@ -107,6 +107,8 @@ class ConversationOut(BaseModel):
     last_message_content: Optional[str] = None
     messages: List[MessageOut] = []
     is_ai_paused: bool = False
+    ai_pause_reason: Optional[str] = None
+    ai_paused_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

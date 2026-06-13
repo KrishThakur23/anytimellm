@@ -144,16 +144,29 @@ export default function Dashboard() {
       
       eventSource.onerror = (err) => {
         console.error("SSE connection error, falling back to 5s polling:", err);
+        
+        // Safely close using the event target/currentTarget to stop the browser's auto-retry loop
+        const target = (err.currentTarget || err.target) as EventSource | null;
+        if (target) {
+          try {
+            target.close();
+          } catch (e) {}
+        }
         if (eventSource) {
-          eventSource.close();
+          try {
+            eventSource.close();
+          } catch (e) {}
           eventSource = null;
         }
-        // Fallback polling in case of connection drop
-        timer = setInterval(() => {
-          api.getChats(activeBusiness.id)
-            .then(data => setChats(data))
-            .catch(err => console.error("Fallback chats update failed:", err));
-        }, 5000);
+        
+        // Fallback polling in case of connection drop (only register once)
+        if (!timer) {
+          timer = setInterval(() => {
+            api.getChats(activeBusiness.id)
+              .then(data => setChats(data))
+              .catch(err => console.error("Fallback chats update failed:", err));
+          }, 5000);
+        }
       };
     } else if (tab === "orders") {
       timer = setInterval(() => {
@@ -222,7 +235,7 @@ export default function Dashboard() {
       const chatsData = await api.getChats(activeBusiness.id);
       setChats(chatsData);
     } catch (err) {
-      setError("Failed to refresh WhatsApp chats.");
+      setError("Failed to refresh chats.");
     } finally {
       setLoadingChats(false);
     }
@@ -244,7 +257,7 @@ export default function Dashboard() {
         return c;
       }));
     } catch (err) {
-      setError("Failed to send manual WhatsApp reply.");
+      setError("Failed to send manual reply.");
       throw err;
     }
   };

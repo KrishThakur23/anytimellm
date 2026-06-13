@@ -13,6 +13,11 @@
   --color-surface-2: var(--surface-2);
   --color-surface-3: var(--surface-3);
   --color-surface-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-muted: var(--primary-muted);
+  --color-primary-glow: var(--primary-glow);
+  --color-secondary: var(--secondary);
   --color-theme-primary: var(--primary);
   --color-theme-secondary: var(--secondary);
   --color-white: var(--surface-0);
@@ -153,6 +158,10 @@
 /* ═══════════════════════════════════════════════════════════════════
    Base & Typography
    ═══════════════════════════════════════════════════════════════════ */
+
+html {
+  scroll-behavior: smooth;
+}
 
 body {
   background-color: var(--background);

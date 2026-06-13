@@ -224,22 +224,34 @@ async def update_order_status(
             recipient_phone = order.customer.phone_number
             if recipient_phone:
                 recipient_phone = recipient_phone.strip()
-                # Get or create active Conversation (WhatsApp channel)
+                # Get or create active Conversation dynamically checking existing conversations for the customer
                 conversation = (
                     db.query(Conversation)
                     .filter(
                         Conversation.business_id == business_id,
                         Conversation.customer_id == order.customer_id,
-                        Conversation.channel == "whatsapp",
                         Conversation.status == "active"
                     )
+                    .order_by(Conversation.created_at.desc())
                     .first()
                 )
                 if not conversation:
+                    # Look for any recent conversation to determine the channel
+                    recent_conv = (
+                        db.query(Conversation)
+                        .filter(
+                            Conversation.business_id == business_id,
+                            Conversation.customer_id == order.customer_id
+                        )
+                        .order_by(Conversation.created_at.desc())
+                        .first()
+                    )
+                    channel = recent_conv.channel if recent_conv else "whatsapp"
+                    
                     conversation = Conversation(
                         business_id=business_id,
                         customer_id=order.customer_id,
-                        channel="whatsapp",
+                        channel=channel,
                         status="active"
                     )
                     db.add(conversation)
@@ -261,10 +273,14 @@ async def update_order_status(
                 db.add(new_msg)
                 db.commit()
                 
-                # Send the actual WhatsApp message
+                # Send the actual channel message
                 biz = db.query(Business).filter(Business.id == business_id).first()
-                from app.services.whatsapp import send_whatsapp_message
-                await send_whatsapp_message(business=biz, to_phone=recipient_phone, text=notification_text)
+                if conversation.channel == "instagram":
+                    from app.services.instagram import send_instagram_message
+                    await send_instagram_message(business=biz, recipient_id=recipient_phone, text=notification_text)
+                else:
+                    from app.services.whatsapp import send_whatsapp_message
+                    await send_whatsapp_message(business=biz, to_phone=recipient_phone, text=notification_text)
 
         return OrderOut(
             id=order.id,
@@ -300,7 +316,7 @@ def get_business_chats(
         
     conversations = (
         db.query(Conversation)
-        .filter(Conversation.business_id == business_id, Conversation.channel == "whatsapp")
+        .filter(Conversation.business_id == business_id, Conversation.channel.in_(["whatsapp", "instagram"]))
         .options(joinedload(Conversation.customer), selectinload(Conversation.messages))
         .order_by(Conversation.created_at.desc())
         .offset(skip)
@@ -331,11 +347,13 @@ def get_business_chats(
             channel=conv.channel,
             status=conv.status,
             created_at=conv.created_at,
-            customer_name=conv.customer.name if conv.customer else "WhatsApp User",
+            customer_name=conv.customer.name if conv.customer else ("Instagram User" if conv.channel == "instagram" else "WhatsApp User"),
             customer_phone=conv.customer.phone_number if conv.customer else "Unknown Phone",
             last_message_content=last_msg,
             messages=mapped_msgs,
-            is_ai_paused=conv.is_ai_paused
+            is_ai_paused=conv.is_ai_paused,
+            ai_pause_reason=conv.ai_pause_reason,
+            ai_paused_at=conv.ai_paused_at
         ))
     return out
 
@@ -427,6 +445,12 @@ async def send_manual_chat_reply(
             content=payload.content
         )
         db.add(new_msg)
+        
+        # Set manual takeover pause status & metadata
+        conv.is_ai_paused = True
+        conv.ai_pause_reason = "human_takeover"
+        conv.ai_paused_at = datetime.utcnow()
+        
         db.commit()
         db.refresh(new_msg)
         
@@ -434,9 +458,13 @@ async def send_manual_chat_reply(
         from app.services.pubsub import chat_pubsub
         chat_pubsub.publish(str(business_id), "refresh")
         
-        # Dispatch WhatsApp outbox
-        from app.services.whatsapp import send_whatsapp_message
-        await send_whatsapp_message(business=biz, to_phone=customer.phone_number, text=payload.content)
+        # Dispatch channel outbox
+        if conv.channel == "instagram":
+            from app.services.instagram import send_instagram_message
+            await send_instagram_message(business=biz, recipient_id=customer.phone_number, text=payload.content)
+        else:
+            from app.services.whatsapp import send_whatsapp_message
+            await send_whatsapp_message(business=biz, to_phone=customer.phone_number, text=payload.content)
         
         return MessageOut(
             id=new_msg.id,
@@ -475,7 +503,10 @@ def update_conversation_status(
         
     if "is_ai_paused" in payload:
         conv.is_ai_paused = bool(payload["is_ai_paused"])
-        
+        if not conv.is_ai_paused:
+            conv.ai_pause_reason = None
+            conv.ai_paused_at = None
+            
     if "status" in payload:
         conv.status = payload["status"]
         

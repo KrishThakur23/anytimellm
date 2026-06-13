@@ -11,6 +11,10 @@ export default function CursorEffects() {
   const rafRef = useRef<number>(0);
 
   useEffect(() => {
+    // Check if it's a mobile/touch device
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (isTouchDevice) return;
+
     // Check reduced motion preference
     const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReduced) return;

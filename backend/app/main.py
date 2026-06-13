@@ -11,7 +11,7 @@ from slowapi.middleware import SlowAPIMiddleware
 
 from app.config import settings
 from app.database import engine, Base
-from app.routers import auth, ingest, chat, webhook, users, integrations, onboarding
+from app.routers import auth, ingest, chat, webhook, users, integrations, onboarding, integrations_instagram, webhook_instagram
 
 # Setup logger
 logging.basicConfig(
@@ -64,6 +64,8 @@ async def lifespan(app: FastAPI):
                         logger.warning(f"Could not add column {column} to {table}: {e}")
 
             safe_add_column("conversations", "is_ai_paused", "BOOLEAN DEFAULT FALSE")
+            safe_add_column("conversations", "ai_pause_reason", "VARCHAR(100)")
+            safe_add_column("conversations", "ai_paused_at", "TIMESTAMP WITH TIME ZONE")
             safe_add_column("messages", "meta_message_id", "VARCHAR(255) UNIQUE")
             safe_add_column("businesses", "business_type", "VARCHAR(50)")
             safe_add_column("businesses", "onboarding_status", "VARCHAR(50) DEFAULT 'pending'")
@@ -151,6 +153,8 @@ app.include_router(chat.router)
 app.include_router(webhook.router)
 app.include_router(integrations.router)
 app.include_router(onboarding.router)
+app.include_router(integrations_instagram.router)
+app.include_router(webhook_instagram.router)
 
 @app.api_route("/", methods=["GET", "HEAD"])
 def health_check():

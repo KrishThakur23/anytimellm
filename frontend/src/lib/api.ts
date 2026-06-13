@@ -184,10 +184,12 @@ export const api = {
     return res.json();
   },
 
-  async uploadFile(businessId: string, file: File): Promise<DocumentInfo> {
+  async uploadFile(businessId: string, file: File, businessName?: string, businessType?: string): Promise<DocumentInfo> {
     const formData = new FormData();
     formData.append("business_id", businessId);
     formData.append("file", file);
+    if (businessName) formData.append("business_name", businessName);
+    if (businessType) formData.append("business_type", businessType);
 
     const res = await fetch(`${BACKEND_URL}/api/ingest/file`, {
       method: "POST",
@@ -352,6 +354,44 @@ export const api = {
       headers: getHeaders(),
     });
     if (!res.ok) throw new Error("Failed to fetch integration status.");
+    return res.json();
+  },
+
+  async getInstagramIntegrationStatus(): Promise<{ connected: boolean; provider?: string; page_id?: string; username?: string; verify_token?: string }> {
+    const res = await fetch(`${BACKEND_URL}/api/integrations/instagram/status`, {
+      headers: getHeaders(),
+    });
+    if (!res.ok) throw new Error("Failed to fetch Instagram status.");
+    return res.json();
+  },
+
+  async saveInstagramAuthCode(code: string, username?: string, pageId?: string, accessToken?: string): Promise<any> {
+    const res = await fetch(`${BACKEND_URL}/api/integrations/instagram/auth`, {
+      method: "POST",
+      headers: getHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ 
+        code, 
+        username, 
+        page_id: pageId, 
+        access_token: accessToken 
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || "Failed to link Instagram account.");
+    }
+    return res.json();
+  },
+
+  async disconnectInstagram(): Promise<any> {
+    const res = await fetch(`${BACKEND_URL}/api/integrations/instagram/disconnect`, {
+      method: "POST",
+      headers: getHeaders(),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || "Failed to disconnect Instagram.");
+    }
     return res.json();
   },
 };

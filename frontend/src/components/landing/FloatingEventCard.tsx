@@ -41,10 +41,10 @@ export default function FloatingEventCard({
           ease: "easeInOut",
           delay: delay % 2, // stagger the floating slightly
         }}
-        className={`flex items-center gap-3 rounded-2xl border p-3 shadow-lg backdrop-blur-xl ${
+        className={`flex items-center gap-3 rounded-2xl border p-3 shadow-lg ${
           isRevenue
-            ? "border-emerald-200/50 bg-emerald-50/80 shadow-emerald-500/10"
-            : "border-slate-200/60 bg-white/80 shadow-slate-900/5"
+            ? "border-emerald-200/50 bg-emerald-50/95 shadow-emerald-500/10"
+            : "border-slate-200/60 bg-white/95 shadow-slate-900/5"
         }`}
       >
         <div

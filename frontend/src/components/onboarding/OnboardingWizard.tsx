@@ -22,22 +22,22 @@ interface ChatMessage {
 
 export default function OnboardingWizard({ activeBusiness, onComplete }: OnboardingWizardProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { 
-      id: "1", 
-      sender: "agent", 
-      text: "Welcome to AnytimeLLM! ✨ I'm your AI onboarding assistant. Let's get your autonomous sales agent set up in under 2 minutes.\n\nFirst, what is the name of your business?" 
+    {
+      id: "1",
+      sender: "agent",
+      text: "Welcome to AnytimeLLM! ✨ I'm your AI onboarding assistant. Let's get your autonomous sales agent set up in under 2 minutes.\n\nFirst, what is the name of your business?"
     }
   ]);
   const [input, setInput] = useState("");
   const [chatStep, setChatStep] = useState<ChatStep>("ASK_NAME");
   const [loading, setLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  
+
   // Data Collected
   const [businessName, setBusinessName] = useState(activeBusiness.name || "");
   const [industry, setIndustry] = useState(activeBusiness.business_type || "");
   const [isQrScanned, setIsQrScanned] = useState(false);
-  
+
   const endOfMessagesRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -65,6 +65,16 @@ export default function OnboardingWizard({ activeBusiness, onComplete }: Onboard
     }, delayMs);
   };
 
+  const selectIndustry = (opt: string) => {
+    setMessages(prev => [...prev, { id: Date.now().toString(), sender: "user", text: opt }]);
+    setIndustry(opt);
+    setChatStep("UPLOAD_CATALOG");
+    addAgentMessage(
+      `Perfect. I've configured the baseline settings for a **${opt}** business.\n\nNow, please upload your catalog, menu, or pricing document so I can learn about your products and answer customer questions accurately.`,
+      "UPLOAD"
+    );
+  };
+
   const handleSend = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!input.trim() || chatStep === "UPLOAD_CATALOG" || chatStep === "SCAN_QR" || chatStep === "FINISHED") return;
@@ -77,10 +87,6 @@ export default function OnboardingWizard({ activeBusiness, onComplete }: Onboard
       setBusinessName(userText);
       setChatStep("ASK_INDUSTRY");
       addAgentMessage(`Great name, **${userText}**! What industry are you in? (e.g., Restaurant, Retail, Salon, SaaS)`);
-    } else if (chatStep === "ASK_INDUSTRY") {
-      setIndustry(userText);
-      setChatStep("UPLOAD_CATALOG");
-      addAgentMessage(`Perfect. I've configured the baseline settings for a ${userText} business.\n\nNow, please upload your catalog, menu, or pricing document so I can learn about your products and answer customer questions accurately.`, "UPLOAD");
     }
   };
 
@@ -91,15 +97,20 @@ export default function OnboardingWizard({ activeBusiness, onComplete }: Onboard
     setLoading(true);
     // Optimistic UI for file upload
     setMessages(prev => [...prev, { id: Date.now().toString(), sender: "user", text: `Uploaded: ${file.name}` }]);
-    
+
     try {
-      await api.uploadFile(activeBusiness.id, file);
+      await api.uploadFile(activeBusiness.id, file, businessName, industry);
       setLoading(false);
       setChatStep("SCAN_QR");
       addAgentMessage(`Got it! I've successfully analyzed **${file.name}** and indexed your products into my vector memory.\n\nFinally, let's connect your WhatsApp. Please scan this QR code using the WhatsApp app on your phone (Linked Devices).`, "QR", 1500);
     } catch (err: any) {
       setLoading(false);
-      addAgentMessage(`Hmm, there was an issue uploading the file: ${err.message}. Please try again.`, "UPLOAD");
+      const errMsg = err.message || "";
+      if (errMsg.includes("This file doesn't appear to contain information about your business. Please upload a menu, catalog, service list, brochure, FAQ, or other business document.")) {
+        addAgentMessage(`This file doesn't appear to contain information about your business. Please upload a menu, catalog, service list, brochure, FAQ, or other business document..\n\nNow, please upload your catalog, menu, or pricing document so I can learn about your products and answer customer questions accurately.`, "UPLOAD");
+      } else {
+        addAgentMessage(`Hmm, there was an issue uploading the file: ${err.message}. Please try again.`, "UPLOAD");
+      }
     }
   };
 
@@ -121,14 +132,14 @@ export default function OnboardingWizard({ activeBusiness, onComplete }: Onboard
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col md:flex-row relative overflow-hidden">
-      
+
       {/* Left side branding / visual panel */}
       <div className="hidden md:flex flex-col w-1/3 bg-surface-1 border-r border-surface-border p-12 justify-between relative z-10">
         <div>
           <h1 className="font-display text-2xl font-extrabold tracking-widest uppercase text-primary">AnytimeLLM</h1>
           <p className="mt-4 text-sm text-slate-500">Autonomous Sales Agents</p>
         </div>
-        
+
         <div className="space-y-8">
           <div className={`transition-opacity duration-500 ${chatStep === "ASK_NAME" || chatStep === "ASK_INDUSTRY" ? "opacity-100" : "opacity-30"}`}>
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-3">1</div>
@@ -146,13 +157,13 @@ export default function OnboardingWizard({ activeBusiness, onComplete }: Onboard
             <p className="text-sm text-slate-500">Go live on WhatsApp instantly.</p>
           </div>
         </div>
-        
+
         <p className="text-base text-slate-400">&copy; {new Date().getFullYear()} AnytimeLLM Inc.</p>
       </div>
 
       {/* Right side Chatbot interface */}
       <div className="flex-1 flex flex-col h-screen relative z-10 bg-background">
-        
+
         {/* Chat Messages Area */}
         <div className="flex-1 overflow-y-auto p-6 md:p-12 space-y-6">
           <AnimatePresence initial={false}>
@@ -168,22 +179,21 @@ export default function OnboardingWizard({ activeBusiness, onComplete }: Onboard
                     <Sparkles className="w-4 h-4" />
                   </div>
                 )}
-                
-                <div className={`max-w-[80%] md:max-w-[60%] p-4 rounded-2xl text-sm leading-relaxed ${
-                  msg.sender === "user" 
-                    ? "bg-primary text-white rounded-tr-sm" 
+
+                <div className={`max-w-[80%] md:max-w-[60%] p-4 rounded-2xl text-sm leading-relaxed ${msg.sender === "user"
+                    ? "bg-primary text-white rounded-tr-sm"
                     : "bg-surface-1 border border-surface-border text-foreground rounded-tl-sm"
-                }`}>
+                  }`}>
                   <p className="whitespace-pre-wrap">{msg.text}</p>
-                  
+
                   {/* Action UI injected inside agent message */}
                   {msg.action === "UPLOAD" && (
                     <div className="mt-4 p-6 border-2 border-dashed border-surface-border rounded-xl bg-surface-0 flex flex-col items-center justify-center text-center">
-                      <input 
-                        type="file" 
-                        ref={fileInputRef} 
-                        onChange={handleFileUpload} 
-                        className="hidden" 
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileUpload}
+                        className="hidden"
                         accept=".pdf,.csv,.txt,.docx"
                       />
                       {loading ? (
@@ -194,7 +204,7 @@ export default function OnboardingWizard({ activeBusiness, onComplete }: Onboard
                       ) : (
                         <>
                           <UploadCloud className="w-8 h-8 text-primary mb-2" />
-                          <button 
+                          <button
                             onClick={() => fileInputRef.current?.click()}
                             className="px-4 py-2 bg-primary text-white text-base font-bold rounded-lg hover:bg-primary-hover transition-colors"
                           >
@@ -211,7 +221,7 @@ export default function OnboardingWizard({ activeBusiness, onComplete }: Onboard
                       {!isQrScanned ? (
                         <div className="relative">
                           <QrCode className="w-32 h-32 text-foreground opacity-50" />
-                          <motion.div 
+                          <motion.div
                             className="absolute top-0 left-0 w-full h-1 bg-emerald-500 shadow-[0_0_15px_#10b981]"
                             animate={{ y: [0, 128, 0] }}
                             transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
@@ -245,7 +255,7 @@ export default function OnboardingWizard({ activeBusiness, onComplete }: Onboard
                 </div>
               </motion.div>
             ))}
-            
+
             {isTyping && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex w-full justify-start">
                 <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mr-3 shrink-0">
@@ -263,40 +273,58 @@ export default function OnboardingWizard({ activeBusiness, onComplete }: Onboard
         </div>
 
         {/* Input Area */}
-        <div className="p-6 bg-surface-0 border-t border-surface-border">
-          <form onSubmit={handleSend} className="max-w-3xl mx-auto relative flex items-center">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={
-                chatStep === "ASK_NAME" ? "Enter your business name..." :
-                chatStep === "ASK_INDUSTRY" ? "Enter your industry..." :
-                "Follow the assistant's instructions above..."
-              }
-              disabled={chatStep === "UPLOAD_CATALOG" || chatStep === "SCAN_QR" || chatStep === "FINISHED"}
-              className="w-full bg-surface-1 border border-surface-border focus:border-primary focus:ring-1 focus:ring-primary text-foreground pl-6 pr-14 py-4 rounded-full outline-none transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            />
-            <button
-              type="submit"
-              disabled={!input.trim() || chatStep === "UPLOAD_CATALOG" || chatStep === "SCAN_QR" || chatStep === "FINISHED"}
-              className="absolute right-2 w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        <div className="p-6 bg-surface-0 border-t border-surface-border animate-fade-in">
+          {chatStep === "ASK_INDUSTRY" ? (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="max-w-3xl mx-auto flex flex-wrap gap-3 justify-center py-2"
             >
-              <Send className="w-4 h-4 ml-1" />
-            </button>
-          </form>
-          
-          <div className="text-center mt-4">
-             <button
-                onClick={handleFinish}
-                disabled={loading}
-                className="text-slate-400 hover:text-slate-600 text-sm font-mono uppercase tracking-wider transition-colors"
+              {["Retail", "Restaurant", "Salon", "Grocery", "General (others)"].map((opt) => (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => selectIndustry(opt)}
+                  className="px-6 py-3 bg-surface-1 border border-surface-border text-foreground hover:bg-primary hover:text-white hover:border-primary font-bold rounded-full shadow-sm transition-all transform hover:-translate-y-0.5 cursor-pointer active:scale-95 text-sm"
+                >
+                  {opt}
+                </button>
+              ))}
+            </motion.div>
+          ) : (
+            <form onSubmit={handleSend} className="max-w-3xl mx-auto relative flex items-center">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder={
+                  chatStep === "ASK_NAME" ? "Enter your business name..." :
+                    "Follow the assistant's instructions above..."
+                }
+                disabled={chatStep === "UPLOAD_CATALOG" || chatStep === "SCAN_QR" || chatStep === "FINISHED"}
+                className="w-full bg-surface-1 border border-surface-border focus:border-primary focus:ring-1 focus:ring-primary text-foreground pl-6 pr-14 py-4 rounded-full outline-none transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+              <button
+                type="submit"
+                disabled={!input.trim() || chatStep === "UPLOAD_CATALOG" || chatStep === "SCAN_QR" || chatStep === "FINISHED"}
+                className="absolute right-2 w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Skip Onboarding
+                <Send className="w-4 h-4 ml-1" />
               </button>
+            </form>
+          )}
+
+          <div className="text-center mt-4">
+            <button
+              onClick={handleFinish}
+              disabled={loading}
+              className="text-slate-400 hover:text-slate-600 text-sm font-mono uppercase tracking-wider transition-colors"
+            >
+              Skip Onboarding
+            </button>
           </div>
         </div>
-        
+
       </div>
     </div>
   );

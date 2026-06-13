@@ -4,38 +4,66 @@ import React, { useRef, useEffect, useState } from "react";
 import gsap from "gsap";
 import type { Business } from "@/lib/api";
 import { api } from "@/lib/api";
-import { Loader2 } from "lucide-react";
+import { Loader2, MessageSquare, Shield, Zap, Link, Trash2, CheckCircle2 } from "lucide-react";
+
+const Instagram = ({ className }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+  </svg>
+);
 
 interface IntegrationsTabProps {
   activeBusiness: Business;
   copyToClipboard: (text: string) => void;
 }
 
+interface ChannelStatus {
+  connected: boolean;
+  provider?: string;
+  phone_number_id?: string;
+  display_name?: string;
+  verify_token?: string;
+  page_id?: string;
+  username?: string;
+}
+
 export default function IntegrationsTab({ activeBusiness, copyToClipboard }: IntegrationsTabProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  
-  // Connection states
-  const [loadingStatus, setLoadingStatus] = useState(true);
-  const [integrationStatus, setIntegrationStatus] = useState<{
-    connected: boolean;
-    provider?: string;
-    phone_number_id?: string;
-    display_name?: string;
-    verify_token?: string;
-  } | null>(null);
 
-  const [connecting, setConnecting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [copiedVerify, setCopiedVerify] = useState(false);
-  const [copiedWebhook, setCopiedWebhook] = useState(false);
-  
-  // Developer/Mock settings
-  const [developerMode, setDeveloperMode] = useState(true);
+  // States
+  const [loadingWA, setLoadingWA] = useState(true);
+  const [waStatus, setWaStatus] = useState<ChannelStatus | null>(null);
+  const [waError, setWaError] = useState<string | null>(null);
+  const [connectingWA, setConnectingWA] = useState(false);
+  const [waDevMode, setWaDevMode] = useState(true);
 
-  // Fetch status on mount
+  const [loadingInsta, setLoadingInsta] = useState(true);
+  const [instaStatus, setInstaStatus] = useState<ChannelStatus | null>(null);
+  const [instaError, setInstaError] = useState<string | null>(null);
+  const [connectingInsta, setConnectingInsta] = useState(false);
+  const [instaDevMode, setInstaDevMode] = useState(true);
+  const [instaUsernameInput, setInstaUsernameInput] = useState("");
+  const [instaPageIdInput, setInstaPageIdInput] = useState("");
+  const [instaAccessTokenInput, setInstaAccessTokenInput] = useState("");
+
+  const [copiedVerify, setCopiedVerify] = useState<{ [key: string]: boolean }>({});
+  const [copiedWebhook, setCopiedWebhook] = useState<{ [key: string]: boolean }>({});
+
+  // Fetch all channels status on mount
   useEffect(() => {
-    fetchStatus();
-    
+    fetchWAStatus();
+    fetchInstaStatus();
+
     // Animate container elements
     if (containerRef.current) {
       gsap.fromTo(
@@ -46,90 +74,138 @@ export default function IntegrationsTab({ activeBusiness, copyToClipboard }: Int
     }
   }, []);
 
-  const fetchStatus = async () => {
+  const fetchWAStatus = async () => {
     try {
-      setLoadingStatus(true);
+      setLoadingWA(true);
       const res = await api.getMetaIntegrationStatus();
-      setIntegrationStatus(res);
+      setWaStatus(res);
     } catch (err) {
       console.error("Failed to load WhatsApp status:", err);
     } finally {
-      setLoadingStatus(false);
+      setLoadingWA(false);
     }
   };
 
-  const handleConnect = async () => {
-    setConnecting(true);
-    setError(null);
+  const fetchInstaStatus = async () => {
     try {
-      if (developerMode) {
-        // Developer mock code - bypasses Facebook login dialog for fast local testing
-        await api.saveMetaAuthCode("mock_code_" + Math.random().toString(36).substring(7));
-        await fetchStatus();
+      setLoadingInsta(true);
+      const res = await api.getInstagramIntegrationStatus();
+      setInstaStatus(res);
+      if (res.username) {
+        setInstaUsernameInput(res.username);
+      }
+    } catch (err) {
+      console.error("Failed to load Instagram status:", err);
+    } finally {
+      setLoadingInsta(false);
+    }
+  };
+
+  const handleWAConnect = async () => {
+    setConnectingWA(true);
+    setWaError(null);
+    try {
+      if (waDevMode) {
+        await api.saveMetaAuthCode("mock_wa_code_" + Math.random().toString(36).substring(7));
+        await fetchWAStatus();
       } else {
-        // Production Meta login popup trigger
         if (!(window as any).FB) {
-          throw new Error(
-            "Facebook SDK is not initialized. Please verify META_APP_ID is configured in the environment settings."
-          );
+          throw new Error("Facebook SDK is not initialized. Please verify META_APP_ID settings.");
         }
         (window as any).FB.login(
           async (response: any) => {
             if (response.authResponse && response.authResponse.code) {
               try {
                 await api.saveMetaAuthCode(response.authResponse.code);
-                await fetchStatus();
+                await fetchWAStatus();
               } catch (ex: any) {
-                setError(ex.message || "Failed to exchange auth credentials with the server.");
+                setWaError(ex.message || "Failed to exchange auth credentials with the server.");
               }
             } else {
-              setError("Meta registration login was cancelled or failed to verify.");
+              setWaError("Meta registration login was cancelled or failed to verify.");
             }
-            setConnecting(false);
+            setConnectingWA(false);
           },
           {
             scope: "whatsapp_business_management,whatsapp_business_messaging",
-            extras: {
-              feature: "whatsapp_embedded_signup"
-            }
+            extras: { feature: "whatsapp_embedded_signup" }
           }
         );
         return; // wait for login callback
       }
     } catch (err: any) {
-      setError(err.message || "Connection failed.");
+      setWaError(err.message || "WhatsApp connection failed.");
     } finally {
-      setConnecting(false);
+      setConnectingWA(false);
     }
   };
 
-  const handleDisconnect = async () => {
+  const handleWADisconnect = async () => {
     if (!confirm("Are you sure you want to disconnect WhatsApp? Your chatbot will stop responding to WhatsApp customers.")) return;
-    setLoadingStatus(true);
+    setLoadingWA(true);
     try {
-      // Disconnect by updating settings to default mock/ignored state
       await api.updateBusinessSettings(activeBusiness.id, {
         whatsapp_provider: "mock"
       });
-      await fetchStatus();
+      await fetchWAStatus();
     } catch (err) {
-      setError("Failed to disconnect WhatsApp integrations.");
+      setWaError("Failed to disconnect WhatsApp integration.");
     } finally {
-      setLoadingStatus(false);
+      setLoadingWA(false);
     }
   };
 
-  const handleCopyWebhook = () => {
-    const baseUrl = typeof window !== "undefined" ? window.location.origin : "http://localhost:8000";
-    copyToClipboard(`${baseUrl}/api/webhooks/whatsapp/incoming`);
-    setCopiedWebhook(true);
-    setTimeout(() => setCopiedWebhook(false), 2000);
+  const handleInstaConnect = async () => {
+    setConnectingInsta(true);
+    setInstaError(null);
+    try {
+      const handle = instaUsernameInput.trim() || "@" + activeBusiness.name.toLowerCase().replace(/\s+/g, "_");
+      
+      const pageId = instaDevMode ? undefined : instaPageIdInput.trim();
+      const accessToken = instaDevMode ? undefined : instaAccessTokenInput.trim();
+      
+      if (!instaDevMode && (!pageId || !accessToken)) {
+        throw new Error("Please enter both Page ID and Access Token for real connection.");
+      }
+
+      await api.saveInstagramAuthCode(
+        "mock_insta_code_" + Math.random().toString(36).substring(7),
+        handle,
+        pageId,
+        accessToken
+      );
+      await fetchInstaStatus();
+    } catch (err: any) {
+      setInstaError(err.message || "Instagram connection failed.");
+    } finally {
+      setConnectingInsta(false);
+    }
   };
 
-  const handleCopyVerify = (text: string) => {
-    copyToClipboard(text);
-    setCopiedVerify(true);
-    setTimeout(() => setCopiedVerify(false), 2000);
+  const handleInstaDisconnect = async () => {
+    if (!confirm("Are you sure you want to disconnect Instagram? Your chatbot will stop responding to Instagram DMs.")) return;
+    setLoadingInsta(true);
+    try {
+      await api.disconnectInstagram();
+      await fetchInstaStatus();
+    } catch (err) {
+      setInstaError("Failed to disconnect Instagram integration.");
+    } finally {
+      setLoadingInsta(false);
+    }
+  };
+
+  const copyUrl = (channel: string, path: string) => {
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : "http://localhost:8000";
+    copyToClipboard(`${baseUrl}${path}`);
+    setCopiedWebhook(prev => ({ ...prev, [channel]: true }));
+    setTimeout(() => setCopiedWebhook(prev => ({ ...prev, [channel]: false })), 2000);
+  };
+
+  const copyToken = (channel: string, token: string) => {
+    copyToClipboard(token);
+    setCopiedVerify(prev => ({ ...prev, [channel]: true }));
+    setTimeout(() => setCopiedVerify(prev => ({ ...prev, [channel]: false })), 2000);
   };
 
   return (
@@ -140,178 +216,341 @@ export default function IntegrationsTab({ activeBusiness, copyToClipboard }: Int
           Integrations & Channels
         </h1>
         <p className="font-body text-sm text-slate-500 mt-1">
-          Link your automated AI assistant directly to messaging channels.
+          Link your automated AI assistant directly to messaging channels and take over conversations seamlessly.
         </p>
       </div>
 
-      <div ref={containerRef} className="space-y-6">
-        {/* Error Alert */}
-        {error && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-none flex items-start gap-3 text-red-750 text-base font-mono" style={{ borderRadius: 12 }}>
-            <span className="material-symbols-outlined text-[16px] text-red-600 shrink-0 mt-0.5">error</span>
-            <span className="tracking-wider">{error}</span>
+      <div ref={containerRef} className="space-y-8">
+        
+        {/* ==================== CHANNEL 1: WHATSAPP ==================== */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-emerald-600 font-bold">chat</span>
+            <h2 className="font-display text-lg font-bold text-slate-700 uppercase tracking-wide">WhatsApp Channel</h2>
           </div>
-        )}
+          
+          {waError && (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 text-red-750 text-sm font-mono">
+              <span className="material-symbols-outlined text-[16px] text-red-600 shrink-0 mt-0.5">error</span>
+              <span>{waError}</span>
+            </div>
+          )}
 
-        {/* Loading Spinner */}
-        {loadingStatus ? (
-          <div className="bg-white border border-slate-200 p-12 flex flex-col items-center justify-center space-y-4 shadow-xs" style={{ borderRadius: 16 }}>
-            <Loader2 className="w-8 h-8 animate-spin text-[#128C7E]" />
-            <span className="font-mono text-[9px] tracking-widest text-slate-400 uppercase font-bold">Querying WhatsApp Status...</span>
-          </div>
-        ) : (
-          <>
-            {/* Status Section */}
-            {integrationStatus?.connected ? (
-              <div className="bg-white border border-slate-200 p-6 space-y-6 shadow-xs" style={{ borderRadius: 16 }}>
-                <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-                  <div>
-                    <span className="font-mono text-[9px] text-emerald-700 tracking-widest font-bold uppercase bg-emerald-50 border border-emerald-200 px-2.5 py-1" style={{ borderRadius: 6 }}>
-                      CONNECTED (COEXISTENCE ACTIVE)
-                    </span>
-                    <h3 className="font-display text-xl font-extrabold text-slate-800 uppercase mt-4">
-                      {integrationStatus.display_name || "WhatsApp Business Account"}
-                    </h3>
-                    <p className="font-body text-base text-slate-500 mt-1 leading-relaxed">
-                      Incoming messages to your business number are processed by your AI agent, while you retain manual chat controls on your WhatsApp Business app.
-                    </p>
-                  </div>
-                  <button
-                    onClick={handleDisconnect}
-                    className="border border-red-200 hover:border-red-500 hover:bg-red-50/50 text-red-650 rounded-none py-1.5 px-4 font-mono text-[9px] tracking-wider uppercase transition-all duration-305 cursor-pointer font-bold shrink-0"
-                    style={{ borderRadius: 8 }}
-                  >
-                    Disconnect Channel
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-6">
-                  {/* Phone ID */}
-                  <div className="p-4 bg-slate-50 border border-slate-200 font-mono text-base text-left" style={{ borderRadius: 12 }}>
-                    <span className="block text-slate-400 text-[9px] uppercase tracking-wider font-bold mb-1">WhatsApp Phone ID</span>
-                    <span className="text-slate-800 font-bold select-all">{integrationStatus.phone_number_id || "N/A"}</span>
-                  </div>
-                  {/* Provider */}
-                  <div className="p-4 bg-slate-50 border border-slate-200 font-mono text-base text-left" style={{ borderRadius: 12 }}>
-                    <span className="block text-slate-400 text-[9px] uppercase tracking-wider font-bold mb-1">API Provider</span>
-                    <span className="text-slate-800 font-bold uppercase tracking-wider">{integrationStatus.provider || "N/A"}</span>
-                  </div>
-                </div>
-
-                {integrationStatus.verify_token && (
-                  <div className="space-y-4 border-t border-slate-100 pt-6 font-mono text-base text-left">
-                    <h4 className="font-bold text-slate-700 uppercase tracking-wider text-sm">System Webhook Details:</h4>
-                    <p className="text-slate-500 leading-relaxed font-body text-base">
-                      Below is your unified webhook callback URL. When deploying in production, ensure this endpoint is subscribed in your Meta Developer Portal.
-                    </p>
-                    
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 rounded-none bg-slate-50 border border-slate-200 items-center" style={{ borderRadius: 12 }}>
-                        <div className="col-span-1 text-slate-450 font-bold uppercase tracking-wider text-[9px]">Webhook URL:</div>
-                        <div className="col-span-2 text-slate-850 truncate font-bold select-all pl-2">
-                          {typeof window !== "undefined" ? window.location.origin : "http://localhost:8000"}/api/webhooks/whatsapp/incoming
-                        </div>
-                        <div className="col-span-1 text-right">
-                          <button
-                            onClick={handleCopyWebhook}
-                            className="inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.15em] px-3.5 py-1.5 bg-white hover:bg-slate-50 rounded-none border border-slate-200 transition duration-200 cursor-pointer font-bold text-slate-700"
-                            style={{ borderRadius: 8 }}
-                          >
-                            {copiedWebhook ? "Copied" : "Copy URL"}
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 rounded-none bg-slate-50 border border-slate-200 items-center" style={{ borderRadius: 12 }}>
-                        <div className="col-span-1 text-slate-450 font-bold uppercase tracking-wider text-[9px]">Verify Token:</div>
-                        <div className="col-span-2 text-slate-850 font-bold select-all pl-2">
-                          {integrationStatus.verify_token}
-                        </div>
-                        <div className="col-span-1 text-right">
-                          <button
-                            onClick={() => handleCopyVerify(integrationStatus.verify_token || "")}
-                            className="inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.15em] px-3.5 py-1.5 bg-white hover:bg-slate-50 rounded-none border border-slate-200 transition duration-200 cursor-pointer font-bold text-slate-700"
-                            style={{ borderRadius: 8 }}
-                          >
-                            {copiedVerify ? "Copied" : "Copy Token"}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="bg-white border border-slate-200 p-8 space-y-8 shadow-xs" style={{ borderRadius: 16 }}>
+          {loadingWA ? (
+            <div className="bg-white border border-slate-200 p-8 flex flex-col items-center justify-center space-y-3 shadow-xs rounded-2xl">
+              <Loader2 className="w-6 h-6 animate-spin text-[#128C7E]" />
+              <span className="font-mono text-[9px] tracking-widest text-slate-400 uppercase font-bold">Querying WhatsApp Status...</span>
+            </div>
+          ) : waStatus?.connected ? (
+            <div className="bg-white border border-slate-200 p-6 space-y-6 shadow-xs rounded-2xl">
+              <div className="flex flex-col md:flex-row justify-between items-start gap-4">
                 <div>
-                  <span className="font-mono text-[9px] text-[#128C7E] tracking-widest uppercase font-bold">META WHATSAPP INTEGRATION</span>
-                  <h3 className="font-display text-2xl font-extrabold text-slate-800 uppercase mt-1 mb-3">
-                    Connect via Embedded Signup
+                  <span className="font-mono text-[9px] text-emerald-700 tracking-widest font-bold uppercase bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md">
+                    ACTIVE (AI TAKEOVER ENABLED)
+                  </span>
+                  <h3 className="font-display text-xl font-extrabold text-slate-800 uppercase mt-4">
+                    {waStatus.display_name || "WhatsApp Business Account"}
                   </h3>
-                  <p className="font-body text-sm text-slate-500 leading-relaxed max-w-2xl">
-                    Upgrade your business phone number to the official WhatsApp Business Cloud API. This enables automated catalog lookup, order placement, and AI chats without losing access to your mobile WhatsApp Business App.
+                  <p className="font-body text-sm text-slate-500 mt-1 leading-relaxed">
+                    Incoming messages to your business number are processed by your AI agent, while you retain manual chat controls on your WhatsApp Business app.
                   </p>
                 </div>
+                <button
+                  onClick={handleWADisconnect}
+                  className="border border-red-200 hover:border-red-500 hover:bg-red-50/50 text-red-650 rounded-xl py-1.5 px-4 font-mono text-[9px] tracking-wider uppercase transition-all duration-200 cursor-pointer font-bold shrink-0"
+                >
+                  Disconnect WhatsApp
+                </button>
+              </div>
 
-                {/* Coexistence Features Bento */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono text-base text-left">
-                  <div className="p-5 bg-slate-50 border border-slate-200" style={{ borderRadius: 12 }}>
-                    <span className="block font-bold text-slate-850 uppercase tracking-wider mb-2">💬 WhatsApp App Access</span>
-                    <span className="text-slate-500 leading-relaxed font-body text-base">Keep your iOS/Android WhatsApp app. Both the app and our AI bot operate on the same number simultaneously.</span>
-                  </div>
-                  <div className="p-5 bg-slate-50 border border-slate-200" style={{ borderRadius: 12 }}>
-                    <span className="block font-bold text-slate-850 uppercase tracking-wider mb-2">⚡ Real-Time Sync</span>
-                    <span className="text-slate-500 leading-relaxed font-body text-base">All conversation threads are mirrored across your phone and this dashboard console instantly.</span>
-                  </div>
-                  <div className="p-5 bg-slate-50 border border-slate-200" style={{ borderRadius: 12 }}>
-                    <span className="block font-bold text-slate-850 uppercase tracking-wider mb-2">🔒 Secure OAuth Setup</span>
-                    <span className="text-slate-500 leading-relaxed font-body text-base">No manual webhook setups. Simply verify your number in Meta's popup and we handle tokens automatically.</span>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-6">
+                <div className="p-4 bg-slate-50 border border-slate-200 font-mono text-sm text-left rounded-xl">
+                  <span className="block text-slate-450 text-[9px] uppercase tracking-wider font-bold mb-1">WhatsApp Phone ID</span>
+                  <span className="text-slate-800 font-bold select-all">{waStatus.phone_number_id || "N/A"}</span>
                 </div>
-
-                {/* Onboarding Trigger Controls */}
-                <div className="p-6 bg-slate-50 border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-6" style={{ borderRadius: 14 }}>
-                  <div className="text-left">
-                    <h4 className="font-display text-sm text-slate-800 uppercase font-bold tracking-wider">Start Verification Flow</h4>
-                    <p className="font-body text-base text-slate-500 mt-1">
-                      Initiate the 2-minute Facebook setup. You will need your Facebook Login credentials.
-                    </p>
-                    
-                    {/* Developer Mock Toggle */}
-                    <div className="flex items-center gap-2 mt-4 font-mono text-[9px]">
-                      <input
-                        type="checkbox"
-                        id="dev-mode-checkbox"
-                        checked={developerMode}
-                        onChange={(e) => setDeveloperMode(e.target.checked)}
-                        className="rounded-none border border-slate-250 bg-transparent text-slate-800 focus:ring-0 cursor-pointer"
-                      />
-                      <label htmlFor="dev-mode-checkbox" className="text-slate-500 uppercase tracking-wider cursor-pointer font-bold">
-                        Developer Testing / Mock Verification Mode (Connect instantly)
-                      </label>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={handleConnect}
-                    disabled={connecting}
-                    className="w-full md:w-auto h-12 px-8 bg-gradient-to-r from-[#128C7E] to-[#25D366] hover:opacity-95 text-white font-mono text-base tracking-[0.2em] uppercase flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-50 cursor-pointer shadow-sm font-bold"
-                    style={{ borderRadius: 10 }}
-                  >
-                    {connecting ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        CONNECTING...
-                      </>
-                    ) : (
-                      "Connect with Facebook"
-                    )}
-                  </button>
+                <div className="p-4 bg-slate-50 border border-slate-200 font-mono text-sm text-left rounded-xl">
+                  <span className="block text-slate-450 text-[9px] uppercase tracking-wider font-bold mb-1">API Provider</span>
+                  <span className="text-slate-800 font-bold uppercase tracking-wider">{waStatus.provider || "N/A"}</span>
                 </div>
               </div>
-            )}
-          </>
-        )}
+
+              {waStatus.verify_token && (
+                <div className="space-y-4 border-t border-slate-100 pt-6 font-mono text-sm text-left">
+                  <h4 className="font-bold text-slate-700 uppercase tracking-wider text-xs">System Webhook Details:</h4>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200 items-center">
+                      <div className="col-span-1 text-slate-450 font-bold uppercase tracking-wider text-[9px]">Webhook URL:</div>
+                      <div className="col-span-2 text-slate-850 truncate font-bold select-all pl-2 text-xs">
+                        {typeof window !== "undefined" ? window.location.origin : "http://localhost:8000"}/api/webhooks/whatsapp/incoming
+                      </div>
+                      <div className="col-span-1 text-right">
+                        <button
+                          onClick={() => copyUrl("whatsapp", "/api/webhooks/whatsapp/incoming")}
+                          className="inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.15em] px-3.5 py-1.5 bg-white hover:bg-slate-50 rounded-lg border border-slate-200 transition duration-200 cursor-pointer font-bold text-slate-700"
+                        >
+                          {copiedWebhook["whatsapp"] ? "Copied" : "Copy URL"}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200 items-center">
+                      <div className="col-span-1 text-slate-450 font-bold uppercase tracking-wider text-[9px]">Verify Token:</div>
+                      <div className="col-span-2 text-slate-850 font-bold select-all pl-2 text-xs">
+                        {waStatus.verify_token}
+                      </div>
+                      <div className="col-span-1 text-right">
+                        <button
+                          onClick={() => copyToken("whatsapp", waStatus.verify_token || "")}
+                          className="inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.15em] px-3.5 py-1.5 bg-white hover:bg-slate-50 rounded-lg border border-slate-200 transition duration-200 cursor-pointer font-bold text-slate-700"
+                        >
+                          {copiedVerify["whatsapp"] ? "Copied" : "Copy Token"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="bg-white border border-slate-200 p-8 space-y-6 shadow-xs rounded-2xl">
+              <div>
+                <span className="font-mono text-[9px] text-[#128C7E] tracking-widest uppercase font-bold bg-[#128C7E]/5 px-2 py-0.5 rounded border border-[#128C7E]/20">Meta Cloud Channel</span>
+                <h3 className="font-display text-xl font-extrabold text-slate-800 uppercase mt-2 mb-2">
+                  Link WhatsApp Business API
+                </h3>
+                <p className="font-body text-sm text-slate-500 leading-relaxed max-w-2xl">
+                  Connect your business phone number to respond to orders, query catalogs, and answers FAQ autonomously.
+                </p>
+              </div>
+
+              {/* Onboarding Trigger Controls */}
+              <div className="p-6 bg-slate-50 border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-6 rounded-2xl">
+                <div className="text-left">
+                  <h4 className="font-display text-sm text-slate-800 uppercase font-bold tracking-wider">Start Verification Flow</h4>
+                  <p className="font-body text-xs text-slate-500 mt-1">
+                    Initiate setup in Meta Developer Dashboard.
+                  </p>
+                  
+                  {/* Developer Mock Toggle */}
+                  <div className="flex items-center gap-2 mt-4 font-mono text-[9px]">
+                    <input
+                      type="checkbox"
+                      id="wa-dev-mode-checkbox"
+                      checked={waDevMode}
+                      onChange={(e) => setWaDevMode(e.target.checked)}
+                      className="rounded-md border border-slate-250 bg-transparent text-slate-800 focus:ring-0 cursor-pointer"
+                    />
+                    <label htmlFor="wa-dev-mode-checkbox" className="text-slate-550 uppercase tracking-wider cursor-pointer font-bold">
+                      Developer Mock Connection (Verify immediately)
+                    </label>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleWAConnect}
+                  disabled={connectingWA}
+                  className="w-full md:w-auto h-12 px-8 bg-gradient-to-r from-[#128C7E] to-[#25D366] hover:opacity-95 text-white font-mono text-sm tracking-[0.2em] uppercase flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-50 cursor-pointer shadow-sm font-bold rounded-xl"
+                >
+                  {connectingWA ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      CONNECTING...
+                    </>
+                  ) : (
+                    "Connect WhatsApp"
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ==================== CHANNEL 2: INSTAGRAM ==================== */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Instagram className="text-fuchsia-600 w-5 h-5 shrink-0" />
+            <h2 className="font-display text-lg font-bold text-slate-700 uppercase tracking-wide">Instagram Channel</h2>
+          </div>
+          
+          {instaError && (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 text-red-750 text-sm font-mono">
+              <span className="material-symbols-outlined text-[16px] text-red-600 shrink-0 mt-0.5">error</span>
+              <span>{instaError}</span>
+            </div>
+          )}
+
+          {loadingInsta ? (
+            <div className="bg-white border border-slate-200 p-8 flex flex-col items-center justify-center space-y-3 shadow-xs rounded-2xl">
+              <Loader2 className="w-6 h-6 animate-spin text-fuchsia-600" />
+              <span className="font-mono text-[9px] tracking-widest text-slate-400 uppercase font-bold">Querying Instagram Status...</span>
+            </div>
+          ) : instaStatus?.connected ? (
+            <div className="bg-white border border-slate-200 p-6 space-y-6 shadow-xs rounded-2xl">
+              <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+                <div>
+                  <span className="font-mono text-[9px] text-fuchsia-700 bg-fuchsia-50 border border-fuchsia-200 tracking-widest font-bold uppercase px-2.5 py-1 rounded-md">
+                    ACTIVE (AI TAKEOVER ACTIVE)
+                  </span>
+                  <h3 className="font-display text-xl font-extrabold text-slate-800 uppercase mt-4">
+                    Instagram Handle: {instaStatus.username || "@mybusiness"}
+                  </h3>
+                  <p className="font-body text-sm text-slate-500 mt-1 leading-relaxed">
+                    Incoming Instagram Direct Messages (DMs) are routed to your AnytimeLLM agent. When operators manual reply in the Inbox, the agent pauses automatically.
+                  </p>
+                </div>
+                <button
+                  onClick={handleInstaDisconnect}
+                  className="border border-red-200 hover:border-red-500 hover:bg-red-50/50 text-red-650 rounded-xl py-1.5 px-4 font-mono text-[9px] tracking-wider uppercase transition-all duration-200 cursor-pointer font-bold shrink-0"
+                >
+                  Disconnect Instagram
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-6">
+                <div className="p-4 bg-slate-50 border border-slate-200 font-mono text-sm text-left rounded-xl">
+                  <span className="block text-slate-450 text-[9px] uppercase tracking-wider font-bold mb-1">Instagram Account ID</span>
+                  <span className="text-slate-800 font-bold select-all">{instaStatus.page_id || "N/A"}</span>
+                </div>
+                <div className="p-4 bg-slate-50 border border-slate-200 font-mono text-sm text-left rounded-xl">
+                  <span className="block text-slate-450 text-[9px] uppercase tracking-wider font-bold mb-1">Active Handle</span>
+                  <span className="text-slate-800 font-bold select-all">{instaStatus.username || "N/A"}</span>
+                </div>
+              </div>
+
+              {instaStatus.verify_token && (
+                <div className="space-y-4 border-t border-slate-100 pt-6 font-mono text-sm text-left">
+                  <h4 className="font-bold text-slate-700 uppercase tracking-wider text-xs">System Webhook Details:</h4>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200 items-center">
+                      <div className="col-span-1 text-slate-450 font-bold uppercase tracking-wider text-[9px]">Webhook URL:</div>
+                      <div className="col-span-2 text-slate-850 truncate font-bold select-all pl-2 text-xs">
+                        {typeof window !== "undefined" ? window.location.origin : "http://localhost:8000"}/api/webhooks/instagram/incoming
+                      </div>
+                      <div className="col-span-1 text-right">
+                        <button
+                          onClick={() => copyUrl("instagram", "/api/webhooks/instagram/incoming")}
+                          className="inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.15em] px-3.5 py-1.5 bg-white hover:bg-slate-50 rounded-lg border border-slate-200 transition duration-200 cursor-pointer font-bold text-slate-700"
+                        >
+                          {copiedWebhook["instagram"] ? "Copied" : "Copy URL"}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200 items-center">
+                      <div className="col-span-1 text-slate-450 font-bold uppercase tracking-wider text-[9px]">Verify Token:</div>
+                      <div className="col-span-2 text-slate-850 font-bold select-all pl-2 text-xs">
+                        {instaStatus.verify_token}
+                      </div>
+                      <div className="col-span-1 text-right">
+                        <button
+                          onClick={() => copyToken("instagram", instaStatus.verify_token || "")}
+                          className="inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.15em] px-3.5 py-1.5 bg-white hover:bg-slate-50 rounded-lg border border-slate-200 transition duration-200 cursor-pointer font-bold text-slate-700"
+                        >
+                          {copiedVerify["instagram"] ? "Copied" : "Copy Token"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="bg-white border border-slate-200 p-8 space-y-6 shadow-xs rounded-2xl">
+              <div>
+                <span className="font-mono text-[9px] text-fuchsia-600 tracking-widest uppercase font-bold bg-fuchsia-50 border border-fuchsia-200 px-2 py-0.5 rounded">Instagram Messenger Channel</span>
+                <h3 className="font-display text-xl font-extrabold text-slate-800 uppercase mt-2 mb-2">
+                  Takeover Instagram Direct Messages
+                </h3>
+                <p className="font-body text-sm text-slate-500 leading-relaxed max-w-2xl">
+                  Deploy your autonomous AI sales agent on Instagram. The agent handles inbound inquiries, catalog checks, and reservation prompts immediately.
+                </p>
+              </div>
+
+              {/* Onboarding Trigger Controls */}
+              <div className="p-6 bg-slate-50 border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-6 rounded-2xl">
+                <div className="text-left flex-1 space-y-4">
+                  <div>
+                    <h4 className="font-display text-sm text-slate-800 uppercase font-bold tracking-wider">Instagram Page Identity</h4>
+                    <p className="font-body text-xs text-slate-500 mt-1">
+                      Specify the Instagram handle to deploy the AI chatbot takeover.
+                    </p>
+                  </div>
+                  
+                  <div className="max-w-md flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-1">
+                    <span className="font-mono text-slate-400 font-bold text-sm">@</span>
+                    <input
+                      type="text"
+                      placeholder="instagram_handle"
+                      value={instaUsernameInput.replace("@", "")}
+                      onChange={(e) => setInstaUsernameInput(e.target.value)}
+                      className="w-full bg-transparent border-none focus:outline-none focus:ring-0 text-sm font-mono text-slate-800 placeholder:text-slate-350"
+                    />
+                  </div>
+
+                  {/* Developer Mock Toggle */}
+                  <div className="flex items-center gap-2 mt-4 font-mono text-[9px]">
+                    <input
+                      type="checkbox"
+                      id="insta-dev-mode-checkbox"
+                      checked={instaDevMode}
+                      onChange={(e) => setInstaDevMode(e.target.checked)}
+                      className="rounded-md border border-slate-250 bg-transparent text-slate-800 focus:ring-0 cursor-pointer"
+                    />
+                    <label htmlFor="insta-dev-mode-checkbox" className="text-slate-550 uppercase tracking-wider cursor-pointer font-bold">
+                      Developer Mock Mode (Link handle instantly)
+                    </label>
+                  </div>
+
+                  {/* Real Credentials Inputs when not in Dev Mock Mode */}
+                  {!instaDevMode && (
+                    <div className="space-y-4 mt-4 max-w-md text-left">
+                      <div>
+                        <label className="block font-mono text-[9px] tracking-wider text-slate-400 uppercase font-bold mb-1">
+                          Meta Instagram Page ID
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Enter your real Page ID"
+                          value={instaPageIdInput}
+                          onChange={(e) => setInstaPageIdInput(e.target.value)}
+                          className="w-full bg-white border border-slate-250 font-mono text-xs p-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-fuchsia-600 focus:border-fuchsia-600"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-mono text-[9px] tracking-wider text-slate-400 uppercase font-bold mb-1">
+                          Meta Page Access Token
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Enter your real Page Access Token"
+                          value={instaAccessTokenInput}
+                          onChange={(e) => setInstaAccessTokenInput(e.target.value)}
+                          className="w-full bg-white border border-slate-250 font-mono text-xs p-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-fuchsia-600 focus:border-fuchsia-600"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  onClick={handleInstaConnect}
+                  disabled={connectingInsta}
+                  className="w-full md:w-auto h-12 px-8 bg-gradient-to-r from-fuchsia-600 via-pink-600 to-rose-500 hover:opacity-95 text-white font-mono text-sm tracking-[0.2em] uppercase flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-50 cursor-pointer shadow-sm font-bold rounded-xl shrink-0"
+                >
+                  {connectingInsta ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      CONNECTING...
+                    </>
+                  ) : (
+                    "Connect Instagram"
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
       </div>
     </div>
   );

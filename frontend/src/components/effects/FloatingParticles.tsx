@@ -16,8 +16,12 @@ export default function FloatingParticles() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>(0);
   const [prefersReduced, setPrefersReduced] = useState(false);
+  const [isMobile, setIsMobile] = useState(true); // default to true to avoid hydration mismatch, check on client mount
 
   useEffect(() => {
+    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth < 768;
+    setIsMobile(isTouch);
+
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     setPrefersReduced(mq.matches);
     const handler = (e: MediaQueryListEvent) => setPrefersReduced(e.matches);
@@ -26,7 +30,7 @@ export default function FloatingParticles() {
   }, []);
 
   useEffect(() => {
-    if (prefersReduced) return;
+    if (prefersReduced || isMobile) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -118,9 +122,9 @@ export default function FloatingParticles() {
       window.removeEventListener("resize", resize);
       cancelAnimationFrame(animationRef.current);
     };
-  }, [prefersReduced]);
+  }, [prefersReduced, isMobile]);
 
-  if (prefersReduced) return null;
+  if (prefersReduced || isMobile) return null;
 
   return (
     <canvas

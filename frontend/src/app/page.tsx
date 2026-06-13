@@ -154,7 +154,7 @@ export default function LandingPage() {
 
         {/* Main Hero Poster/Banner */}
         <div className="relative w-full max-w-5xl mx-auto mt-20 px-4 z-20 perspective-1000">
-          <div className="rounded-2xl overflow-hidden shadow-2xl border border-slate-200/50 bg-white/80 backdrop-blur-2xl flex flex-col md:flex-row transform hover:scale-[1.01] transition-transform duration-500">
+          <div className="rounded-2xl overflow-hidden shadow-2xl border border-slate-200/50 bg-white/95 flex flex-col md:flex-row transform hover:scale-[1.01] transition-transform duration-500">
             {/* Sidebar */}
             <div className="w-64 bg-slate-50/50 border-r border-slate-200/50 p-6 hidden md:flex flex-col gap-6">
               <div className="flex items-center gap-3">
