@@ -1,8 +1,21 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
-import { Loader2 } from "lucide-react";
-import gsap from "gsap";
+import React, { useRef, useState } from "react";
+import { 
+  Loader2, 
+  UploadCloud, 
+  Link as LinkIcon, 
+  FileText, 
+  Globe, 
+  BrainCircuit, 
+  Lightbulb, 
+  Search, 
+  CheckCircle2, 
+  AlertCircle,
+  Database,
+  Sparkles
+} from "lucide-react";
+import { motion } from "framer-motion";
 import type { DocumentInfo } from "@/lib/api";
 
 interface IngestTabProps {
@@ -28,25 +41,6 @@ export default function IngestTab({
 }: IngestTabProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const gridRef = useRef<HTMLDivElement>(null);
-  const tableRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (gridRef.current) {
-      gsap.fromTo(
-        gridRef.current.children,
-        { opacity: 0, y: 15 },
-        { opacity: 1, y: 0, duration: 0.5, stagger: 0.1, ease: "power2.out" }
-      );
-    }
-    if (tableRef.current) {
-      gsap.fromTo(
-        tableRef.current,
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.6, ease: "power2.out", delay: 0.2 }
-      );
-    }
-  }, []);
 
   const onDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -80,166 +74,166 @@ export default function IngestTab({
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 text-left pb-12">
       {/* Page Header */}
-      <div>
-        <h1 className="font-display text-3xl font-extrabold tracking-tight text-slate-900 uppercase">
-          Upload Store Details
+      <div className="mb-6">
+        <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+          <Database className="w-6 h-6 text-purple-600" />
+          AI Memory Center
         </h1>
         <p className="font-body text-sm text-slate-500 mt-1 max-w-2xl">
-          Upload your product sheets, price lists, pamphlets, bills, or store policy docs. Your AI chatbot assistant will read these files to answer customer questions automatically.
+          Upload documents and website links to train your Business Brain. The AI uses this context to autonomously handle inquiries and resolve support tickets.
         </p>
       </div>
 
-      {/* Bento Layout Grid */}
-      <div ref={gridRef} className="grid grid-cols-12 gap-6">
-        {/* Left Column: Tabbed list & Search & Ingested Table */}
+      <div className="grid grid-cols-12 gap-6 items-start">
+        {/* Left Column: Data Table */}
         <div className="col-span-12 lg:col-span-8 space-y-6">
-          <div className="bg-white border border-slate-200 overflow-hidden shadow-xs" style={{ borderRadius: 16 }}>
-            {/* Header Tabs */}
-            <div className="flex p-2 gap-2 bg-slate-50 border-b border-slate-200">
-              <button className="flex-1 px-4 py-2 bg-white border border-slate-200 font-mono text-sm tracking-wider uppercase text-slate-800 font-bold" style={{ borderRadius: 8 }}>
-                Uploaded Store Files
-              </button>
-              <button className="flex-1 px-4 py-2 font-mono text-sm tracking-wider uppercase text-slate-400 hover:text-slate-700 hover:bg-white/60 transition-colors font-semibold" style={{ borderRadius: 8 }}>
-                Website Links
-              </button>
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+            <div className="p-4 border-b border-slate-200 bg-[#F8FAFC] flex justify-between items-center">
+              <h2 className="font-bold text-slate-800 text-sm uppercase tracking-wider flex items-center gap-2">
+                <BrainCircuit className="w-4 h-4 text-purple-500" />
+                Active Knowledge
+              </h2>
+              <div className="relative w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search memory..."
+                  className="w-full bg-white border border-slate-200 pl-9 pr-4 py-1.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-slate-800 placeholder:text-slate-400 transition-all shadow-sm"
+                />
+              </div>
             </div>
 
-            <div className="p-6">
-              {/* Search bar */}
-              <div className="relative mb-6 flex gap-2">
-                <div className="relative flex-1">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 px-3 pl-9 pr-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-[#25D366] focus:border-[#25D366] font-mono text-base text-slate-800 placeholder-slate-400"
-                    style={{ borderRadius: 10 }}
-                    placeholder="SEARCH UPLOADED FILES"
-                  />
-                </div>
-              </div>
-
-              {/* Data Table */}
-              <div ref={tableRef} className="overflow-x-auto">
-                {filteredDocs.length === 0 ? (
-                  <div className="text-center py-16 text-slate-400 font-mono text-base tracking-wider uppercase font-semibold">
-                    {searchQuery ? "No matches found." : "No store details uploaded yet. Upload a file on the right side!"}
+            <div className="overflow-x-auto min-h-[400px]">
+              {filteredDocs.length === 0 ? (
+                <div className="flex flex-col items-center justify-center text-center py-24 px-4 text-slate-500">
+                  <div className="w-16 h-16 bg-slate-50 border border-slate-100 rounded-full flex items-center justify-center mb-4">
+                    <Database className="w-8 h-8 text-slate-300" />
                   </div>
-                ) : (
-                  <table className="w-full text-left font-mono border-collapse">
-                    <thead className="border-b border-slate-200 bg-slate-50 text-slate-400 text-sm uppercase font-bold tracking-wider">
-                      <tr>
-                        <th className="py-3 px-4 font-bold w-7/12">Source Name</th>
-                        <th className="py-3 px-2 font-bold">Type</th>
-                        <th className="py-3 px-2 font-bold text-center w-28">Status</th>
-                        <th className="py-3 px-4 font-bold text-right w-24">Uploaded</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {filteredDocs.map((doc) => (
-                        <tr key={doc.id} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="py-3 px-4">
-                            <div className="flex items-center gap-2 max-w-md">
-                              <span className="material-symbols-outlined text-slate-450 text-[16px]">
-                                {doc.file_type === "html" ? "link" : "description"}
-                              </span>
-                              <span className="text-[12px] text-slate-800 truncate font-bold" title={doc.file_name}>
+                  <h3 className="font-semibold text-slate-700">Memory is empty</h3>
+                  <p className="text-sm text-slate-500 mt-1 max-w-sm">
+                    Upload a document or provide a website link to start training your Business Brain.
+                  </p>
+                </div>
+              ) : (
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-white text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                    <tr>
+                      <th className="py-4 px-6 w-[50%]">Source Data</th>
+                      <th className="py-4 px-4">Format</th>
+                      <th className="py-4 px-4 text-center">Status</th>
+                      <th className="py-4 px-6 text-right">Learned On</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredDocs.map((doc) => (
+                      <tr key={doc.id} className="hover:bg-slate-50 transition-colors group">
+                        <td className="py-4 px-6">
+                          <div className="flex items-start gap-3">
+                            <div className="mt-1 w-8 h-8 rounded-lg bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 group-hover:bg-purple-100 group-hover:text-purple-700 transition-colors shrink-0">
+                              {doc.file_type === "html" ? (
+                                <Globe className="w-4 h-4" />
+                              ) : (
+                                <FileText className="w-4 h-4" />
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <span className="text-sm font-semibold text-slate-900 truncate block w-full" title={doc.file_name}>
                                 {doc.file_name}
                               </span>
+                              {doc.summary && (
+                                <p className="text-xs text-slate-500 line-clamp-2 mt-0.5 leading-relaxed pr-4">
+                                  {doc.summary}
+                                </p>
+                              )}
                             </div>
-                            {doc.summary && (
-                              <p className="text-[9px] text-slate-400 line-clamp-1 mt-1 pl-6">
-                                {doc.summary}
-                              </p>
-                            )}
-                          </td>
-                          <td className="py-3 px-2 text-sm text-slate-400 font-bold uppercase">
+                          </div>
+                        </td>
+                        <td className="py-4 px-4 whitespace-nowrap">
+                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider bg-slate-100 border border-slate-200 px-2 py-1 rounded-md">
                             {doc.file_type}
-                          </td>
-                          <td className="py-3 px-2">
-                            {doc.status === "completed" && (
-                              <div className="flex items-center justify-center gap-1.5 px-2 py-0.5 rounded-none bg-emerald-50 text-emerald-700 border border-emerald-250/60 w-fit mx-auto" style={{ borderRadius: 6 }}>
-                                <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
-                                <span className="text-[9px] font-bold tracking-wide uppercase">INDEXED</span>
-                              </div>
-                            )}
-                            {doc.status === "processing" && (
-                              <div className="flex items-center justify-center gap-1.5 px-2 py-0.5 rounded-none bg-amber-50 text-amber-700 border border-amber-250/60 w-fit mx-auto" style={{ borderRadius: 6 }}>
-                                <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></div>
-                                <span className="text-[9px] font-bold tracking-wide uppercase">SYNCING</span>
-                              </div>
-                            )}
-                            {doc.status === "failed" && (
-                              <div className="flex items-center justify-center gap-1.5 px-2 py-0.5 rounded-none bg-red-50 text-red-700 border border-red-250/60 w-fit mx-auto" style={{ borderRadius: 6 }}>
-                                <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
-                                <span className="text-[9px] font-bold tracking-wide uppercase">ERROR</span>
-                              </div>
-                            )}
-                          </td>
-                          <td className="py-3 px-4 text-right text-sm text-slate-400">
-                            {doc.created_at ? new Date(doc.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "just now"}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-              </div>
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 text-center whitespace-nowrap">
+                          {doc.status === "completed" && (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-100 text-emerald-700 text-[11px] font-bold uppercase tracking-wider">
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              Active
+                            </span>
+                          )}
+                          {doc.status === "processing" && (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 border border-amber-100 text-amber-700 text-[11px] font-bold uppercase tracking-wider">
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              Learning
+                            </span>
+                          )}
+                          {doc.status === "failed" && (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-50 border border-red-100 text-red-700 text-[11px] font-bold uppercase tracking-wider">
+                              <AlertCircle className="w-3.5 h-3.5" />
+                              Failed
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-4 px-6 text-right text-sm font-medium text-slate-500 whitespace-nowrap">
+                          {doc.created_at ? new Date(doc.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "Just now"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Right Column: Upload forms, Web crawler, Health indicators */}
-        <div className="col-span-12 lg:col-span-4 space-y-6">
-          {/* File drag uploader container */}
+        {/* Right Column: Upload Forms & Status */}
+        <div className="col-span-12 lg:col-span-4 space-y-4">
+          {/* File Upload */}
           <div
             onClick={() => fileInputRef.current?.click()}
             onDragOver={onDragOver}
             onDragLeave={onDragLeave}
             onDrop={onDrop}
-            className={`bg-white border-2 border-dashed border-slate-200 p-6 flex flex-col items-center justify-center text-center transition-all cursor-pointer group hover:border-[#25D366] hover:bg-[#F0F2F5]/15 ${
-              isDragOver
-                ? "border-[#25D366] bg-[#F0F2F5]/20"
-                : ""
+            className={`bg-white border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center transition-all cursor-pointer group shadow-sm ${
+              isDragOver ? "border-purple-500 bg-purple-50" : "border-slate-200 hover:border-purple-400 hover:bg-slate-50"
             }`}
-            style={{ borderRadius: 16 }}
           >
             <input
               type="file"
               ref={fileInputRef}
               onChange={handleFileUpload}
               className="hidden"
-              accept=".pdf,.png,.jpg,.jpeg,.txt"
+              accept=".pdf,.png,.jpg,.jpeg,.txt,.csv,.docx"
             />
-            <div className="w-12 h-12 bg-slate-50 border border-slate-250 rounded-none flex items-center justify-center mb-3 group-hover:bg-[#128C7E] group-hover:text-white group-hover:border-[#128C7E] transition-colors" style={{ borderRadius: 10 }}>
+            <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 transition-colors ${isDragOver ? 'bg-purple-100 text-purple-600' : 'bg-slate-100 text-slate-400 group-hover:bg-purple-50 group-hover:text-purple-500'}`}>
               {uploadingFile ? (
-                <Loader2 className="w-5 h-5 animate-spin text-slate-700 group-hover:text-white" />
+                <Loader2 className="w-6 h-6 animate-spin" />
               ) : (
-                <span className="material-symbols-outlined text-[24px] text-[#128C7E] group-hover:text-white font-bold">upload</span>
+                <UploadCloud className="w-6 h-6" />
               )}
             </div>
-            <h3 className="font-mono text-base text-slate-800 mb-1 font-bold uppercase tracking-wider">
-              {uploadingFile ? "Saving file details..." : "Upload New File"}
+            <h3 className="text-sm font-bold text-slate-900 mb-1">
+              {uploadingFile ? "Processing Document..." : "Upload Document"}
             </h3>
-            <p className="text-slate-400 text-sm font-mono mb-4 uppercase tracking-wider">
-              Select bills, leaflets, PDFs, or photos (Max 10MB)
+            <p className="text-xs text-slate-500 mb-4 max-w-[200px]">
+              Drag & drop PDFs, text, or images up to 10MB to expand the memory.
             </p>
-            <button className="border border-slate-200 group-hover:border-[#25D366] group-hover:bg-[#128C7E] group-hover:text-white text-slate-700 font-mono text-sm uppercase tracking-[0.2em] px-4 py-2.5 bg-white transition-all cursor-pointer" style={{ borderRadius: 8 }}>
-              Choose File
+            <button className="text-xs font-bold uppercase tracking-wider text-purple-600 group-hover:text-purple-700 transition-colors">
+              Browse Files
             </button>
           </div>
 
-          {/* Web crawler form */}
-          <div className="bg-white border border-slate-200 p-5 shadow-xs" style={{ borderRadius: 16 }}>
-            <h3 className="font-mono text-[9px] text-[#128C7E] uppercase tracking-widest mb-3 font-bold flex items-center gap-2">
-              <span className="material-symbols-outlined text-[15px] text-[#128C7E]">language</span>
-              Copy from Website
+          {/* URL Crawler */}
+          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2 mb-2">
+              <LinkIcon className="w-4 h-4 text-purple-500" />
+              Learn from URL
             </h3>
-            <p className="text-slate-400 text-[11px] mb-4 leading-relaxed font-normal">
-              If your shop has a website or Facebook page, paste the link below to copy details automatically.
+            <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+              Paste a link to your website, FAQ, or policy. The AI will crawl it and build a memory map.
             </p>
             <form onSubmit={handleCrawlUrl} className="space-y-3">
               <input
@@ -247,57 +241,67 @@ export default function IngestTab({
                 required
                 value={urlInput}
                 onChange={(e) => setUrlInput(e.target.value)}
-                placeholder="ENTER WEBSITE LINK"
-                className="w-full bg-slate-50 border border-slate-200 px-3 py-2.5 text-base focus:outline-none focus:ring-1 focus:ring-[#25D366] focus:border-[#25D366] text-slate-800 placeholder:text-slate-400 font-mono"
-                style={{ borderRadius: 10 }}
+                placeholder="https://example.com/pricing"
+                className="w-full bg-slate-50 border border-slate-200 px-3 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-slate-900 placeholder:text-slate-400 transition-all shadow-sm"
               />
               <button
                 type="submit"
                 disabled={ingestingUrl}
-                className="w-full bg-gradient-to-r from-[#128C7E] to-[#25D366] hover:opacity-95 text-white font-mono text-base py-3 px-4 flex items-center justify-center gap-2 transition-all disabled:opacity-50 tracking-[0.2em] uppercase cursor-pointer shadow-xs"
-                style={{ borderRadius: 10 }}
+                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 transition-all disabled:opacity-50 shadow-sm"
               >
                 {ingestingUrl ? (
                   <Loader2 className="w-4 h-4 animate-spin shrink-0" />
                 ) : (
-                  "Copy Website Link"
+                  <>
+                    <Globe className="w-4 h-4 opacity-70" />
+                    Ingest Website
+                  </>
                 )}
               </button>
             </form>
           </div>
 
-          {/* System Health Progress Indicators */}
-          <div className="bg-white border border-slate-200 p-5 shadow-xs" style={{ borderRadius: 16 }}>
-            <h3 className="font-mono text-[9px] text-[#128C7E] uppercase tracking-widest mb-4 font-bold flex items-center gap-2">
-              <span className="material-symbols-outlined text-[14px] text-[#128C7E]">memory</span>
-              Assistant Memory Status
+          {/* AI Learning Progress */}
+          <div className="bg-gradient-to-br from-purple-900 to-indigo-900 rounded-xl p-5 shadow-sm text-white overflow-hidden relative">
+            <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+              <BrainCircuit className="w-24 h-24" />
+            </div>
+            
+            <h3 className="text-sm font-bold flex items-center gap-2 mb-4 relative z-10 text-purple-50">
+              <Sparkles className="w-4 h-4 text-purple-300" />
+              Brain Capacity
             </h3>
-            <div className="space-y-4 font-mono text-base">
-              <div className="flex justify-between items-end">
-                <span className="text-slate-400 text-sm uppercase font-bold tracking-wider">Learned Details</span>
-                <span className="text-slate-700 text-base font-bold">
-                  {documents.length > 0 ? (documents.length * 42).toLocaleString() + " memory points" : "125 details"}
+            <div className="space-y-4 relative z-10">
+              <div className="flex justify-between items-baseline">
+                <span className="text-xs text-purple-200">Knowledge Synapses</span>
+                <span className="text-xl font-display font-bold text-white tracking-tight">
+                  {documents.length > 0 ? (documents.length * 142).toLocaleString() : "0"}
                 </span>
               </div>
-              <div className="w-full bg-slate-50 h-2 overflow-hidden border border-slate-200" style={{ borderRadius: 9999 }}>
-                <div className="bg-[#128C7E] h-full transition-all duration-500 animate-pulse" style={{ width: documents.length > 0 ? `${Math.min(100, documents.length * 8)}%` : "20%" }}></div>
+              <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden backdrop-blur-sm">
+                <div 
+                  className="bg-purple-400 h-full transition-all duration-1000 ease-out relative" 
+                  style={{ width: documents.length > 0 ? `${Math.min(100, Math.max(5, documents.length * 8))}%` : "0%" }}
+                >
+                  <div className="absolute inset-0 bg-white/30 animate-pulse"></div>
+                </div>
               </div>
-              <div className="flex justify-between items-center text-[9px] text-slate-400 pt-2 border-t border-slate-100 uppercase font-bold tracking-wider">
-                <span>Memory Capacity</span>
-                <span>[{documents.length > 0 ? Math.min(100, documents.length * 8) : "20"}% USED]</span>
+              <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-purple-300 pt-2 border-t border-white/10">
+                <span>Vector DB</span>
+                <span>{documents.length > 0 ? Math.min(100, documents.length * 8) : "0"}% Used</span>
               </div>
             </div>
           </div>
 
-          {/* Technical Help Box */}
-          <div className="bg-[#25D366]/10 border border-violet-100 p-5 overflow-hidden relative" style={{ borderRadius: 16 }}>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#128C7E] text-[18px]">lightbulb</span>
-                <span className="font-mono text-[#128C7E] tracking-wide text-[9px] uppercase font-bold">Shopkeeper Tip</span>
-              </div>
-              <p className="text-slate-650 font-normal text-base leading-relaxed">
-                Upload clear photos of your product price list, or type a simple text file with product names and prices. This helps your WhatsApp assistant answer customers instantly without mistakes!
+          {/* Pro Tip */}
+          <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-3 items-start shadow-sm">
+            <div className="mt-0.5 w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+              <Lightbulb className="w-3.5 h-3.5 text-blue-600" />
+            </div>
+            <div>
+              <h4 className="text-xs font-bold text-blue-900 uppercase tracking-wider mb-1">Optimization Tip</h4>
+              <p className="text-xs text-blue-800/80 leading-relaxed font-medium">
+                Text files mapped out as FAQs (Q&A format) yield the most accurate autonomous responses from the Business Brain.
               </p>
             </div>
           </div>

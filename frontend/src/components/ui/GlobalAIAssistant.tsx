@@ -47,7 +47,13 @@ export default function GlobalAIAssistant() {
 
   // Auto-scroll to bottom
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesEndRef.current && messagesEndRef.current.parentElement) {
+      const container = messagesEndRef.current.parentElement;
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: "smooth"
+      });
+    }
   }, [messages]);
 
   const handleSend = async () => {

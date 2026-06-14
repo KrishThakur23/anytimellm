@@ -7,12 +7,10 @@ import {
   MessageSquare, 
   Send, 
   Search, 
-  User, 
-  Clock, 
-  Phone
+  Phone,
+  AlertCircle,
+  CheckCircle2
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import gsap from "gsap";
 import type { Conversation } from "@/lib/api";
 
 interface ChatsTabProps {
@@ -36,31 +34,20 @@ export default function ChatsTab({
   const [sendingReply, setSendingReply] = useState(false);
   
   const threadEndRef = useRef<HTMLDivElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll chat thread on change
   useEffect(() => {
-    threadEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [selectedChatId, chats]);
-
-  // Entrance animations for lists
-  useEffect(() => {
-    if (listRef.current) {
-      const items = listRef.current.querySelectorAll(".chat-item-card");
-      if (items.length > 0) {
-        gsap.fromTo(
-          items,
-          { opacity: 0, x: -15 },
-          { opacity: 1, x: 0, duration: 0.4, stagger: 0.05, ease: "power2.out" }
-        );
-      }
+    if (threadEndRef.current && threadEndRef.current.parentElement) {
+      const container = threadEndRef.current.parentElement;
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: "smooth"
+      });
     }
-  }, [chats]);
+  }, [selectedChatId, chats]);
 
   const activeChat = chats.find(c => c.id === selectedChatId);
   const isActiveInstagram = activeChat?.channel === "instagram";
 
-  // Filter conversations by customer name or phone number
   const filteredChats = chats.filter(c => {
     const name = (c.customer_name || "").toLowerCase();
     const phone = (c.customer_phone || "").toLowerCase();
@@ -87,11 +74,11 @@ export default function ChatsTab({
     try {
       const date = new Date(timeStr);
       const delta = Math.round((Date.now() - date.getTime()) / 1000);
-      if (delta < 60) return "just now";
+      if (delta < 60) return "now";
       const minutes = Math.round(delta / 60);
-      if (minutes < 60) return `${minutes}m ago`;
+      if (minutes < 60) return `${minutes}m`;
       const hours = Math.round(minutes / 60);
-      if (hours < 24) return `${hours}h ago`;
+      if (hours < 24) return `${hours}h`;
       return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
     } catch (e) {
       return "";
@@ -107,239 +94,228 @@ export default function ChatsTab({
     }
   };
 
+  const getMessageStyle = (m: any) => {
+    const isAgent = m.sender === "agent";
+    const text = m.content.toLowerCase();
+    
+    if (!isAgent) {
+      return {
+        bg: "bg-slate-100",
+        text: "text-slate-900",
+        border: "border-slate-200"
+      };
+    }
+    if (text.includes("order") || text.includes("₹")) {
+      return {
+        bg: "bg-emerald-50",
+        text: "text-emerald-900",
+        border: "border-emerald-200"
+      };
+    }
+    if (text.includes("system") || text.includes("error")) {
+      return {
+        bg: "bg-blue-50",
+        text: "text-blue-900",
+        border: "border-blue-200"
+      };
+    }
+    return {
+      bg: "bg-purple-50",
+      text: "text-purple-900",
+      border: "border-purple-200"
+    };
+  };
+
   return (
-    <div className="space-y-6 h-[calc(100vh-140px)] flex flex-col overflow-hidden text-left">
+    <div className="space-y-4 h-[calc(100vh-140px)] flex flex-col overflow-hidden text-left pb-4">
       {/* Tab Header */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4 shrink-0">
         <div>
-          <h1 className="font-display text-3xl font-extrabold tracking-tight text-slate-900 uppercase">
-            Omnichannel Chat Inbox
+          <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900">
+            Live Chats
           </h1>
           <p className="font-body text-sm text-slate-500 mt-1">
-            Monitor real-time conversations between your automated AI agent and customers. Step in to send manual outbox overrides when needed.
+            Monitor and override the Business Brain.
           </p>
         </div>
 
         <button
           onClick={onRefresh}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2.5 text-base font-mono rounded-none border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-all duration-200 cursor-pointer disabled:opacity-50 shrink-0 font-bold shadow-xs"
-          style={{ borderRadius: 8 }}
+          className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-all duration-200 shadow-sm"
         >
           {loading ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
-            <RefreshCw className="w-3.5 h-3.5" />
+            <RefreshCw className="w-4 h-4" />
           )}
-          Refresh Chats
+          Refresh
         </button>
       </div>
 
       {/* Main split-pane content */}
-      <div className="flex-1 flex gap-6 items-stretch overflow-hidden min-h-0">
+      <div className="flex-1 flex gap-0 items-stretch overflow-hidden min-h-0 bg-white border border-slate-200 rounded-xl shadow-sm">
         {/* Left Column: Chat Conversation Threads list */}
-        <div className="w-80 flex flex-col bg-white border border-slate-200 rounded-none overflow-hidden shadow-xs shrink-0" style={{ borderRadius: 16 }}>
+        <div className="w-80 flex flex-col border-r border-slate-200 shrink-0 bg-[#F8FAFC]">
           {/* Search bar */}
-          <div className="p-4 border-b border-slate-200 bg-slate-50 flex items-center gap-2 shrink-0">
-            <Search className="w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="SEARCH CHATS..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-transparent border-none focus:outline-none text-base text-slate-800 font-mono placeholder:text-slate-400 focus:ring-0"
-            />
+          <div className="p-3 border-b border-slate-200 bg-white shrink-0">
+            <div className="relative">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search conversations..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-slate-100 border-none rounded-lg pl-9 pr-4 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+              />
+            </div>
           </div>
 
           {/* List feed */}
-          <div 
-            ref={listRef} 
-            className="flex-1 overflow-y-auto divide-y divide-slate-100 custom-scrollbar"
-          >
+          <div className="flex-1 overflow-y-auto custom-scrollbar">
             {loading && chats.length === 0 ? (
-              <div className="p-8 text-center text-slate-450 flex flex-col items-center gap-3">
-                <Loader2 className="w-6 h-6 animate-spin text-[#128C7E]" />
-                <span className="font-mono text-[9px] uppercase font-bold tracking-wider">Loading threads...</span>
+              <div className="p-8 text-center flex flex-col items-center gap-3">
+                <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
               </div>
             ) : filteredChats.length === 0 ? (
-              <div className="p-8 text-center text-slate-450 font-mono text-[9px] uppercase tracking-wider font-bold">
+              <div className="p-8 text-center text-sm text-slate-500">
                 {searchQuery ? "No matching chats found" : "No active chats"}
               </div>
             ) : (
-              filteredChats.map((c) => {
-                const isSelected = selectedChatId === c.id;
-                const isInstagram = c.channel === "instagram";
-                const initials = (c.customer_name || (isInstagram ? "IG" : "WA"))
-                  .split(" ")
-                  .map(n => n[0])
-                  .join("")
-                  .slice(0, 2)
-                  .toUpperCase();
-                  
-                const selectionClass = isSelected
-                  ? isInstagram
-                    ? "bg-[#D62976]/10 border-l-[3px] border-[#D62976]"
-                    : "bg-[#25D366]/10 border-l-[3px] border-[#128C7E]"
-                  : "hover:bg-slate-50/50 border-l-[3px] border-transparent";
+              <div className="divide-y divide-slate-100">
+                {filteredChats.map((c) => {
+                  const isSelected = selectedChatId === c.id;
+                  const isInstagram = c.channel === "instagram";
+                  const initials = (c.customer_name || (isInstagram ? "IG" : "WA"))
+                    .split(" ")
+                    .map(n => n[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase();
+                    
+                  const selectionClass = isSelected
+                    ? "bg-white border-l-2 border-l-purple-500 shadow-sm"
+                    : "hover:bg-slate-50 border-l-2 border-l-transparent";
 
-                const channelBadge = isInstagram ? (
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-bold tracking-wider uppercase bg-[#D62976]/10 text-[#D62976] border border-[#D62976]/20">
-                    Instagram
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-bold tracking-wider uppercase bg-[#25D366]/10 text-[#128C7E] border border-[#25D366]/20">
-                    WhatsApp
-                  </span>
-                );
+                  // Semantic Status Dots (Mocked based on is_ai_paused for now)
+                  const StatusIcon = c.is_ai_paused ? AlertCircle : CheckCircle2;
+                  const statusColor = c.is_ai_paused ? "text-amber-500" : "text-emerald-500";
 
-                return (
-                  <div
-                    key={c.id}
-                    onClick={() => setSelectedChatId(c.id)}
-                    className={`chat-item-card p-4 flex gap-3 cursor-pointer transition-all duration-200 relative select-none font-mono ${selectionClass}`}
-                  >
-                    {/* Customer avatar */}
-                    <div className="w-10 h-10 rounded-none bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-700 font-bold text-base shrink-0" style={{ borderRadius: 8 }}>
-                      {initials}
-                    </div>
-
-                    <div className="flex-1 min-w-0 text-left">
-                      <div className="flex justify-between items-baseline">
-                        <span className="font-bold text-slate-800 text-base truncate">
-                          {c.customer_name || (isInstagram ? "Instagram User" : "WhatsApp User")}
-                        </span>
-                        <span className="font-mono text-[8px] text-slate-400 font-bold tracking-wider shrink-0 ml-1">
-                          {c.messages.length > 0
-                            ? getRelativeTime(c.messages[c.messages.length - 1].created_at)
-                            : getRelativeTime(c.created_at)}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center justify-between mt-1">
-                        <div className="flex items-center gap-1 text-[9px] text-slate-400 font-mono">
-                          {isInstagram ? (
-                            <>
-                              <span className="w-2.5 h-2.5 inline-flex items-center justify-center font-bold text-[9px]">@</span>
-                              <span>{c.customer_phone?.startsWith("instagram:") ? c.customer_phone.replace("instagram:", "") : c.customer_phone}</span>
-                            </>
-                          ) : (
-                            <>
-                              <Phone className="w-2.5 h-2.5 shrink-0" />
-                              <span>{c.customer_phone}</span>
-                            </>
-                          )}
+                  return (
+                    <div
+                      key={c.id}
+                      onClick={() => setSelectedChatId(c.id)}
+                      className={`p-4 flex gap-3 cursor-pointer transition-all duration-200 select-none ${selectionClass}`}
+                    >
+                      {/* Customer avatar */}
+                      <div className="relative">
+                        <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm shrink-0 border border-slate-100">
+                          {initials}
                         </div>
-                        {channelBadge}
+                        <StatusIcon className={`w-3.5 h-3.5 absolute -bottom-0.5 -right-0.5 bg-white rounded-full ${statusColor}`} />
                       </div>
 
-                      <p className="text-sm text-slate-500 truncate mt-2 leading-relaxed font-body">
-                        {c.last_message_content || "No messages sent yet"}
-                      </p>
+                      <div className="flex-1 min-w-0 text-left">
+                        <div className="flex justify-between items-baseline mb-0.5">
+                          <span className="font-semibold text-slate-900 text-sm truncate">
+                            {c.customer_name || (isInstagram ? "Instagram User" : "WhatsApp User")}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-medium shrink-0 ml-1">
+                            {c.messages.length > 0
+                              ? getRelativeTime(c.messages[c.messages.length - 1].created_at)
+                              : getRelativeTime(c.created_at)}
+                          </span>
+                        </div>
+
+                        <p className="text-xs text-slate-500 truncate leading-snug">
+                          {c.last_message_content || "No messages sent yet"}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                );
-              })
+                  );
+                })}
+              </div>
             )}
           </div>
         </div>
 
         {/* Right Column: Chat thread detail */}
-        <div className="flex-1 flex flex-col bg-white border border-slate-200 rounded-none overflow-hidden shadow-xs relative" style={{ borderRadius: 16 }}>
+        <div className="flex-1 flex flex-col relative bg-white">
           {activeChat ? (
             <>
               {/* Header profile info */}
-              <div className="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center shrink-0">
+              <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center shrink-0 bg-white">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-none bg-white flex items-center justify-center text-slate-700 font-mono text-base border border-slate-200" style={{ borderRadius: 8 }}>
-                    {activeChat.customer_name?.charAt(0).toUpperCase() || (isActiveInstagram ? "I" : "W")}
-                  </div>
                   <div className="text-left">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-base text-slate-800 leading-tight font-mono">
-                        {activeChat.customer_name || (isActiveInstagram ? "Instagram User" : "WhatsApp User")}
-                      </h3>
+                    <h3 className="font-bold text-base text-slate-900">
+                      {activeChat.customer_name || (isActiveInstagram ? "Instagram User" : "WhatsApp User")}
+                    </h3>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-xs text-slate-500 flex items-center gap-1">
+                        <Phone className="w-3 h-3" />
+                        {activeChat.customer_phone?.replace("instagram:", "")}
+                      </span>
                       {isActiveInstagram ? (
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-bold tracking-wider uppercase bg-[#D62976]/10 text-[#D62976] border border-[#D62976]/20">
+                        <span className="text-[10px] font-bold uppercase tracking-wider bg-pink-50 text-pink-600 px-1.5 py-0.5 rounded">
                           Instagram
                         </span>
                       ) : (
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-bold tracking-wider uppercase bg-[#25D366]/10 text-[#128C7E] border border-[#25D366]/20">
+                        <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded">
                           WhatsApp
                         </span>
                       )}
                     </div>
-                    <span className="text-[9px] font-semibold font-mono text-slate-400 flex items-center gap-1 mt-0.5">
-                      {isActiveInstagram ? (
-                        <>
-                          <span className="w-2.5 h-2.5 inline-flex items-center justify-center font-bold text-[9px]">@</span>
-                          <span>{activeChat.customer_phone?.startsWith("instagram:") ? activeChat.customer_phone.replace("instagram:", "") : activeChat.customer_phone}</span>
-                        </>
-                      ) : (
-                        <>
-                          <Phone className="w-2.5 h-2.5" />
-                          {activeChat.customer_phone}
-                        </>
-                      )}
-                    </span>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
+                  <span className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 px-2 py-1 rounded-md ${activeChat.is_ai_paused ? 'bg-amber-50 text-amber-700' : 'bg-purple-50 text-purple-700'}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${activeChat.is_ai_paused ? 'bg-amber-500' : 'bg-purple-500'}`} />
+                    {activeChat.is_ai_paused ? "Needs Attention" : "AI Resolving"}
+                  </span>
                   {/* AI Agent Pause Toggle Button */}
                   <button
                     onClick={() => onTogglePause(activeChat.id, !activeChat.is_ai_paused)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-none text-[9px] font-mono border transition-all duration-200 cursor-pointer active:scale-95 font-bold ${
+                    className={`px-3 py-1.5 rounded-md text-xs font-semibold border transition-colors ${
                       activeChat.is_ai_paused
-                        ? "border-[#128C7E]/20 hover:bg-[#128C7E]/5 text-[#128C7E]"
-                        : "border-red-200 hover:bg-red-50 text-red-600"
+                        ? "border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-sm"
+                        : "border-red-200 bg-red-50 hover:bg-red-100 text-red-700 shadow-sm"
                     }`}
-                    style={{ borderRadius: 8 }}
                   >
-                    <span className="font-bold">
-                      {activeChat.is_ai_paused ? "🤖" : "⏸️"}
-                    </span>
-                    {activeChat.is_ai_paused ? "Resume AI Bot" : "Pause AI Bot"}
+                    {activeChat.is_ai_paused ? "Resume AI Bot" : "Stop AI Bot"}
                   </button>
-
-                  <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-none px-2.5 py-1" style={{ borderRadius: 8 }}>
-                    <span className="font-mono text-[9px] uppercase tracking-wider text-slate-700 font-bold flex items-center gap-1">
-                      {activeChat.is_ai_paused ? "👤 Human Handling" : "🤖 AI Handling"}
-                    </span>
-                  </div>
                 </div>
               </div>
 
               {/* Chat messages feed */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/30 custom-scrollbar">
+              <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar bg-slate-50/30">
                 {activeChat.messages.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-center text-slate-400 p-8 font-mono">
-                    <MessageSquare className="w-12 h-12 text-slate-350 mb-2 animate-pulse" />
-                    <span className="text-sm uppercase font-bold tracking-wider">No message logs recorded.</span>
+                  <div className="h-full flex flex-col items-center justify-center text-center text-slate-400 p-8">
+                    <MessageSquare className="w-12 h-12 text-slate-200 mb-2" />
+                    <span className="text-sm font-medium">No messages yet.</span>
                   </div>
                 ) : (
                   activeChat.messages.map((m, idx) => {
                     const isAgent = m.sender === "agent";
+                    const alignClass = isAgent ? "justify-end" : "justify-start";
+                    const borderRadius = isAgent ? "rounded-2xl rounded-br-sm" : "rounded-2xl rounded-bl-sm";
+                    const styles = getMessageStyle(m);
+
                     return (
                       <div
                         key={m.id || idx}
-                        className={`flex ${isAgent ? "justify-end" : "justify-start"}`}
+                        className={`flex ${alignClass}`}
                       >
-                        <div
-                          className={`max-w-md p-4 rounded-none border flex flex-col font-mono text-left shadow-xs ${
-                            isAgent
-                              ? isActiveInstagram
-                                ? "bg-[#D62976]/10 border-[#D62976]/20 text-slate-850"
-                                : "bg-[#25D366]/10 border-[#DCF8C6]/60 text-slate-850"
-                              : "bg-white border-slate-200 text-slate-800"
-                          }`}
-                          style={{ borderRadius: isAgent ? "14px 4px 14px 14px" : "4px 14px 14px 14px" }}
-                        >
-                          <span className="text-base leading-relaxed break-words whitespace-pre-wrap font-medium font-body">
+                        <div className={`flex flex-col max-w-[75%] ${isAgent ? 'items-end' : 'items-start'}`}>
+                          {isAgent && (
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 mr-1">
+                              Business Brain
+                            </span>
+                          )}
+                          <div className={`px-4 py-2.5 text-[14px] leading-relaxed shadow-sm border ${styles.bg} ${styles.text} ${styles.border} ${borderRadius}`}>
                             {m.content}
-                          </span>
-                          
-                          <span className={`text-[8px] mt-2 self-end font-bold tracking-wider uppercase opacity-75 text-slate-400`}>
-                            <Clock className="w-2.5 h-2.5 inline mr-1" />
+                          </div>
+                          <span className={`text-[10px] mt-1 font-medium text-slate-400 ${isAgent ? 'mr-1' : 'ml-1'}`}>
                             {getFormatTimeOnly(m.created_at)}
                           </span>
                         </div>
@@ -353,48 +329,46 @@ export default function ChatsTab({
               {/* Chat outbox reply form */}
               <form 
                 onSubmit={handleSend}
-                className="p-4 border-t border-slate-200 bg-slate-50 shrink-0 flex gap-2 items-center"
+                className="p-4 border-t border-slate-200 bg-[#F8FAFC] shrink-0 flex gap-3 items-end"
               >
-                <input
-                  type="text"
-                  placeholder="Type manual message override..."
-                  value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
-                  disabled={sendingReply}
-                  className={`flex-1 bg-white border border-slate-200 rounded-none px-4 py-3 text-base focus:outline-none focus:ring-1 text-slate-800 placeholder:text-slate-400 font-mono disabled:opacity-50 ${
-                    isActiveInstagram
-                      ? "focus:ring-[#D62976] focus:border-[#D62976]"
-                      : "focus:ring-[#25D366] focus:border-[#25D366]"
-                  }`}
-                  style={{ borderRadius: 10 }}
-                />
+                <div className="flex-1 bg-white rounded-xl border border-slate-200 overflow-hidden focus-within:ring-2 focus-within:ring-[#2563EB]/20 focus-within:border-[#2563EB] transition-all shadow-sm">
+                  <textarea
+                    placeholder="Type your manual reply..."
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    disabled={sendingReply}
+                    className="w-full max-h-32 bg-transparent border-none px-4 py-3 text-[14px] focus:outline-none text-slate-900 placeholder:text-slate-400 resize-none overflow-y-auto"
+                    rows={1}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSend(e);
+                      }
+                    }}
+                  />
+                </div>
                 
                 <button
                   type="submit"
                   disabled={sendingReply || !replyText.trim()}
-                  className={`p-3 hover:opacity-95 text-white rounded-none flex items-center justify-center shrink-0 transition-all duration-200 active:scale-95 disabled:opacity-40 cursor-pointer shadow-xs border-0 ${
-                    isActiveInstagram
-                      ? "bg-gradient-to-r from-[#C13584] to-[#E1306C]"
-                      : "bg-gradient-to-r from-[#128C7E] to-[#25D366]"
-                  }`}
-                  style={{ borderRadius: 10 }}
+                  className="w-11 h-11 rounded-xl bg-slate-900 hover:bg-slate-800 text-white flex items-center justify-center shrink-0 transition-all disabled:opacity-50 disabled:hover:bg-slate-900 mb-0 shadow-sm"
                 >
                   {sendingReply ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    <Send className="w-4 h-4" />
+                    <Send className="w-4 h-4 ml-0.5" />
                   )}
                 </button>
               </form>
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-center p-8 font-mono">
-              <div className="w-16 h-16 rounded-none bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-700 mb-4 animate-[float-drift_8s_infinite]" style={{ borderRadius: 12 }}>
-                <MessageSquare className="w-6 h-6 text-[#128C7E]" />
+            <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-slate-50/50">
+              <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4 border border-slate-200">
+                <MessageSquare className="w-6 h-6 text-slate-300" />
               </div>
-              <h3 className="font-bold text-sm text-slate-700 uppercase tracking-wider">No chat selected</h3>
-              <p className="text-base text-slate-400 mt-1.5 max-w-xs font-semibold leading-relaxed italic font-body">
-                Select an active conversation thread from the left column to read message logs and send direct replies.
+              <h3 className="font-semibold text-slate-700">No conversation selected</h3>
+              <p className="text-sm text-slate-500 mt-1 max-w-xs">
+                Select a chat from the sidebar to view messages, order history, and reply manually.
               </p>
             </div>
           )}

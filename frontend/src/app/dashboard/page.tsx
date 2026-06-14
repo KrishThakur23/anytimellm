@@ -16,9 +16,10 @@ import PlaygroundTab from "@/components/playground/PlaygroundTab";
 import IntegrationsTab from "@/components/integrations/IntegrationsTab";
 import OrdersTab from "@/components/orders/OrdersTab";
 import ChatsTab from "@/components/chats/ChatsTab";
+import AnalyticsTab from "@/components/analytics/AnalyticsTab";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 
-type Tab = "overview" | "ingest" | "catalog" | "playground" | "integrations" | "orders" | "chats";
+type Tab = "overview" | "ingest" | "catalog" | "playground" | "integrations" | "orders" | "chats" | "analytics";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -565,6 +566,13 @@ export default function Dashboard() {
             onRefresh={handleRefreshChats}
             onSendReply={handleSendManualReply}
             onTogglePause={handleToggleChatPause}
+          />
+        )}
+        {tab === "analytics" && (
+          <AnalyticsTab
+            orders={orders}
+            chats={chats}
+            catalog={catalog}
           />
         )}
       </TabTransition>

@@ -42,7 +42,13 @@ export default function OnboardingWizard({ activeBusiness, onComplete }: Onboard
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    endOfMessagesRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (endOfMessagesRef.current && endOfMessagesRef.current.parentElement) {
+      const container = endOfMessagesRef.current.parentElement;
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: "smooth"
+      });
+    }
   }, [messages, isTyping]);
 
   // Auto-scan QR simulation after 4 seconds when in SCAN_QR step

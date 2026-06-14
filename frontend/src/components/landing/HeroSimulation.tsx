@@ -43,7 +43,7 @@ export default function HeroSimulation() {
       </div>
 
       <div className="p-6">
-        <div className="space-y-4 min-h-[320px] flex flex-col justify-end">
+        <div className="space-y-4 h-[420px] overflow-hidden flex flex-col justify-end relative">
           <AnimatePresence initial={false}>
             {visibleSteps.map((step) => (
               <motion.div
