@@ -103,10 +103,6 @@ Instead of running a local PostgreSQL container, the AnytimeLLM system connects 
 3. **Start the FastAPI Application**:
    Run the application module to start the local development server:
    ```powershell
-   python -m app.main
-   ```
-   *Alternatively, you can run uvicorn directly:*
-   ```powershell
    uvicorn app.main:app --reload --port 8000
    ```
 4. **Verify Startup**:
@@ -181,4 +177,4 @@ If deploying WhatsApp integration:
    * Provide the `META_WA_VERIFY_TOKEN` configured in your `.env` for WhatsApp authentication verify step.
 
 
-nice.
+nice.nahh
