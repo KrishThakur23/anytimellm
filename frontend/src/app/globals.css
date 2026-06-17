@@ -27,65 +27,65 @@
   --font-body: 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace;
 
-  /* WhatsApp Premium Palette Overrides */
-  --color-violet-50: #F0F2F5;
-  --color-violet-100: #DCF8C6;
-  --color-violet-200: #25D366;
-  --color-violet-300: #25D366;
-  --color-violet-400: #128C7E;
-  --color-violet-500: #128C7E;
-  --color-violet-600: #075E54;
-  --color-violet-700: #075E54;
-  --color-violet-800: #054C44;
-  --color-violet-900: #033630;
+  /* WhatsApp Premium Palette Overrides -> Replaced with Monochrome/Ambient */
+  --color-violet-50: #F5F3FF;
+  --color-violet-100: #EDE9FE;
+  --color-violet-200: #DDD6FE;
+  --color-violet-300: #C4B5FD;
+  --color-violet-400: #A78BFA;
+  --color-violet-500: #8B5CF6;
+  --color-violet-600: #7C3AED;
+  --color-violet-700: #6D28D9;
+  --color-violet-800: #5B21B6;
+  --color-violet-900: #4C1D95;
 
-  --color-blue-50: #F0F2F5;
-  --color-blue-100: #DCF8C6;
-  --color-blue-500: #25D366;
-  --color-blue-600: #128C7E;
+  --color-blue-50: #EFF6FF;
+  --color-blue-100: #DBEAFE;
+  --color-blue-500: #3B82F6;
+  --color-blue-600: #2563EB;
 
-  --color-cyan-500: #34B7F1;
+  --color-cyan-500: #06B6D4;
 
-  --color-slate-50: #F0F2F5;
-  --color-slate-100: #E9EDEF;
-  --color-slate-200: #D1D7DB;
-  --color-slate-300: #8696A0;
-  --color-slate-400: #667781;
-  --color-slate-500: #54656F;
-  --color-slate-600: #41525D;
-  --color-slate-700: #3B4A54;
-  --color-slate-800: #111B21;
-  --color-slate-900: #0B141A;
+  --color-slate-50: #FAFAFA;
+  --color-slate-100: #F4F4F5;
+  --color-slate-200: #E4E4E7;
+  --color-slate-300: #D4D4D8;
+  --color-slate-400: #A1A1AA;
+  --color-slate-500: #71717A;
+  --color-slate-600: #52525B;
+  --color-slate-700: #3F3F46;
+  --color-slate-800: #27272A;
+  --color-slate-900: #09090B;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   Light Mode (Default)
+   Light Mode (Premium Minimalist)
    ═══════════════════════════════════════════════════════════════════ */
 
 :root {
-  --background: #F8FAFC;
-  --foreground: #0F172A;
+  --background: #FFFFFF;
+  --foreground: #09090B;
 
   --surface-0: #FFFFFF;
-  --surface-1: #F0F2F5;
-  --surface-2: #E9EDEF;
-  --surface-3: #D1D7DB;
+  --surface-1: #FAFAFA;
+  --surface-2: #F4F4F5;
+  --surface-3: #E4E4E7;
 
-  --border: #E9EDEF;
-  --border-subtle: #F0F2F5;
-  --border-hover: #D1D7DB;
+  --border: #E4E4E7;
+  --border-subtle: #F4F4F5;
+  --border-hover: #D4D4D8;
 
-  --primary: #128C7E;
-  --primary-hover: #075E54;
-  --primary-muted: rgba(18, 140, 126, 0.08);
-  --primary-glow: rgba(18, 140, 126, 0.12);
+  --primary: #09090B;
+  --primary-hover: #27272A;
+  --primary-muted: rgba(9, 9, 11, 0.08);
+  --primary-glow: rgba(9, 9, 11, 0.12);
 
-  --secondary: #25D366;
+  --secondary: #10B981;
 
   /* Accent Gradient Stops */
-  --accent-violet: #128C7E;
-  --accent-blue: #25D366;
-  --accent-cyan: #34B7F1;
+  --accent-violet: #8B5CF6;
+  --accent-blue: #3B82F6;
+  --accent-cyan: #06B6D4;
 
   /* Semantic Colors */
   --accent-green: #10B981;
@@ -94,16 +94,16 @@
   --accent-amber-muted: rgba(245, 158, 11, 0.1);
   --accent-red: #EF4444;
   --accent-red-muted: rgba(239, 68, 68, 0.08);
-  --accent-blue: #2563EB;
-  --accent-blue-muted: rgba(37, 99, 235, 0.1);
-  --accent-purple: #7C3AED;
-  --accent-purple-muted: rgba(124, 58, 237, 0.1);
+  --accent-blue: #3B82F6;
+  --accent-blue-muted: rgba(59, 130, 246, 0.1);
+  --accent-purple: #8B5CF6;
+  --accent-purple-muted: rgba(139, 92, 246, 0.1);
 
   /* Text Hierarchy */
-  --text-primary: #111B21;
-  --text-secondary: #54656F;
-  --text-muted: #8696A0;
-  --text-ghost: #D1D7DB;
+  --text-primary: #09090B;
+  --text-secondary: #52525B;
+  --text-muted: #71717A;
+  --text-ghost: #A1A1AA;
 
   /* Rounded Radii */
   --radius-sm: 6px;
@@ -118,9 +118,9 @@
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.06), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
-  --shadow-glow-violet: 0 0 30px rgba(18, 140, 126, 0.12);
+  --shadow-glow-violet: 0 0 40px rgba(139, 92, 246, 0.15);
   --shadow-elevation: 0 8px 30px rgba(0, 0, 0, 0.08);
-  --shadow-premium: 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(15,23,42,0.08);
+  --shadow-premium: 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(9, 9, 11, 0.08);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -128,29 +128,29 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 .dark {
-  --background: #0B141A;
-  --foreground: #E9EDEF;
+  --background: #09090B;
+  --foreground: #FAFAFA;
 
-  --surface-0: #111B21;
-  --surface-1: #202C33;
-  --surface-2: #2A3942;
-  --surface-3: #3B4A54;
+  --surface-0: #09090B;
+  --surface-1: #18181B;
+  --surface-2: #27272A;
+  --surface-3: #3F3F46;
 
-  --border: #2A3942;
-  --border-subtle: #202C33;
-  --border-hover: #3B4A54;
+  --border: #27272A;
+  --border-subtle: #18181B;
+  --border-hover: #3F3F46;
 
-  --primary: #25D366;
-  --primary-hover: #128C7E;
-  --primary-muted: rgba(37, 211, 102, 0.1);
-  --primary-glow: rgba(37, 211, 102, 0.16);
+  --primary: #FAFAFA;
+  --primary-hover: #E4E4E7;
+  --primary-muted: rgba(250, 250, 250, 0.1);
+  --primary-glow: rgba(250, 250, 250, 0.16);
 
-  --secondary: #128C7E;
+  --secondary: #10B981;
 
-  --text-primary: #E9EDEF;
-  --text-secondary: #8696A0;
-  --text-muted: #667781;
-  --text-ghost: #3B4A54;
+  --text-primary: #FAFAFA;
+  --text-secondary: #A1A1AA;
+  --text-muted: #71717A;
+  --text-ghost: #52525B;
 
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
@@ -257,7 +257,7 @@ body {
    ═══════════════════════════════════════════════════════════════════ */
 
 .text-gradient-hero {
-  background: linear-gradient(135deg, #128C7E 0%, #25D366 50%, #34B7F1 100%);
+  background: linear-gradient(135deg, #09090B 0%, #3F3F46 50%, #71717A 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -265,7 +265,7 @@ body {
 }
 
 .text-gradient-primary {
-  background: linear-gradient(135deg, #128C7E 0%, #25D366 100%);
+  background: linear-gradient(135deg, #09090B 0%, #52525B 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -273,7 +273,7 @@ body {
 }
 
 .text-gradient-accent {
-  background: linear-gradient(135deg, #128C7E 0%, #34B7F1 100%);
+  background: linear-gradient(135deg, #8B5CF6 0%, #3B82F6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -285,12 +285,12 @@ body {
    ═══════════════════════════════════════════════════════════════════ */
 
 .bg-gradient-cta {
-  background: linear-gradient(135deg, #128C7E 0%, #25D366 50%, #DCF8C6 100%);
+  background: linear-gradient(135deg, #09090B 0%, #27272A 50%, #3F3F46 100%);
 }
 
 .bg-gradient-hero {
-  background: radial-gradient(ellipse at top, rgba(18, 140, 126, 0.06) 0%, transparent 60%),
-              radial-gradient(ellipse at bottom right, rgba(37, 211, 102, 0.04) 0%, transparent 50%);
+  background: radial-gradient(ellipse at top, rgba(139, 92, 246, 0.05) 0%, transparent 60%),
+              radial-gradient(ellipse at bottom right, rgba(59, 130, 246, 0.03) 0%, transparent 50%);
 }
 
 .bg-grid-pattern {

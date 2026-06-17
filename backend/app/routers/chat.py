@@ -9,6 +9,9 @@ from app.database import get_db
 from app.models import Business, Customer, Conversation, Message
 from app.schemas import ChatMessageIn, ChatMessageOut
 from app.services.agent import agent_graph
+from app.services.permissions import check_can_use_bot, check_conversation_limit
+from app.services.analytics import log_conversion_event
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +67,9 @@ def chat_with_agent(
             db.add(conversation)
             db.commit()
             db.refresh(conversation)
+            
+            # Log conversion event
+            log_conversion_event(db, business_id, "First Conversation")
 
         # 4. Fetch message history for LangGraph context
         # Note: We fetch the last 15 messages to avoid blowing up context window
@@ -93,6 +99,29 @@ def chat_with_agent(
             "vector_results": None,
             "next_action": None
         }
+
+        # 5.5 Check Billing Permissions
+        if not check_can_use_bot(db, business_id) or not check_conversation_limit(db, business_id):
+            # Still log the customer message but return a polite bot unavailability message
+            cust_msg = Message(
+                conversation_id=conversation.id,
+                sender="customer",
+                content=payload.content
+            )
+            agent_msg = Message(
+                conversation_id=conversation.id,
+                sender="agent",
+                content="The AI assistant is currently unavailable."
+            )
+            db.add(cust_msg)
+            db.add(agent_msg)
+            db.commit()
+            db.refresh(agent_msg)
+            return ChatMessageOut(
+                sender="agent",
+                content=agent_msg.content,
+                created_at=agent_msg.created_at
+            )
 
         # 6. Execute LangGraph
         result_state = agent_graph.invoke(initial_state)

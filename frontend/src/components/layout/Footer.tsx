@@ -36,7 +36,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-slate-50 border-t border-slate-200">
+    <footer className="bg-transparent border-t border-slate-200/50 mt-12">
       <div className="max-w-7xl mx-auto px-6 md:px-12 py-14">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
           {/* Brand Column */}
@@ -68,7 +68,7 @@ export default function Footer() {
                   <li key={link.name}>
                     <Link
                       href={link.href}
-                      className="text-[13px] text-slate-500 hover:text-[#128C7E] transition-colors duration-300"
+                      className="text-[13px] text-slate-500 hover:text-slate-900 transition-colors duration-300"
                     >
                       {link.name}
                     </Link>

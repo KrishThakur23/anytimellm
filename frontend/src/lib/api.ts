@@ -228,6 +228,14 @@ export const api = {
     return res.json();
   },
 
+  async getSubscription(businessId: string): Promise<any> {
+    const res = await fetch(`${BACKEND_URL}/api/billing/subscription/${businessId}`, {
+      headers: getHeaders(),
+    });
+    if (!res.ok) throw new Error("Failed to fetch subscription details.");
+    return res.json();
+  },
+
   async addCatalogItem(businessId: string, item: CatalogItem): Promise<CatalogItem> {
     const res = await fetch(`${BACKEND_URL}/api/businesses/${businessId}/catalog`, {
       method: "POST",

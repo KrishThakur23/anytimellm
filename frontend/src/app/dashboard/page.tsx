@@ -42,6 +42,8 @@ export default function Dashboard() {
   const [chats, setChats] = useState<Conversation[]>([]);
   const [loadingChats, setLoadingChats] = useState(false);
   
+  const [subscription, setSubscription] = useState<any>(null);
+  
   // Form States
   const [urlInput, setUrlInput] = useState("");
   const [ingestingUrl, setIngestingUrl] = useState(false);
@@ -186,16 +188,18 @@ export default function Dashboard() {
   const fetchBusinessData = async () => {
     if (!activeBusiness) return;
     try {
-      const [docsData, catalogData, ordersData, chatsData] = await Promise.all([
+      const [docsData, catalogData, ordersData, chatsData, subData] = await Promise.all([
         api.getDocuments(activeBusiness.id),
         api.getCatalog(activeBusiness.id),
         api.getOrders(activeBusiness.id),
-        api.getChats(activeBusiness.id)
+        api.getChats(activeBusiness.id),
+        api.getSubscription(activeBusiness.id).catch(() => null)
       ]);
       setDocuments(docsData);
       setCatalog(catalogData);
       setOrders(ordersData);
       setChats(chatsData);
+      setSubscription(subData);
     } catch (err: any) {
       console.error(err);
       setError("Failed to fetch business data. Check if backend server is running.");
@@ -502,6 +506,7 @@ export default function Dashboard() {
             copyToClipboard={copyToClipboard}
             onTabChange={setTab}
             onUpdateBusiness={setActiveBusiness}
+            subscription={subscription}
           />
         )}
         {tab === "ingest" && (

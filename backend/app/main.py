@@ -11,7 +11,7 @@ from slowapi.middleware import SlowAPIMiddleware
 
 from app.config import settings
 from app.database import engine, Base
-from app.routers import auth, ingest, chat, webhook, users, integrations, onboarding, integrations_instagram, webhook_instagram
+from app.routers import auth, ingest, chat, webhook, users, integrations, onboarding, integrations_instagram, webhook_instagram, billing
 
 # Setup logger
 logging.basicConfig(
@@ -69,6 +69,7 @@ async def lifespan(app: FastAPI):
             safe_add_column("messages", "meta_message_id", "VARCHAR(255) UNIQUE")
             safe_add_column("businesses", "business_type", "VARCHAR(50)")
             safe_add_column("businesses", "onboarding_status", "VARCHAR(50) DEFAULT 'pending'")
+            safe_add_column("users", "role", "VARCHAR(50) DEFAULT 'owner'")
             
             # Create missing indexes for critical foreign keys and filter fields
             conn.execute(text("CREATE INDEX IF NOT EXISTS ix_documents_business_id ON documents (business_id);"))
@@ -82,7 +83,35 @@ async def lifespan(app: FastAPI):
             conn.execute(text("CREATE INDEX IF NOT EXISTS ix_orders_customer_id ON orders (customer_id);"))
             
             conn.commit()
+            
+            # Seed Plan Entitlements
+            conn.execute(text("""
+                INSERT INTO plan_entitlements (plan_type, max_documents, max_conversations, max_agents, max_products, max_integrations, max_users, created_at, updated_at)
+                VALUES 
+                    ('TRIAL', 20, 500, 1, 50, 2, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+                    ('STARTER', 20, 500, 1, 50, 2, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+                    ('GROWTH', 100, 3000, 3, 500, 5, 5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+                    ('ENTERPRISE', -1, -1, -1, -1, -1, -1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                ON CONFLICT (plan_type) DO NOTHING;
+            """))
+            conn.commit()
+            
         logger.info("Database migration check and indexing completed successfully.")
+        
+        # Start background jobs
+        try:
+            from apscheduler.schedulers.asyncio import AsyncIOScheduler
+            from app.services.billing_jobs import sweep_expired_subscriptions, generate_daily_usage_snapshots, retry_failed_webhooks
+            
+            scheduler = AsyncIOScheduler()
+            scheduler.add_job(sweep_expired_subscriptions, 'interval', hours=1)
+            scheduler.add_job(retry_failed_webhooks, 'interval', minutes=15)
+            scheduler.add_job(generate_daily_usage_snapshots, 'cron', hour=0, minute=5)
+            scheduler.start()
+            logger.info("Background jobs started successfully.")
+        except Exception as e:
+            logger.error(f"Failed to start background scheduler: {e}")
+            
     except Exception as migration_error:
         logger.warning(f"Database migration check skipped or failed: {migration_error}")
     except Exception as e:
@@ -156,6 +185,7 @@ app.include_router(integrations.router)
 app.include_router(onboarding.router)
 app.include_router(integrations_instagram.router)
 app.include_router(webhook_instagram.router)
+app.include_router(billing.router)
 
 @app.api_route("/", methods=["GET", "HEAD"])
 def health_check():

@@ -10,6 +10,8 @@ from app.config import settings
 from app.models import Business, Customer, Conversation, Message
 from app.services.agent import agent_graph
 from app.services.whatsapp import send_whatsapp_message
+from app.services.permissions import check_can_use_bot, check_conversation_limit
+from app.services.analytics import log_conversion_event
 
 logger = logging.getLogger(__name__)
 
@@ -352,6 +354,9 @@ async def process_single_whatsapp_event(
             db.add(conversation)
             db.commit()
             db.refresh(conversation)
+            
+            # Log conversion event
+            log_conversion_event(db, business_id, "First Conversation")
 
         # 3. Retrieve recent history for agent context (last 15 messages)
         history_records = (
@@ -403,6 +408,11 @@ async def process_single_whatsapp_event(
         except Exception as e:
             db.rollback()
             print(f"[WEBHOOK DEDUPLICATOR] Failed to insert customer message (possible duplicate): {e}")
+            return
+
+        # 3.5 Check Billing Permissions
+        if not check_can_use_bot(db, business_id) or not check_conversation_limit(db, business_id):
+            print(f"[WEBHOOK PROCESS] Business {business_id} has exceeded billing limits or AI is disabled.")
             return
 
         # 4. Invoke LangGraph agent
@@ -499,6 +509,9 @@ async def process_outgoing_echo_event(
             db.add(conversation)
             db.commit()
             db.refresh(conversation)
+            
+            # Log conversion event
+            log_conversion_event(db, business_id, "First Conversation")
 
         # 3. Log the message to DB as 'agent'
         agent_msg = Message(
@@ -564,6 +577,9 @@ async def process_status_sent_event(
             db.add(conversation)
             db.commit()
             db.refresh(conversation)
+            
+            # Log conversion event
+            log_conversion_event(db, business_id, "First Conversation")
 
         # 3. Check for recently logged agent messages to avoid duplicating our own outbound dashboard replies
         from datetime import datetime, timedelta

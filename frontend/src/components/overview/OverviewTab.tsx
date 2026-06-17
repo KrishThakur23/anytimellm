@@ -29,6 +29,7 @@ interface OverviewTabProps {
   copyToClipboard: (text: string) => void;
   onTabChange?: (tab: "overview" | "ingest" | "catalog" | "playground" | "integrations" | "orders" | "chats") => void;
   onUpdateBusiness?: (updatedBiz: Business) => void;
+  subscription?: any;
 }
 
 export default function OverviewTab({
@@ -39,7 +40,8 @@ export default function OverviewTab({
   copied,
   copyToClipboard,
   onTabChange,
-  onUpdateBusiness
+  onUpdateBusiness,
+  subscription
 }: OverviewTabProps) {
 
   // Mock Data for Needs Attention
@@ -56,14 +58,49 @@ export default function OverviewTab({
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900">
-            Mission Control
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900">
+              Mission Control
+            </h1>
+            {subscription && (
+              <span className="px-2 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-md border border-emerald-200">
+                {subscription.plan_type} PLAN
+              </span>
+            )}
+            {subscription?.plan_type === "TRIAL" && (
+              <span className="px-2 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-md border border-amber-200">
+                {subscription.trial_days_left} Days Left
+              </span>
+            )}
+          </div>
           <p className="font-body text-sm text-slate-500 mt-1">
             Everything you need to run your business today.
           </p>
         </div>
       </div>
+
+      {/* Payment Recovery Banner */}
+      {subscription && (subscription.status === "past_due" || subscription.status === "pending_payment") && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h3 className="text-red-800 font-bold flex items-center gap-2">
+              <AlertCircle className="w-5 h-5" />
+              Payment Action Required
+            </h3>
+            <p className="text-red-700 text-sm mt-1">
+              Your latest payment has failed or is pending. Please update your payment method to avoid service interruption.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <button className="px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg shadow-sm hover:bg-red-700 transition-colors">
+              Retry Payment
+            </button>
+            <button className="px-4 py-2 bg-white text-slate-700 text-sm font-semibold rounded-lg shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors">
+              Contact Support
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 1. Needs Attention */}
       <section>
@@ -124,11 +161,11 @@ export default function OverviewTab({
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-2 text-amber-500">
               <ShoppingBag className="w-4 h-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider">Orders</span>
+              <span className="text-xs font-semibold uppercase tracking-wider">Orders Generated</span>
             </div>
-            <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">↑ 8%</span>
+            <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">Active</span>
           </div>
-          <span className="text-3xl font-display font-bold text-slate-900"><AnimatedCounter target={142} /></span>
+          <span className="text-3xl font-display font-bold text-slate-900"><AnimatedCounter target={orders.length} /></span>
         </div>
 
         {/* Conversations */}
@@ -136,11 +173,11 @@ export default function OverviewTab({
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-2 text-blue-600">
               <MessageSquare className="w-4 h-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider">Chats</span>
+              <span className="text-xs font-semibold uppercase tracking-wider">Chats Assisted</span>
             </div>
-            <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">↑ 25%</span>
+            <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">Active</span>
           </div>
-          <span className="text-3xl font-display font-bold text-slate-900"><AnimatedCounter target={89} /></span>
+          <span className="text-3xl font-display font-bold text-slate-900"><AnimatedCounter target={0} /></span>
         </div>
 
         {/* AI Resolution */}
@@ -183,7 +220,7 @@ export default function OverviewTab({
                   </div>
                   <span className="text-sm font-medium text-slate-700">Orders Automated</span>
                 </div>
-                <span className="font-semibold text-slate-900">14 Orders</span>
+                <span className="font-semibold text-slate-900">{orders.length} Orders</span>
               </div>
               <div className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors">
                 <div className="flex items-center gap-3">

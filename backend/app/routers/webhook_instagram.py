@@ -10,6 +10,7 @@ from app.config import settings
 from app.models import Business, Customer, Conversation, Message
 from app.services.agent import agent_graph
 from app.services.instagram import send_instagram_message
+from app.services.analytics import log_conversion_event
 
 logger = logging.getLogger(__name__)
 
@@ -189,6 +190,9 @@ async def process_single_instagram_event(
         db.add(conversation)
         db.commit()
         db.refresh(conversation)
+
+        # Log conversion event
+        log_conversion_event(db, business_id, "First Conversation")
 
     # 3. Retrieve recent history for context
     history_records = (

@@ -2,149 +2,146 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { MessageSquare, ShoppingBag, IndianRupee, Bot, ArrowUpRight } from "lucide-react";
+import { Terminal, Database, Code, Activity, Server, Cpu } from "lucide-react";
+import Link from "next/link";
 
 export default function SandboxPage() {
-  const [activeTab, setActiveTab] = useState("all");
-
-  const stats = [
-    { label: "Today's Revenue", value: "₹18,400", change: "+12%", icon: <IndianRupee className="w-5 h-5" />, color: "text-emerald-600", bg: "bg-emerald-50" },
-    { label: "Orders Today", value: "17", change: "+4", icon: <ShoppingBag className="w-5 h-5" />, color: "text-blue-600", bg: "bg-blue-50" },
-    { label: "Conversations", value: "53", change: "+18%", icon: <MessageSquare className="w-5 h-5" />, color: "text-violet-600", bg: "bg-violet-50" },
-    { label: "AI Resolution", value: "98.2%", change: "+1.1%", icon: <Bot className="w-5 h-5" />, color: "text-amber-600", bg: "bg-amber-50" },
-  ];
-
-  const recentChats = [
-    { name: "Rahul S.", message: "I want to order the Truffle Risotto", status: "Resolved (AI)", time: "2m ago", order: "₹899" },
-    { name: "Priya M.", message: "Do you have a table for 4 tonight?", status: "Resolved (AI)", time: "15m ago", order: "Booking" },
-    { name: "Amit K.", message: "Where is my order? It's late.", status: "Needs Action", time: "22m ago", order: null },
-    { name: "Sneha V.", message: "Are you open on Sundays?", status: "Resolved (AI)", time: "1h ago", order: null },
-  ];
+  const [activeTab, setActiveTab] = useState("logs");
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      <div className="flex items-end justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Mission Control</h1>
-          <p className="text-sm text-slate-500 mt-1">Real-time overview of your AI workforce.</p>
-        </div>
-        <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
+    <div className="min-h-screen bg-slate-950 text-slate-300 font-mono text-sm relative selection:bg-violet-900/50 selection:text-violet-200 flex flex-col">
+      {/* Dark Mode Background Orb */}
+      <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-violet-600/10 rounded-full blur-[150px] pointer-events-none z-0" />
+      <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none z-0" />
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:24px_24px] opacity-20" />
+
+      {/* Top Navigation Bar */}
+      <header className="fixed top-0 w-full z-50 bg-slate-950/80 backdrop-blur-md h-16 flex items-center justify-between px-8 border-b border-slate-800">
+        <Link 
+          href="/" 
+          className="text-[10px] tracking-[0.2em] text-slate-500 uppercase hover:text-slate-300 transition-colors duration-300 font-bold"
+        >
+          ← EXIT LAB
+        </Link>
+        <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          System Online
+          <span className="text-[10px] tracking-[0.3em] font-extrabold uppercase text-slate-300">SANDBOX_ENV</span>
         </div>
-      </div>
+        <span className="text-[10px] tracking-[0.2em] text-violet-400 uppercase font-bold">API v2.0.4</span>
+      </header>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {stats.map((stat, idx) => (
-          <motion.div
-            key={idx}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.1, duration: 0.4 }}
-            className="bg-white p-5 border border-slate-200 shadow-sm"
-            style={{ borderRadius: 16 }}
-          >
-            <div className="flex justify-between items-start mb-4">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${stat.bg} ${stat.color}`}>
-                {stat.icon}
-              </div>
-              <span className="flex items-center text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
-                <ArrowUpRight className="w-3 h-3 mr-0.5" />
-                {stat.change}
-              </span>
-            </div>
-            <div>
-              <div className="text-2xl font-extrabold text-slate-900">{stat.value}</div>
-              <div className="text-xs text-slate-500 font-medium uppercase tracking-wide mt-1">{stat.label}</div>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Main Content Split */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <main className="relative z-10 flex-grow pt-24 pb-12 px-6 max-w-[1400px] mx-auto w-full flex flex-col lg:flex-row gap-6">
         
-        {/* Left Col: Recent Activity */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white border border-slate-200 shadow-sm overflow-hidden" style={{ borderRadius: 16 }}>
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-              <h2 className="font-bold text-slate-800">Live Conversations</h2>
-              <div className="flex gap-2">
-                {['all', 'needs_action'].map(t => (
-                  <button 
-                    key={t}
-                    onClick={() => setActiveTab(t)}
-                    className={`text-xs px-3 py-1 rounded-full font-medium transition-colors ${activeTab === t ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
-                  >
-                    {t === 'all' ? 'All Chats' : 'Needs Action'}
-                  </button>
-                ))}
+        {/* Left Sidebar */}
+        <div className="w-full lg:w-64 shrink-0 flex flex-col gap-2">
+          <div className="text-[10px] tracking-[0.2em] text-slate-500 uppercase font-bold px-4 mb-2">Modules</div>
+          {[
+            { id: "logs", icon: <Terminal className="w-4 h-4" />, label: "System Logs" },
+            { id: "vector", icon: <Database className="w-4 h-4" />, label: "Vector DB" },
+            { id: "webhooks", icon: <Activity className="w-4 h-4" />, label: "Webhooks" },
+            { id: "api", icon: <Code className="w-4 h-4" />, label: "API Explorer" },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 text-xs font-bold uppercase tracking-wider ${
+                activeTab === tab.id 
+                  ? "bg-violet-600/10 text-violet-400 border border-violet-600/20" 
+                  : "text-slate-500 hover:bg-slate-900 hover:text-slate-300 border border-transparent"
+              }`}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
+
+          <div className="mt-auto pt-8">
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Server className="w-4 h-4 text-emerald-500" />
+                <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Node Status</span>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-[10px]">
+                  <span className="text-slate-500">CPU</span>
+                  <span className="text-emerald-400">12%</span>
+                </div>
+                <div className="flex justify-between text-[10px]">
+                  <span className="text-slate-500">RAM</span>
+                  <span className="text-emerald-400">2.4GB / 8GB</span>
+                </div>
+                <div className="flex justify-between text-[10px]">
+                  <span className="text-slate-500">Latency</span>
+                  <span className="text-emerald-400">42ms</span>
+                </div>
               </div>
             </div>
-
-            <div className="divide-y divide-slate-100">
-              {recentChats.filter(c => activeTab === 'all' || c.status === 'Needs Action').map((chat, idx) => (
-                <div key={idx} className="p-4 hover:bg-slate-50 transition-colors flex items-center gap-4 cursor-pointer">
-                  <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm shrink-0">
-                    {chat.name.charAt(0)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-baseline mb-0.5">
-                      <span className="font-semibold text-sm text-slate-900 truncate">{chat.name}</span>
-                      <span className="text-xs text-slate-400 shrink-0 ml-2">{chat.time}</span>
-                    </div>
-                    <p className="text-sm text-slate-600 truncate">{chat.message}</p>
-                  </div>
-                  <div className="hidden sm:flex flex-col items-end gap-1 shrink-0">
-                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                      chat.status.includes('AI') ? 'bg-violet-50 text-violet-700' : 'bg-amber-50 text-amber-700'
-                    }`}>
-                      {chat.status}
-                    </span>
-                    {chat.order && (
-                      <span className="text-xs font-semibold text-emerald-600">{chat.order}</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
 
-        {/* Right Col: System Status */}
-        <div className="space-y-6">
-          <div className="bg-slate-900 text-white p-6 shadow-xl relative overflow-hidden" style={{ borderRadius: 16 }}>
-            <div className="absolute top-0 right-0 w-32 h-32 bg-violet-600/20 rounded-full blur-3xl" />
-            
-            <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-              <Bot className="text-violet-400" /> AI Agents Status
-            </h3>
-            
-            <div className="space-y-4">
-              {[
-                { name: "Support Agent", status: "Active", load: "34%" },
-                { name: "Sales Agent", status: "Active", load: "62%" },
-                { name: "Order Routing", status: "Active", load: "12%" },
-              ].map((agent, idx) => (
-                <div key={idx} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-sm font-medium text-slate-300">{agent.name}</span>
-                  </div>
-                  <span className="text-xs font-mono text-slate-500">{agent.load}</span>
-                </div>
-              ))}
+        {/* Main Content Area */}
+        <div className="flex-1 bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-2xl overflow-hidden flex flex-col shadow-2xl shadow-black/50">
+          
+          {/* Header */}
+          <div className="h-12 border-b border-slate-800 flex items-center px-4 bg-slate-950/50">
+            <div className="flex gap-2">
+              <div className="w-3 h-3 rounded-full bg-rose-500/20 border border-rose-500/50" />
+              <div className="w-3 h-3 rounded-full bg-amber-500/20 border border-amber-500/50" />
+              <div className="w-3 h-3 rounded-full bg-emerald-500/20 border border-emerald-500/50" />
             </div>
-            
-            <div className="mt-6 pt-5 border-t border-slate-800">
-              <button className="w-full py-2 bg-white/10 hover:bg-white/20 transition-colors text-sm font-medium rounded-lg">
-                View System Logs
-              </button>
+            <div className="mx-auto flex items-center gap-2 text-slate-500 text-[10px] uppercase tracking-widest font-bold">
+              <Cpu className="w-3 h-3" />
+              {activeTab === "logs" ? "/var/log/system.out" : `/sandbox/${activeTab}`}
             </div>
           </div>
+
+          {/* Body */}
+          <div className="flex-1 p-6 overflow-y-auto">
+            {activeTab === "logs" && (
+              <div className="space-y-3">
+                <div className="text-slate-500"># Initializing Business Brain Core...</div>
+                <div className="text-emerald-400">[OK] Vector embeddings loaded (42.1ms)</div>
+                <div className="text-emerald-400">[OK] WhatsApp Webhook connected</div>
+                <div className="text-emerald-400">[OK] Memory nodes synchronized</div>
+                <div className="text-slate-500">Waiting for incoming events...</div>
+                <div className="mt-6 flex items-start gap-3">
+                  <span className="text-violet-400 shrink-0">14:02:41</span>
+                  <span className="text-slate-300">
+                    <span className="text-blue-400">[EVENT]</span> message.received
+                    <br/>
+                    <span className="text-slate-500">{"{"} from: "+919876543210", text: "Do you have the black variant in size 10?" {"}"}</span>
+                  </span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-violet-400 shrink-0">14:02:42</span>
+                  <span className="text-slate-300">
+                    <span className="text-amber-400">[RAG]</span> Querying knowledge base for "black variant size 10"...
+                  </span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-violet-400 shrink-0">14:02:43</span>
+                  <span className="text-slate-300">
+                    <span className="text-emerald-400">[ACTION]</span> Sending reply: "Yes, we have 3 pairs left in size 10 black! Would you like me to reserve one for you?"
+                  </span>
+                </div>
+                <div className="mt-4 flex items-center gap-2">
+                  <span className="text-violet-500">❯</span>
+                  <span className="w-2 h-4 bg-slate-500 animate-pulse" />
+                </div>
+              </div>
+            )}
+
+            {activeTab === "vector" && (
+              <div className="flex flex-col items-center justify-center h-full text-center">
+                <Database className="w-12 h-12 text-slate-700 mb-4" />
+                <h3 className="text-slate-300 font-bold uppercase tracking-widest mb-2">Vector Space Explorer</h3>
+                <p className="text-slate-500 text-xs max-w-md">Visualize embeddings and nearest neighbors. Connect your data source to begin semantic exploration.</p>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
+

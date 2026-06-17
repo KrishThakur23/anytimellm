@@ -8,6 +8,7 @@ from typing import Optional
 from app.database import get_db
 from app.models import Business, User
 from app.services.security import get_current_user
+from app.services.analytics import log_conversion_event
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -74,6 +75,9 @@ async def exchange_meta_auth_code(
         biz.api_settings = {**biz.api_settings, **meta_settings}
         db.commit()
         db.refresh(biz)
+        
+        # Log conversion event
+        log_conversion_event(db, biz.id, "WhatsApp Connected")
         
         return {
             "status": "success",
@@ -143,6 +147,9 @@ async def exchange_meta_auth_code(
             biz.api_settings = {**biz.api_settings, **meta_settings}
             db.commit()
             db.refresh(biz)
+            
+            # Log conversion event
+            log_conversion_event(db, biz.id, "WhatsApp Connected")
             
             return {
                 "status": "success",

@@ -1,0 +1,13 @@
+import requests
+res1 = requests.post('http://127.0.0.1:8000/api/auth/register', json={'business_name': 'Acme', 'email': 'test@newdomain.com', 'password': 'password'})
+print('Register 1:', res1.json())
+biz1 = res1.json().get('user', {}).get('business_id')
+token1 = res1.json().get('access_token')
+res1_sub = requests.get(f'http://127.0.0.1:8000/api/billing/subscription/{biz1}', headers={'Authorization': f'Bearer {token1}'})
+print('Sub 1:', res1_sub.json())
+res2 = requests.post('http://127.0.0.1:8000/api/auth/register', json={'business_name': 'Acme2', 'email': 'test2@newdomain.com', 'password': 'password'})
+print('Register 2:', res2.json())
+biz2 = res2.json().get('user', {}).get('business_id')
+token2 = res2.json().get('access_token')
+res2_sub = requests.get(f'http://127.0.0.1:8000/api/billing/subscription/{biz2}', headers={'Authorization': f'Bearer {token2}'})
+print('Sub 2:', res2_sub.json())

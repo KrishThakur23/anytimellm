@@ -11,6 +11,7 @@ from app.schemas import DocumentOut
 from app.services.parser import parser_registry
 from app.services.vector_db import index_document_text
 from app.services.security import get_current_user
+from app.services.analytics import log_conversion_event
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -176,6 +177,9 @@ async def upload_document_file(
             file_name=filename
         )
         
+        # Log conversion event
+        log_conversion_event(db, business_id, "Knowledge Uploaded")
+        
         return db_doc
         
     except HTTPException as he:
@@ -242,6 +246,9 @@ async def crawl_website_url(
             document_id=str(db_doc.id),
             file_name=url
         )
+        
+        # Log conversion event
+        log_conversion_event(db, business_id, "Knowledge Uploaded")
         
         return db_doc
         

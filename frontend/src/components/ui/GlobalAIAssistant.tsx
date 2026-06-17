@@ -141,25 +141,16 @@ export default function GlobalAIAssistant() {
     }
   };
 
+  if (pathname === "/") {
+    return null;
+  }
+
   return (
     <>
       {/* Floating Action Button */}
       <div className="fixed bottom-6 right-6 z-[100] flex flex-col items-end gap-4">
         
-        {/* Helper Tooltip (only show if closed and on home page) */}
-        {!isOpen && pathname === "/" && (
-          <div className="bg-white px-4 py-3 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-3 animate-bounce cursor-pointer relative" onClick={() => setIsOpen(true)}>
-            <div className="w-8 h-8 rounded-full bg-[#DCF8C6] flex items-center justify-center shrink-0">
-              <span className="text-xl">👋</span>
-            </div>
-            <div>
-              <p className="text-sm font-bold text-slate-800">Need help getting started?</p>
-              <p className="text-xs text-slate-500">Chat with our AI operator</p>
-            </div>
-            {/* Tooltip triangle */}
-            <div className="absolute -bottom-2 right-6 w-4 h-4 bg-white border-b border-r border-slate-100 rotate-45"></div>
-          </div>
-        )}
+        {/* Helper Tooltip removed as chat is hidden on homepage */}
 
         <button
           onClick={() => setIsOpen(!isOpen)}

@@ -4,113 +4,114 @@ import React from "react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { FileText, Scale, RefreshCw, AlertCircle } from "lucide-react";
-import FloatingParticles from "@/components/effects/FloatingParticles";
 
 export default function TermsOfServicePage() {
   return (
-    <div className="min-h-screen bg-white text-slate-900 relative flex flex-col justify-between overflow-x-hidden">
-      <FloatingParticles />
+    <div className="min-h-screen bg-slate-50 text-slate-900 relative flex flex-col justify-between overflow-x-hidden selection:bg-violet-100 selection:text-violet-900">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 z-0 h-full w-full bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:16px_16px] opacity-50" />
+      
       <Header />
 
       {/* Background Glows */}
-      <div className="absolute top-[10%] right-1/4 w-[500px] h-[500px] bg-indigo-600/[0.02] rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-0 right-1/4 w-[800px] h-[400px] bg-violet-600/5 rounded-full blur-[120px] pointer-events-none z-0" />
 
       {/* Hero Header */}
-      <section className="relative pt-36 pb-8 px-6 md:px-12 max-w-4xl mx-auto w-full text-center z-10">
-        <div className="mb-4 inline-flex items-center gap-1.5 border border-purple-100 bg-purple-50 px-3 py-1" style={{ borderRadius: '9999px' }}>
-          <Scale className="w-3.5 h-3.5 text-purple-600 animate-pulse" />
-          <span className="font-mono text-[9px] tracking-[0.25em] text-purple-600 uppercase font-bold">
+      <section className="relative pt-40 pb-16 px-6 md:px-12 max-w-4xl mx-auto w-full text-center z-10">
+        <div className="mb-6 inline-flex items-center gap-1.5 border border-violet-200/50 bg-violet-50/50 backdrop-blur-sm px-4 py-1.5 rounded-full shadow-sm">
+          <Scale className="w-3.5 h-3.5 text-violet-600 animate-pulse" />
+          <span className="text-[10px] tracking-[0.2em] text-violet-700 uppercase font-bold">
             USER AGREEMENT
           </span>
         </div>
-        <h1 className="font-display text-4xl md:text-5xl tracking-tight text-slate-900 mt-2 mb-4 leading-tight font-extrabold">
+        <h1 className="text-4xl md:text-5xl lg:text-6xl tracking-tight text-slate-900 mt-2 mb-6 leading-[1.1] font-extrabold">
           Terms of Service
         </h1>
-        <p className="font-body text-base text-slate-500 italic max-w-xl mx-auto leading-relaxed">
+        <p className="text-base md:text-lg text-slate-500 max-w-xl mx-auto leading-relaxed font-medium">
           Last Updated: June 7, 2026. General terms governing access to AnytimeLLM dashboards and WhatsApp APIs.
         </p>
       </section>
 
       {/* Content Section */}
-      <section className="px-6 md:px-12 max-w-4xl mx-auto w-full z-10 mb-24 font-body text-xs md:text-sm text-slate-600 space-y-8 leading-relaxed">
+      <section className="px-6 md:px-12 max-w-4xl mx-auto w-full z-10 mb-24 text-base text-slate-600 space-y-10 leading-relaxed">
         
         {/* Quick Summaries Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div className="p-5 border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-slate-300 transition-all duration-300 rounded-2xl shadow-sm">
-            <FileText className="w-5 h-5 text-purple-600 mb-3" />
-            <h3 className="font-display text-xs uppercase tracking-wider text-slate-900 font-bold mb-2">Usage Rights</h3>
-            <p className="text-[11px] text-slate-500">
+          <div className="p-6 border border-slate-200/60 bg-white/50 backdrop-blur-xl hover:bg-white hover:shadow-md hover:border-violet-200 transition-all duration-300 rounded-3xl">
+            <FileText className="w-5 h-5 text-violet-600 mb-4" />
+            <h3 className="text-sm tracking-tight text-slate-900 font-bold mb-2">Usage Rights</h3>
+            <p className="text-[13px] text-slate-500 font-medium leading-relaxed">
               Subject to tier subscription limits, we grant a non-exclusive license to link your WhatsApp numbers and upload catalogs.
             </p>
           </div>
-          <div className="p-5 border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-slate-300 transition-all duration-300 rounded-2xl shadow-sm">
-            <RefreshCw className="w-5 h-5 text-purple-600 mb-3" />
-            <h3 className="font-display text-xs uppercase tracking-wider text-slate-900 font-bold mb-2">Subscription & Renewal</h3>
-            <p className="text-[11px] text-slate-500">
+          <div className="p-6 border border-slate-200/60 bg-white/50 backdrop-blur-xl hover:bg-white hover:shadow-md hover:border-violet-200 transition-all duration-300 rounded-3xl">
+            <RefreshCw className="w-5 h-5 text-violet-600 mb-4" />
+            <h3 className="text-sm tracking-tight text-slate-900 font-bold mb-2">Subscription & Renewal</h3>
+            <p className="text-[13px] text-slate-500 font-medium leading-relaxed">
               Billing cycles occur monthly or yearly. Active accounts auto-renew unless cancelled at least 24 hours prior.
             </p>
           </div>
-          <div className="p-5 border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-slate-300 transition-all duration-300 rounded-2xl shadow-sm">
-            <AlertCircle className="w-5 h-5 text-purple-600 mb-3" />
-            <h3 className="font-display text-xs uppercase tracking-wider text-slate-900 font-bold mb-2">Liability Limits</h3>
-            <p className="text-[11px] text-slate-500">
+          <div className="p-6 border border-slate-200/60 bg-white/50 backdrop-blur-xl hover:bg-white hover:shadow-md hover:border-violet-200 transition-all duration-300 rounded-3xl">
+            <AlertCircle className="w-5 h-5 text-violet-600 mb-4" />
+            <h3 className="text-sm tracking-tight text-slate-900 font-bold mb-2">Liability Limits</h3>
+            <p className="text-[13px] text-slate-500 font-medium leading-relaxed">
               We are not liable for sales drops, user API bans by Meta, or catalog inaccuracies generated by AI text completions.
             </p>
           </div>
         </div>
 
         {/* Detailed Terms Container */}
-        <div className="border border-slate-200 bg-slate-50/20 p-8 md:p-10 space-y-8 rounded-3xl shadow-sm">
+        <div className="border border-slate-200/60 bg-white/50 backdrop-blur-xl p-8 md:p-12 space-y-10 rounded-[2.5rem] shadow-xl shadow-slate-200/20">
           
-          <div className="space-y-3">
-            <h2 className="font-display text-sm md:text-base uppercase tracking-widest text-slate-900 font-bold border-b border-slate-200 pb-2">
+          <div className="space-y-4">
+            <h2 className="text-xl tracking-tight text-slate-900 font-bold border-b border-slate-200 pb-3">
               1. Acceptance of Terms
             </h2>
-            <p>
+            <p className="text-slate-600 font-medium">
               By registering an account on AnytimeLLM or utilizing our WhatsApp automation webhooks, you agree to comply with and be bound by these Terms of Service. If you are accepting these terms on behalf of a retail business, restaurant, B2B wholesale operation, or other commercial entity, you warrant that you hold sufficient executive authority to bind such entity.
             </p>
           </div>
 
-          <div className="space-y-3">
-            <h2 className="font-display text-sm md:text-base uppercase tracking-widest text-slate-900 font-bold border-b border-slate-200 pb-2">
+          <div className="space-y-4">
+            <h2 className="text-xl tracking-tight text-slate-900 font-bold border-b border-slate-200 pb-3">
               2. Account Credentials & Security
             </h2>
-            <p>
+            <p className="text-slate-600 font-medium">
               You are responsible for safeguarding your administrative console credentials. Any operations performed within your tenant workspace are considered authorized by you. You agree to immediately notify AnytimeLLM team of any unauthorized access, API key leaks, or security compromises of your webhook verify tokens.
             </p>
           </div>
 
-          <div className="space-y-3">
-            <h2 className="font-display text-sm md:text-base uppercase tracking-widest text-slate-900 font-bold border-b border-slate-200 pb-2">
+          <div className="space-y-4">
+            <h2 className="text-xl tracking-tight text-slate-900 font-bold border-b border-slate-200 pb-3">
               3. WhatsApp API Integration & Third-Party Terms
             </h2>
-            <p>
+            <p className="text-slate-600 font-medium">
               To connect your AI assistant live, you must utilize Meta Cloud API keys. You agree to:
             </p>
-            <ul className="list-disc pl-6 space-y-1">
+            <ul className="list-disc pl-6 space-y-2 text-slate-500 marker:text-violet-400">
               <li>Strictly adhere to Meta's WhatsApp Business Policy and Terms of Service.</li>
               <li>Avoid utilizing the AI chatbot to distribute unsolicited spam messages or sell prohibited items.</li>
               <li>Acknowledge that Meta maintains final authority over phone status and API throttling. AnytimeLLM holds zero liability for Meta account bans or phone status flags.</li>
             </ul>
           </div>
 
-          <div className="space-y-3">
-            <h2 className="font-display text-sm md:text-base uppercase tracking-widest text-slate-900 font-bold border-b border-slate-200 pb-2">
+          <div className="space-y-4">
+            <h2 className="text-xl tracking-tight text-slate-900 font-bold border-b border-slate-200 pb-3">
               4. Accuracy of AI-Generated Catalog Responses
             </h2>
-            <p>
+            <p className="text-slate-600 font-medium">
               AnytimeLLM utilizes advanced retrieval-augmented generation (RAG) models to formulate conversational answers based on your uploaded files.
             </p>
-            <p className="italic">
+            <div className="p-4 bg-slate-100 rounded-2xl border border-slate-200 text-slate-600 text-[15px] italic leading-relaxed">
               While we optimize chunk retrieval and SQL tool logic, you acknowledge that AI models can occasionally produce hallucinations or write wrong prices. You are responsible for auditing your catalog data regularly. AnytimeLLM is not responsible for pricing disputes, inventory discrepancies, or wrong order parameters answered by the bot.
-            </p>
+            </div>
           </div>
 
-          <div className="space-y-3">
-            <h2 className="font-display text-sm md:text-base uppercase tracking-widest text-slate-900 font-bold border-b border-slate-200 pb-2">
+          <div className="space-y-4">
+            <h2 className="text-xl tracking-tight text-slate-900 font-bold border-b border-slate-200 pb-3">
               5. Support & Refund Policy
             </h2>
-            <p>
+            <p className="text-slate-600 font-medium">
               Starter and Growth tiers receive email support. Agency tier includes dedicated uptime managers. Because we offer a 14-day free trial on all plans, all sales are final upon billing cycle renewal, and we do not issue partial refunds for mid-month cancellations.
             </p>
           </div>

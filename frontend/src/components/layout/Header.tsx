@@ -40,7 +40,7 @@ export default function Header() {
     >
       {/* Brand */}
       <Link href="/" className="flex items-center gap-1 group">
-        <span className="text-[15px] font-extrabold tracking-[0.12em] text-slate-900 group-hover:text-[#128C7E] transition-colors duration-300">
+        <span className="text-[15px] font-extrabold tracking-[0.12em] text-slate-900 transition-colors duration-300">
           ANYTIMELLM
         </span>
       </Link>
@@ -51,8 +51,8 @@ export default function Header() {
           <Link
             key={link.name}
             href={link.href}
-            className={`text-[13px] font-medium transition-colors duration-300 hover:text-[#128C7E] ${
-              pathname === link.href ? "text-[#128C7E] font-semibold" : "text-slate-500"
+            className={`text-[13px] font-medium transition-colors duration-300 hover:text-slate-900 ${
+              pathname === link.href ? "text-slate-900 font-semibold" : "text-slate-500"
             }`}
           >
             {link.name}
@@ -65,8 +65,7 @@ export default function Header() {
         {isLoggedIn ? (
           <Link
             href="/dashboard"
-            className="text-[13px] font-semibold text-[#128C7E] border border-[#128C7E]/20 px-4 py-2 hover:bg-[#128C7E]/5 transition-all duration-300"
-            style={{ borderRadius: 10 }}
+            className="text-[13px] font-semibold text-slate-700 border border-slate-200 px-4 py-2 hover:bg-slate-50 transition-all duration-300 rounded-xl shadow-sm"
           >
             Dashboard
           </Link>
@@ -80,8 +79,7 @@ export default function Header() {
             </Link>
             <button
               onClick={() => window.dispatchEvent(new CustomEvent("open-ai-assistant"))}
-              className="magnetic-btn text-[13px] font-semibold text-white bg-gradient-to-r from-[#128C7E] to-[#25D366] px-5 py-2.5 hover:shadow-lg hover:shadow-[#25D366]/40 transition-all duration-300 flex items-center gap-1.5 group"
-              style={{ borderRadius: 10 }}
+              className="text-[13px] font-semibold text-white bg-slate-900 px-5 py-2.5 hover:bg-slate-800 transition-all duration-300 flex items-center gap-1.5 group rounded-xl shadow-md hover:shadow-lg"
             >
               Start Free
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
@@ -108,8 +106,8 @@ export default function Header() {
                 key={link.name}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`text-sm font-medium hover:text-[#128C7E] transition-colors ${
-                  pathname === link.href ? "text-[#128C7E]" : "text-slate-600"
+                className={`text-sm font-medium hover:text-slate-900 transition-colors ${
+                  pathname === link.href ? "text-slate-900" : "text-slate-600"
                 }`}
               >
                 {link.name}
@@ -124,8 +122,7 @@ export default function Header() {
               <Link
                 href="/dashboard"
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full text-center text-sm font-semibold text-[#128C7E] border border-[#128C7E]/20 py-2.5"
-                style={{ borderRadius: 10 }}
+                className="w-full text-center text-sm font-semibold text-slate-700 border border-slate-200 py-2.5 rounded-xl shadow-sm"
               >
                 Go to Dashboard
               </Link>
@@ -143,8 +140,7 @@ export default function Header() {
                     setMobileMenuOpen(false);
                     window.dispatchEvent(new CustomEvent("open-ai-assistant"));
                   }}
-                  className="w-full text-center text-sm font-semibold text-white bg-gradient-to-r from-[#128C7E] to-[#25D366] py-2.5 flex items-center justify-center gap-1.5"
-                  style={{ borderRadius: 10 }}
+                  className="w-full text-center text-sm font-semibold text-white bg-slate-900 py-2.5 flex items-center justify-center gap-1.5 rounded-xl shadow-md hover:shadow-lg transition-all"
                 >
                   Start Free
                   <ArrowRight className="w-3.5 h-3.5" />

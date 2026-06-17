@@ -152,18 +152,20 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-white text-slate-900 relative overflow-x-hidden">
+    <div className="min-h-screen w-full flex flex-col bg-slate-50 text-slate-900 relative overflow-x-hidden selection:bg-violet-100 selection:text-violet-900">
       {/* Script to load Google Identity Services */}
       <Script src="https://accounts.google.com/gsi/client" strategy="lazyOnload" />
 
+      {/* Background Pattern */}
+      <div className="absolute inset-0 z-0 h-full w-full bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:16px_16px] opacity-50" />
+
       {/* Decorative Background Glows */}
-      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-purple-600/[0.03] rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute top-[20%] right-1/4 w-[400px] h-[400px] bg-indigo-600/[0.02] rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-violet-600/5 rounded-full blur-[120px] pointer-events-none z-0" />
 
       {/* Top Navigation Bar */}
       <header 
         ref={brandRef} 
-        className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md h-16 flex items-center justify-between px-8 border-b border-slate-200/60"
+        className="fixed top-0 w-full z-50 bg-white/50 backdrop-blur-md h-16 flex items-center justify-between px-8 border-b border-slate-200/60"
       >
         <Link 
           href="/" 
@@ -172,7 +174,7 @@ export default function LoginPage() {
           ← HOME
         </Link>
         <div className="flex items-center gap-1">
-          <span className="font-display text-sm tracking-[0.4em] font-extrabold uppercase text-slate-900 cursor-pointer">ANYTIMELLM</span>
+          <span className="text-sm tracking-[0.4em] font-extrabold uppercase text-slate-900 cursor-pointer">ANYTIMELLM</span>
         </div>
         <span className="font-mono text-[10px] tracking-[0.2em] text-slate-500 uppercase">Dashboard</span>
       </header>
@@ -181,13 +183,13 @@ export default function LoginPage() {
       <main className="relative z-10 flex-grow flex flex-col items-center justify-center pt-28 pb-16 px-6 max-w-[500px] mx-auto w-full">
         <div 
           ref={formRef} 
-          className="w-full bg-white border border-slate-200 p-8 md:p-10 rounded-2xl text-left flex flex-col justify-between shadow-xl shadow-slate-100/50 transition-all duration-300"
+          className="w-full bg-white/60 backdrop-blur-xl border border-slate-200/60 p-8 md:p-10 rounded-[2rem] text-left flex flex-col justify-between shadow-xl shadow-violet-500/5 transition-all duration-300"
         >
           <div>
-            <span className="font-mono text-[9px] tracking-[0.2em] text-purple-600 uppercase font-bold">AUTHENTICATION</span>
-            <h3 className="font-display text-2xl tracking-tight text-slate-900 font-extrabold uppercase mt-1 mb-3">LOAD WORKSPACE</h3>
-            <p className="font-body text-sm text-slate-500 mb-6 leading-relaxed">
-              Re-enter your secure console. Login with your administrator credentials to open configured documents, catalogs, and logs.
+            <span className="text-[10px] tracking-[0.2em] text-violet-600 uppercase font-bold">AUTHENTICATION</span>
+            <h3 className="text-2xl tracking-tight text-slate-900 font-extrabold mt-1 mb-3">Welcome Back</h3>
+            <p className="text-sm text-slate-500 mb-6 font-medium leading-relaxed">
+              Login with your administrator credentials to manage your business's AI assistant.
             </p>
           </div>
 
@@ -201,36 +203,36 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block font-mono text-[10px] tracking-[0.15em] text-slate-500 uppercase mb-1.5 font-bold">ADMIN EMAIL</label>
+              <label className="block text-[10px] tracking-[0.15em] text-slate-500 uppercase mb-1.5 font-bold">ADMIN EMAIL</label>
               <input
                 type="email"
                 required
                 placeholder="email@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 focus:border-purple-500 focus:bg-white rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none transition-all duration-300"
+                className="w-full bg-white/50 backdrop-blur-sm border border-slate-200 focus:border-violet-500 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-violet-500/50 transition-all duration-300 font-medium"
               />
             </div>
             <div>
-              <label className="block font-mono text-[10px] tracking-[0.15em] text-slate-500 uppercase mb-1.5 font-bold">PASSWORD</label>
+              <label className="block text-[10px] tracking-[0.15em] text-slate-500 uppercase mb-1.5 font-bold">PASSWORD</label>
               <input
                 type="password"
                 required
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 focus:border-purple-500 focus:bg-white rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none transition-all duration-300"
+                className="w-full bg-white/50 backdrop-blur-sm border border-slate-200 focus:border-violet-500 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-violet-500/50 transition-all duration-300 font-medium"
               />
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-11 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-mono text-xs tracking-[0.2em] uppercase flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-50 cursor-pointer mt-6 shadow-lg shadow-purple-500/10 font-bold"
+              className="w-full h-12 bg-slate-900 hover:bg-violet-600 text-white rounded-xl text-xs tracking-[0.1em] uppercase flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-50 cursor-pointer mt-6 shadow-lg shadow-slate-900/10 hover:shadow-violet-500/20 font-bold"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin shrink-0" />
               ) : (
-                "SIGN IN TO CONSOLE"
+                "Sign In"
               )}
             </button>
           </form>
@@ -242,12 +244,12 @@ export default function LoginPage() {
           </div>
 
           <div className="mt-8 border-t border-slate-100 pt-6 text-center">
-            <span className="font-body text-xs text-slate-500">Don't have a workspace? </span>
+            <span className="text-sm text-slate-500 font-medium">Don't have a workspace? </span>
             <Link 
               href="/register" 
-              className="font-mono text-xs text-purple-600 uppercase hover:text-purple-700 font-bold transition-colors duration-300"
+              className="text-sm text-violet-600 hover:text-violet-700 font-bold transition-colors duration-300"
             >
-              Register Workspace
+              Create Account
             </Link>
           </div>
         </div>
@@ -260,24 +262,24 @@ export default function LoginPage() {
 
       {/* Glassmorphic Prompt Modal for Workspace Name */}
       {showBusinessPrompt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-950/40 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]">
-          <div className="w-full max-w-[420px] bg-white border border-slate-200 p-8 font-mono text-left relative flex flex-col justify-between shadow-2xl rounded-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]">
+          <div className="w-full max-w-[420px] bg-white/80 backdrop-blur-xl border border-slate-200/60 p-8 text-left relative flex flex-col justify-between shadow-2xl rounded-3xl">
             <div>
-              <span className="text-[9px] tracking-[0.2em] text-purple-600 uppercase block mb-1 font-bold">REGISTRATION</span>
-              <h4 className="text-lg tracking-tight uppercase text-slate-900 font-extrabold mb-3">NAME YOUR WORKSPACE</h4>
-              <p className="font-body text-[11px] text-slate-500 leading-relaxed mb-6 italic">
-                Welcome! It looks like you're signing in with Google for the first time. Please specify a brand name to initialize your tenant workspace.
+              <span className="text-[10px] tracking-[0.2em] text-violet-600 uppercase block mb-1 font-bold">REGISTRATION</span>
+              <h4 className="text-xl tracking-tight text-slate-900 font-extrabold mb-3">Name Your Workspace</h4>
+              <p className="text-sm font-medium text-slate-500 leading-relaxed mb-6">
+                Welcome! It looks like you're signing in with Google for the first time. Please specify a brand name.
               </p>
               
               <div>
-                <label className="block text-[8px] tracking-[0.15em] text-slate-500 uppercase mb-1.5 font-bold">BUSINESS NAME</label>
+                <label className="block text-[10px] tracking-[0.15em] text-slate-500 uppercase mb-1.5 font-bold">BUSINESS NAME</label>
                 <input
                   type="text"
                   required
-                  placeholder="ENTER BUSINESS NAME"
+                  placeholder="e.g. Acme Corp"
                   value={googleBusinessName}
                   onChange={(e) => setGoogleBusinessName(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-purple-500 focus:bg-white rounded-xl px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none uppercase tracking-widest transition-all duration-300"
+                  className="w-full bg-white/50 backdrop-blur-sm border border-slate-200 focus:border-violet-500 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-violet-500/50 transition-all duration-300 font-medium"
                 />
               </div>
             </div>
@@ -289,20 +291,20 @@ export default function LoginPage() {
                   setShowBusinessPrompt(false);
                   setGoogleCredential(null);
                 }}
-                className="flex-1 h-10 border border-slate-200 hover:border-slate-300 text-slate-500 hover:text-slate-700 rounded-xl bg-transparent font-mono text-[10px] tracking-[0.15em] uppercase transition-all duration-300 cursor-pointer"
+                className="flex-1 h-11 border border-slate-200 hover:border-slate-300 hover:bg-white text-slate-500 hover:text-slate-700 rounded-xl bg-white/50 backdrop-blur-sm text-xs tracking-[0.1em] uppercase font-bold transition-all duration-300 cursor-pointer"
               >
-                CANCEL
+                Cancel
               </button>
               <button
                 type="button"
                 disabled={registeringGoogle || !googleBusinessName.trim()}
                 onClick={handleCompleteGoogleRegistration}
-                className="flex-1 h-10 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-mono text-[10px] tracking-[0.15em] uppercase flex items-center justify-center gap-1 transition-all duration-300 disabled:opacity-40 cursor-pointer shadow-lg shadow-purple-500/10"
+                className="flex-1 h-11 bg-slate-900 hover:bg-violet-600 text-white rounded-xl text-xs tracking-[0.1em] uppercase font-bold flex items-center justify-center gap-1 transition-all duration-300 disabled:opacity-40 cursor-pointer shadow-lg shadow-slate-900/10 hover:shadow-violet-500/20"
               >
                 {registeringGoogle ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 ) : (
-                  "CREATE WORKSPACE"
+                  "Create Workspace"
                 )}
               </button>
             </div>
