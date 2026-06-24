@@ -186,3 +186,24 @@ def search_vector_store(query: str, business_id: str, k: int = 4) -> List[LCDocu
     except Exception as e:
         logger.error(f"Failed to query Pinecone: {e}. Searching Mock store instead.")
         return local_mock_store.similarity_search(query, namespace, k)
+
+
+def delete_document_vectors(business_id: str, document_id: str):
+    """Deletes vectors associated with a document_id within a business_id namespace."""
+    namespace = str(business_id)
+    index = get_pinecone_index()
+    if index is not None:
+        try:
+            index.delete(filter={"document_id": str(document_id)}, namespace=namespace)
+            logger.info(f"Deleted vectors for document {document_id} from Pinecone namespace {namespace}")
+        except Exception as e:
+            logger.error(f"Failed to delete vectors from Pinecone: {e}")
+            
+    if namespace in local_mock_store.store:
+        original_len = len(local_mock_store.store[namespace])
+        local_mock_store.store[namespace] = [
+            doc for doc in local_mock_store.store[namespace]
+            if str(doc["metadata"].get("document_id")) != str(document_id)
+        ]
+        new_len = len(local_mock_store.store[namespace])
+        logger.info(f"Deleted {original_len - new_len} chunks for document {document_id} from Mock store namespace {namespace}")

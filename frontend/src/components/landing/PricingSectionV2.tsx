@@ -41,16 +41,16 @@ export default function PricingSectionV2() {
   };
 
   return (
-    <section className="py-16 px-6 md:px-12 max-w-7xl mx-auto w-full bg-transparent" id="pricing">
+    <section className="py-12 px-6 md:px-12 max-w-7xl mx-auto w-full bg-transparent" id="pricing">
       
       {/* Comparison Section (Staff vs AI) */}
-      <div className="mb-32">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-[3rem] font-black text-slate-900 tracking-tight mb-6">
-            Cheaper than <span className="text-slate-400">hiring.</span> Faster than <span className="text-slate-400">typing.</span>
+      <div className="mb-20">
+        <div className="text-center mb-12">
+          <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight mb-6">
+            Cheaper than hiring. Faster than typing.
           </h2>
-          <p className="text-xl text-slate-600 font-medium max-w-2xl mx-auto">
-            A human employee works 8 hours, takes days off, and costs ₹15,000+/mo. Business Brain™ works 24/7.
+          <p className="font-body text-lg md:text-xl text-slate-600 font-medium max-w-2xl mx-auto">
+            A human employee works 8 hours, takes days off, and costs ₹15,000/mo. Business Brain™ works 24/7.
           </p>
         </div>
 
@@ -79,8 +79,8 @@ export default function PricingSectionV2() {
         </div>
       </div>
 
-      <div className="text-center mb-16">
-        <h2 className="text-4xl md:text-[3rem] font-black text-slate-900 tracking-tight mb-8">
+      <div className="text-center mb-12">
+        <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight mb-8">
           Pricing
         </h2>
         
@@ -120,17 +120,17 @@ export default function PricingSectionV2() {
         {/* Starter Plan */}
         <div className="bg-white border-2 border-slate-200 p-8 md:p-12 rounded-[2rem] flex flex-col justify-between hover:shadow-xl transition-shadow">
           <div>
-            <h3 className="text-3xl font-black text-slate-900 tracking-tight mb-3">Starter</h3>
-            <p className="text-sm font-medium text-slate-500 mb-10 max-w-[85%]">
+            <h3 className="font-display text-3xl font-bold text-slate-900 tracking-tight mb-3">Starter</h3>
+            <p className="font-body text-sm font-medium text-slate-500 mb-10 max-w-[85%]">
               Perfect for local shops starting with WhatsApp automation.
             </p>
 
             <div className="flex items-baseline gap-1 mb-10 border-b border-slate-100 pb-10">
-              <span className="text-3xl font-black text-slate-300">₹</span>
-              <span className="text-[4.5rem] leading-none font-black tracking-tight text-slate-900">
+              <span className="font-display text-3xl font-bold text-slate-300">₹</span>
+              <span className="font-display text-[4.5rem] leading-none font-bold tracking-tight text-slate-900">
                 {billingPeriod === "monthly" ? "999" : "799"}
               </span>
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-3">/ mo</span>
+              <span className="font-body text-xs font-bold text-slate-400 uppercase tracking-widest ml-3">/ mo</span>
             </div>
 
             <ul className="space-y-6 mb-12">
@@ -146,24 +146,24 @@ export default function PricingSectionV2() {
           {!isLoggedIn ? (
             <Link
               href="/register"
-              className="w-full h-16 font-bold text-base bg-slate-100 hover:bg-slate-200 text-slate-900 rounded-xl transition-all flex items-center justify-center"
+              className="w-full h-16 font-body font-semibold text-base bg-slate-100 hover:bg-slate-200 text-slate-900 rounded-xl transition-all flex items-center justify-center"
             >
-              Start 15-Day Free Trial
+              Start free trial
             </Link>
           ) : userProfile?.trial_expired ? (
             <button
               onClick={() => handleUpgrade("STARTER")}
               disabled={loading}
-              className="w-full h-16 font-bold text-base bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition-all disabled:opacity-50 flex items-center justify-center cursor-pointer font-semibold"
+              className="w-full h-16 font-body font-semibold text-base bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition-all disabled:opacity-50 flex items-center justify-center cursor-pointer"
             >
               {loading ? "Processing..." : `Pay ₹${billingPeriod === "monthly" ? "999" : "799"}/mo`}
             </button>
           ) : (
             <Link
               href="/dashboard"
-              className="w-full h-16 font-bold text-base bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition-all flex items-center justify-center text-center"
+              className="w-full h-16 font-body font-semibold text-base bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition-all flex items-center justify-center text-center"
             >
-              Go to Dashboard
+              Go to dashboard
             </Link>
           )}
         </div>
@@ -176,17 +176,17 @@ export default function PricingSectionV2() {
           </span>
 
           <div>
-            <h3 className="text-3xl font-black text-white tracking-tight mb-3">Growth</h3>
-            <p className="text-sm font-medium text-slate-400 mb-10 max-w-[80%]">
+            <h3 className="font-display text-3xl font-bold text-white tracking-tight mb-3">Growth</h3>
+            <p className="font-body text-sm font-medium text-slate-400 mb-10 max-w-[80%]">
               For growing brands needing full automation, order collection, and catalog sync.
             </p>
 
             <div className="flex items-baseline gap-1 mb-10 border-b border-slate-800 pb-10">
-              <span className="text-3xl font-black text-slate-600">₹</span>
-              <span className="text-[4.5rem] leading-none font-black tracking-tight text-white">
+              <span className="font-display text-3xl font-bold text-slate-600">₹</span>
+              <span className="font-display text-[4.5rem] leading-none font-bold tracking-tight text-white">
                 {billingPeriod === "monthly" ? "2,999" : "2,399"}
               </span>
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-3">/ mo</span>
+              <span className="font-body text-xs font-bold text-slate-500 uppercase tracking-widest ml-3">/ mo</span>
             </div>
 
             <ul className="space-y-6 mb-12">
@@ -202,24 +202,24 @@ export default function PricingSectionV2() {
           {!isLoggedIn ? (
             <Link
               href="/register"
-              className="w-full h-16 font-bold text-base bg-violet-600 hover:bg-violet-500 text-white rounded-xl transition-all shadow-lg shadow-violet-600/25 border border-violet-400 flex items-center justify-center"
+              className="w-full h-16 font-body font-semibold text-base bg-violet-600 hover:bg-violet-500 text-white rounded-xl transition-all shadow-lg shadow-violet-600/25 border border-violet-400 flex items-center justify-center"
             >
-              Start 15-Day Free Trial
+              Start free trial
             </Link>
           ) : userProfile?.trial_expired ? (
             <button
               onClick={() => handleUpgrade("GROWTH")}
               disabled={loading}
-              className="w-full h-16 font-bold text-base bg-violet-700 hover:bg-violet-600 text-white rounded-xl transition-all disabled:opacity-50 flex items-center justify-center cursor-pointer border border-violet-400 shadow-lg font-semibold"
+              className="w-full h-16 font-body font-semibold text-base bg-violet-700 hover:bg-violet-600 text-white rounded-xl transition-all disabled:opacity-50 flex items-center justify-center cursor-pointer border border-violet-400 shadow-lg"
             >
               {loading ? "Processing..." : `Pay ₹${billingPeriod === "monthly" ? "2,999" : "2,399"}/mo`}
             </button>
           ) : (
             <Link
               href="/dashboard"
-              className="w-full h-16 font-bold text-base bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition-all flex items-center justify-center text-center border border-emerald-500 shadow-lg"
+              className="w-full h-16 font-body font-semibold text-base bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition-all flex items-center justify-center text-center border border-emerald-500 shadow-lg"
             >
-              Go to Dashboard
+              Go to dashboard
             </Link>
           )}
         </div>
@@ -227,7 +227,7 @@ export default function PricingSectionV2() {
       </div>
 
       {/* Risk Reversal */}
-      <div className="max-w-3xl mx-auto mt-16 bg-white/50 backdrop-blur-md rounded-2xl p-8 flex flex-col md:flex-row items-center justify-center gap-8 text-center md:text-left border border-slate-200 shadow-sm">
+      <div className="max-w-3xl mx-auto mt-12 bg-white/50 backdrop-blur-md rounded-2xl p-8 flex flex-col md:flex-row items-center justify-center gap-8 text-center md:text-left border border-slate-200 shadow-sm">
          <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm shrink-0 border border-slate-100">
            <ShieldCheck className="w-8 h-8 text-violet-500" />
          </div>

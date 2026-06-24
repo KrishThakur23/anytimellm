@@ -79,9 +79,9 @@ export default function Header() {
             </Link>
             <Link
               href="/pricing"
-              className="text-[13px] font-semibold text-white bg-slate-900 px-5 py-2.5 hover:bg-slate-800 transition-all duration-300 flex items-center gap-1.5 group rounded-xl shadow-md hover:shadow-lg"
+              className="text-[13px] font-body font-semibold text-white bg-slate-900 px-5 py-2.5 hover:bg-slate-800 transition-all duration-300 flex items-center gap-1.5 group rounded-xl shadow-md hover:shadow-lg"
             >
-              Start Free
+              Start free
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
             </Link>
           </>
@@ -138,9 +138,9 @@ export default function Header() {
                 <Link
                   href="/pricing"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center text-sm font-semibold text-white bg-slate-900 py-2.5 flex items-center justify-center gap-1.5 rounded-xl shadow-md hover:shadow-lg transition-all"
+                  className="w-full text-center text-sm font-body font-semibold text-white bg-slate-900 py-2.5 flex items-center justify-center gap-1.5 rounded-xl shadow-md hover:shadow-lg transition-all"
                 >
-                  Start Free
+                  Start free
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </>

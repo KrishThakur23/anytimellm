@@ -17,6 +17,10 @@ interface CatalogTabProps {
   setCatalogDesc: (val: string) => void;
   savingCatalog: boolean;
   handleAddCatalogItem: (e: React.FormEvent) => void;
+  page: number;
+  total: number;
+  limit: number;
+  onPageChange: (page: number) => void;
 }
 
 export default function CatalogTab({
@@ -31,6 +35,10 @@ export default function CatalogTab({
   setCatalogDesc,
   savingCatalog,
   handleAddCatalogItem,
+  page,
+  total,
+  limit,
+  onPageChange,
 }: CatalogTabProps) {
   const formRef = useRef<HTMLDivElement>(null);
   const dbRef = useRef<HTMLDivElement>(null);
@@ -191,8 +199,21 @@ export default function CatalogTab({
         <div ref={dbRef} className="lg:col-span-8 animate-[fadeIn_0.2s_ease-out]">
           <div className="bg-white border border-slate-200 overflow-hidden shadow-xs" style={{ borderRadius: 16 }}>
             {catalog.length === 0 ? (
-              <div className="text-center py-20 text-slate-400 font-mono text-base tracking-wider uppercase font-semibold">
-                No products added yet. Add your products using the form on the left!
+              <div className="text-center py-24 px-6 text-slate-500 font-body flex flex-col items-center justify-center">
+                <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-6">
+                  <span className="material-symbols-outlined text-[32px] text-slate-400">storefront</span>
+                </div>
+                <h3 className="font-display text-xl font-bold text-slate-900 mb-2">No products added yet</h3>
+                <p className="text-sm text-slate-500 max-w-md mb-8">
+                  Upload your first product or price list to start answering customer questions. Your AI learns instantly.
+                </p>
+                <button 
+                  onClick={() => document.querySelector('input[placeholder="ENTER ITEM NAME"]')?.closest('form')?.querySelector('input')?.focus()}
+                  className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-hover transition-colors shadow-md flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-[20px]">add</span>
+                  Add First Product
+                </button>
               </div>
             ) : (
               <div className="flex flex-col">
@@ -254,6 +275,57 @@ export default function CatalogTab({
                     </ul>
                   </div>
                 ))}
+              </div>
+            )}
+            {/* Pagination Controls */}
+            {total > limit && (
+              <div className="flex items-center justify-between border-t border-slate-100 bg-white px-4 py-3 sm:px-6">
+                <div className="flex flex-1 justify-between sm:hidden">
+                  <button
+                    onClick={() => onPageChange(page - 1)}
+                    disabled={page === 1}
+                    className="relative inline-flex items-center rounded-md border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => onPageChange(page + 1)}
+                    disabled={page * limit >= total}
+                    className="relative ml-3 inline-flex items-center rounded-md border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </div>
+                <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-xs text-slate-500 font-mono">
+                      Showing <span className="font-semibold text-slate-800">{(page - 1) * limit + 1}</span> to{" "}
+                      <span className="font-semibold text-slate-800">{Math.min(page * limit, total)}</span> of{" "}
+                      <span className="font-semibold text-slate-800">{total}</span> results
+                    </p>
+                  </div>
+                  <div>
+                    <nav className="isolate inline-flex -space-x-px rounded-md shadow-xs" aria-label="Pagination">
+                      <button
+                        onClick={() => onPageChange(page - 1)}
+                        disabled={page === 1}
+                        className="relative inline-flex items-center rounded-l-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-50 transition-colors disabled:opacity-45 disabled:cursor-not-allowed"
+                      >
+                        Previous
+                      </button>
+                      <span className="relative inline-flex items-center border border-slate-200 bg-slate-50/50 px-3.5 py-1.5 text-xs font-semibold text-slate-700 font-mono">
+                        Page {page} of {Math.ceil(total / limit)}
+                      </span>
+                      <button
+                        onClick={() => onPageChange(page + 1)}
+                        disabled={page * limit >= total}
+                        className="relative inline-flex items-center rounded-r-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-50 transition-colors disabled:opacity-45 disabled:cursor-not-allowed"
+                      >
+                        Next
+                      </button>
+                    </nav>
+                  </div>
+                </div>
               </div>
             )}
           </div>

@@ -1,18 +1,42 @@
 import logging
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
+import socket
+import ipaddress
+from urllib.parse import urlparse
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status, Query
 from sqlalchemy.orm import Session
 from uuid import UUID
 from typing import List, Optional
 
 from app.database import get_db
 from app.models import Document, Business
-from app.schemas import DocumentOut
+from app.schemas import DocumentOut, PaginatedDocument
 from app.services.parser import parser_registry
-from app.services.vector_db import index_document_text
+from app.services.vector_db import index_document_text, delete_document_vectors
 from app.services.security import get_current_user
 from app.services.analytics import log_conversion_event
+from app.services.permissions import check_document_limit
 from app.config import settings
+
+def is_ssrf_safe_url(url: str) -> bool:
+    try:
+        parsed = urlparse(url)
+        if not parsed.scheme or parsed.scheme not in ("http", "https"):
+            return False
+        hostname = parsed.hostname
+        if not hostname:
+            return False
+        
+        # Resolve all IP addresses for host
+        addr_info = socket.getaddrinfo(hostname, None)
+        for family, _, _, _, sockaddr in addr_info:
+            ip_str = sockaddr[0]
+            ip = ipaddress.ip_address(ip_str)
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_reserved or ip.is_unspecified:
+                return False
+        return True
+    except Exception:
+        return False
 
 logger = logging.getLogger(__name__)
 
@@ -123,6 +147,12 @@ async def upload_document_file(
     if not biz:
         raise HTTPException(status_code=404, detail="Business not found.")
 
+    if not check_document_limit(db, business_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You have reached the maximum number of documents allowed for your plan."
+        )
+
     filename = file.filename or "unknown_file"
     ext = filename.split(".")[-1].lower() if "." in filename else "txt"
     
@@ -209,6 +239,18 @@ async def crawl_website_url(
     if not biz:
         raise HTTPException(status_code=404, detail="Business not found.")
         
+    if not is_ssrf_safe_url(url):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Access denied: URL resolves to a restricted local or private subnet."
+        )
+        
+    if not check_document_limit(db, business_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You have reached the maximum number of documents allowed for your plan."
+        )
+        
     db_doc = Document(
         business_id=business_id,
         file_name=url,
@@ -262,22 +304,61 @@ async def crawl_website_url(
         )
 
 
-@router.get("/{business_id}", response_model=List[DocumentOut])
+@router.get("/{business_id}", response_model=PaginatedDocument)
 def list_business_documents(
     business_id: UUID,
-    skip: int = 0,
-    limit: int = 100,
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1),
     current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Fetch status and list of documents uploaded by the tenant."""
     if current_user.business_id != business_id:
         raise HTTPException(status_code=403, detail="Not authorized to access this business.")
-    return (
+        
+    total = db.query(Document).filter(Document.business_id == business_id).count()
+    items = (
         db.query(Document)
         .filter(Document.business_id == business_id)
         .order_by(Document.created_at.desc())
-        .offset(skip)
+        .offset((page - 1) * limit)
         .limit(limit)
         .all()
     )
+    return {
+        "items": items,
+        "total": total,
+        "page": page,
+        "limit": limit
+    }
+
+@router.delete("/{business_id}/documents/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_business_document(
+    business_id: UUID,
+    document_id: UUID,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Deletes a business document from the database and removes its vectors from the vector store."""
+    if current_user.business_id != business_id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this business.")
+        
+    doc = db.query(Document).filter(
+        Document.business_id == business_id,
+        Document.id == document_id
+    ).first()
+    
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found.")
+        
+    try:
+        # 1. Delete vectors
+        delete_document_vectors(str(business_id), str(document_id))
+        
+        # 2. Delete database record
+        db.delete(doc)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Failed to delete document {document_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete document.")

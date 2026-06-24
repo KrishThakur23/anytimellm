@@ -1,19 +1,23 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { useInView } from "framer-motion";
-import { Clock, MessageSquare, AlertCircle, Bot } from "lucide-react";
+import { motion, useInView } from "framer-motion";
+import { Clock, MessageSquare, AlertCircle, Bot, ShoppingBag } from "lucide-react";
+import BusinessBrainMotif from "@/components/ui/BusinessBrainMotif";
 
 export default function InteractiveStoryV2() {
   return (
-    <section className="py-24 px-6 md:px-12 max-w-7xl mx-auto w-full bg-white">
-      <div className="text-center mb-16">
-        <h2 className="text-4xl md:text-[3rem] font-black text-slate-900 tracking-tight mb-6">
+    <section className="py-16 px-6 md:px-12 max-w-7xl mx-auto w-full bg-white">
+      <div className="text-center mb-12">
+        <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight mb-6">
           The difference is <span className="text-slate-400">instant.</span>
         </h2>
-        <p className="text-xl text-slate-600 font-medium max-w-2xl mx-auto">
+        <p className="font-body text-lg md:text-xl text-slate-600 font-medium max-w-2xl mx-auto mb-8">
           Customers don't wait. See how Business Brain™ captures the sale while your competitors are still typing.
         </p>
+        <div className="flex justify-center">
+          <BusinessBrainMotif className="scale-90 opacity-60" />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 max-w-5xl mx-auto">
@@ -73,7 +77,7 @@ export default function InteractiveStoryV2() {
                </div>
              </div>
 
-             <div className="flex justify-end items-start gap-4 pt-2">
+             <div className="flex justify-end items-start gap-4 pt-2 relative z-20">
                <div className="bg-emerald-500 border border-emerald-400 p-4 rounded-2xl rounded-tr-sm text-[15px] font-medium text-white shadow-sm">
                  Yes! 2 left in stock. I've created your order here:
                </div>
@@ -82,10 +86,23 @@ export default function InteractiveStoryV2() {
                </div>
              </div>
 
-             <div className="pt-8 mt-8 border-t border-slate-800 w-full text-center">
+             <motion.div 
+               initial={{ opacity: 0, y: -10 }}
+               whileInView={{ opacity: 1, y: 0 }}
+               transition={{ delay: 0.5, duration: 0.4 }}
+               viewport={{ once: true }}
+               className="w-full flex justify-end pr-14 mt-[-16px] z-10 relative"
+             >
+               <div className="bg-slate-800 border border-slate-700 py-2.5 px-4 rounded-xl shadow-lg flex items-center gap-2">
+                 <ShoppingBag className="w-4 h-4 text-violet-400" />
+                 <span className="text-xs font-bold text-white tracking-wide">Order Created</span>
+               </div>
+             </motion.div>
+
+             <div className="pt-8 mt-6 border-t border-slate-800 w-full text-center">
                <div className="inline-flex flex-col items-center">
-                 <span className="text-[10px] font-bold text-emerald-500/70 tracking-widest uppercase mb-1">Revenue Generated</span>
-                 <div className="text-emerald-400 font-black text-5xl md:text-6xl leading-none tracking-tight flex items-center gap-1 drop-shadow-sm">
+                 <span className="font-body text-[10px] font-bold text-emerald-500/70 tracking-widest uppercase mb-1">Revenue Generated</span>
+                 <div className="font-display text-emerald-400 font-bold text-5xl md:text-6xl leading-none tracking-tight flex items-center gap-1 drop-shadow-sm">
                    <span className="text-3xl md:text-4xl -mt-2">₹</span>
                    <Counter value={899} />
                  </div>

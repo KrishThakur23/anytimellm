@@ -30,7 +30,6 @@ export default function PlaygroundTab({
   handleSendMessage,
 }: PlaygroundTabProps) {
   const panelRef = useRef<HTMLDivElement>(null);
-  const [expandedLogIdx, setExpandedLogIdx] = useState<number | null>(null);
 
   useEffect(() => {
     if (panelRef.current) {
@@ -213,7 +212,7 @@ export default function PlaygroundTab({
           <div className="p-4 border-b border-[#252530] bg-[#1a1a24] flex items-center gap-2 shrink-0">
             <span className="material-symbols-outlined text-[18px] text-[#25D366]" style={{ fontVariationSettings: "'FILL' 1" }}>terminal</span>
             <span className="font-mono text-[9px] text-slate-200 uppercase tracking-widest font-bold">
-              Live Chatbot Thought Logs
+              Live Chatbot Event Logs
             </span>
           </div>
 
@@ -222,84 +221,32 @@ export default function PlaygroundTab({
             {agentLogs.map((log, idx) => {
               if (!log || typeof log !== "string") return null;
               
-              // Custom translate technical logs into colorful, friendly, high-contrast sentences
               let friendlyText = log;
               let logColorClass = "border-[#252530] bg-[#1a1a24] text-slate-200 rounded-none";
               let iconName = "smart_toy";
               
-              if (log.startsWith("System initialized")) {
-                friendlyText = "🏪 Chatbot System is turned ON and ready!";
+              if (log === "Chat Session Started") {
+                friendlyText = "⚙️ Chat Session Started";
                 logColorClass = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
                 iconName = "check_circle";
-              } else if (log.startsWith("Business tenant loaded")) {
-                friendlyText = "🏪 Loaded details for Your Store successfully!";
+              } else if (log === "Inbound customer query") {
+                friendlyText = "📥 Inbound customer query";
                 logColorClass = "bg-[#1a1a24] border-[#252530] text-slate-200";
-                iconName = "store";
-              } else if (log.startsWith("Ready for RAG or SQL")) {
-                friendlyText = "⚡ Assistant is online and waiting for customer chats 24/7.";
-                logColorClass = "bg-[#1a1a24] border-[#252530] text-slate-500";
-                iconName = "bolt";
-              } else if (log.startsWith("Incoming Web Chat Message")) {
-                const msgPart = log.split(': "')[1]?.replace('"', '') || "";
-                friendlyText = `📥 Customer asked: "${msgPart}"`;
-                logColorClass = "bg-[#1a1a24] border-[#252530] text-white font-bold";
                 iconName = "forum";
-              } else if (log.includes("Invoking LangGraph Orchestrator")) {
-                friendlyText = "🤖 Assistant is reading customer question...";
-                logColorClass = "bg-[#1a1a24] border-[#252530] text-slate-200";
-                iconName = "psychology";
-              } else if (log.includes("State node [agent] started")) {
-                friendlyText = "💭 Assistant is formulating thoughts and searching memory...";
-                logColorClass = "bg-[#1a1a24] border-[#252530] text-white animate-pulse";
-                iconName = "pending";
-              } else if (log.includes("LLM generating thoughts")) {
-                friendlyText = "💭 Formulating best response details...";
-                logColorClass = "bg-[#1a1a24] border-[#252530] text-slate-500";
-                iconName = "lightbulb";
-              } else if (log.includes("Query matches potential catalog")) {
-                friendlyText = "🔍 Searching item list and memory sheets...";
-                logColorClass = "bg-[#1a1a24] border-[#252530] text-slate-200";
-                iconName = "search";
-              } else if (log.includes("query_catalog_sql_tool")) {
-                friendlyText = "🔍 Checked Product Price List: Found matching items successfully.";
-                logColorClass = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
-                iconName = "search_check";
-              } else if (log.includes("query_vector_store_tool")) {
-                friendlyText = "📚 Read your uploaded Store Files to find custom info.";
-                logColorClass = "bg-[#1a1a24] border-[#252530] text-slate-200";
-                iconName = "menu_book";
-              } else if (log.includes("place_order_tool")) {
-                friendlyText = "🛒 Processed customer buy order automatically!";
-                logColorClass = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
-                iconName = "shopping_cart";
-              } else if (log.includes("State node [agent] finalized response")) {
-                friendlyText = "✅ Assistant successfully decided the reply.";
-                logColorClass = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
-                iconName = "task_alt";
-              } else if (log.includes("Outbox delivery completed")) {
-                friendlyText = "📤 Reply sent back to WhatsApp customer successfully!";
+              } else if (log === "Response dispatched to client") {
+                friendlyText = "📤 Response dispatched to client";
                 logColorClass = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
                 iconName = "send";
-              } else if (log.includes("tools executed")) {
-                friendlyText = "⚙️ Verified product guidelines & storage maps.";
-                logColorClass = "bg-[#1a1a24] border-[#252530] text-slate-500";
-                iconName = "construction";
-              } else if (log.includes("Conditional edge")) {
-                friendlyText = "⚙️ Routing details safely...";
-                logColorClass = "bg-[#1a1a24] border-[#252530] text-slate-500";
-                iconName = "alt_route";
+              } else if (log.startsWith("[ERROR]")) {
+                friendlyText = log;
+                logColorClass = "bg-red-500/10 text-red-400 border-red-500/20";
+                iconName = "warning";
               }
- 
-              const isToolNodeLog = log.includes("Invoked") || log.includes("tools executed") || log.includes("query_");
-              const isCollapsibleOpened = expandedLogIdx === idx;
- 
+
               return (
                 <div key={idx} className="flex flex-col gap-2">
                   <div
-                    onClick={() => isToolNodeLog && setExpandedLogIdx(isCollapsibleOpened ? null : idx)}
-                    className={`flex items-start gap-3 p-3.5 border transition-all duration-300 ${
-                      isToolNodeLog ? "cursor-pointer hover:border-slate-500" : ""
-                    } ${logColorClass}`}
+                    className={`flex items-start gap-3 p-3.5 border transition-all duration-300 ${logColorClass}`}
                     style={{ borderRadius: 10 }}
                   >
                     <span className="material-symbols-outlined text-[18px] shrink-0 mt-0.5">
@@ -308,24 +255,7 @@ export default function PlaygroundTab({
                     <div className="flex-1 font-bold leading-relaxed text-[11px]">
                       {friendlyText}
                     </div>
-                    {isToolNodeLog && (
-                      <span className="material-symbols-outlined text-[16px] shrink-0 opacity-60">
-                        {isCollapsibleOpened ? "expand_less" : "expand_more"}
-                      </span>
-                    )}
                   </div>
-                  
-                  {/* Collapsible detail box */}
-                  {isToolNodeLog && isCollapsibleOpened && (
-                    <div className="ml-6 bg-[#1a1a24] border border-[#252530] p-4 text-sm text-slate-350 leading-relaxed font-mono border-l-2 border-l-[#25D366]" style={{ borderRadius: 10 }}>
-                      <span className="text-[9px] font-bold block uppercase tracking-wider text-slate-500 mb-2">Technical Details</span>
-                      <div className="space-y-1.5">
-                        <p><strong>Action:</strong> Searched store price data</p>
-                        <p><strong>Status:</strong> Success (matched customer query)</p>
-                        <p><strong>Detail:</strong> Found product matching the search criteria in 12ms.</p>
-                      </div>
-                    </div>
-                  )}
                 </div>
               );
             })}

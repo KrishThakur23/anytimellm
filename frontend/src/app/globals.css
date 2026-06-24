@@ -22,8 +22,8 @@
   --color-theme-secondary: var(--secondary);
   --color-white: var(--surface-0);
 
-  /* Typography — Poppins for headings, Inter for body */
-  --font-display: 'Poppins', system-ui, -apple-system, sans-serif;
+  /* Typography — Space Grotesk for headings, Inter for body */
+  --font-display: 'Space Grotesk', system-ui, -apple-system, sans-serif;
   --font-body: 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace;
 

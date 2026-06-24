@@ -11,6 +11,7 @@ from app.models import Business, Customer, Conversation, Message
 from app.services.agent import agent_graph
 from app.services.instagram import send_instagram_message
 from app.services.analytics import log_conversion_event
+from app.routers.webhook import verify_meta_signature
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +67,15 @@ async def handle_incoming_instagram_message(
     """Processes incoming Instagram DMs and invokes the LangGraph agent for response generation."""
     try:
         body_bytes = await request.body()
+        
+        signature_header = request.headers.get("x-hub-signature-256")
+        if not signature_header:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Missing signature header.")
+            
+        app_secret = settings.META_APP_SECRET
+        if not verify_meta_signature(body_bytes, signature_header, app_secret):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid request signature.")
+
         body_str = body_bytes.decode("utf-8")
         print("\n==================================================")
         print(f"[INSTAGRAM WEBHOOK RECEIVE] Incoming payload.")
@@ -141,6 +151,8 @@ async def handle_incoming_instagram_message(
                 )
                 
         return {"status": "success"}
+    except HTTPException as he:
+        raise he
     except Exception as e:
         logger.error(f"Error handling incoming Instagram message: {e}")
         return {"status": "error", "message": str(e)}

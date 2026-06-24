@@ -6,19 +6,13 @@ import type { Business, CatalogItem, DocumentInfo, Order } from "@/lib/api";
 import { 
   AlertCircle, 
   Clock, 
-  ZapOff, 
+  MessageSquare, 
   TrendingUp, 
   ShoppingBag, 
-  MessageSquare, 
-  Bot,
-  Plus, 
-  Upload, 
-  Send,
-  Lightbulb,
   ArrowRight,
-  RotateCcw
+  Bot,
+  Zap
 } from "lucide-react";
-import AnimatedCounter from "../ui/AnimatedCounter";
 
 interface OverviewTabProps {
   activeBusiness: Business;
@@ -30,51 +24,41 @@ interface OverviewTabProps {
   onTabChange?: (tab: "overview" | "ingest" | "catalog" | "playground" | "integrations" | "orders" | "chats") => void;
   onUpdateBusiness?: (updatedBiz: Business) => void;
   subscription?: any;
+  stats?: {
+    unread_conversations: number;
+    pending_orders: number;
+    failed_responses: number;
+    followups_due: number;
+    revenue_today: number;
+    orders_count: number;
+    chats_count: number;
+    ai_resolution_rate: number;
+  };
 }
 
 export default function OverviewTab({
   activeBusiness,
-  documents,
   catalog,
   orders,
-  copied,
-  copyToClipboard,
   onTabChange,
-  onUpdateBusiness,
-  subscription
+  subscription,
+  stats
 }: OverviewTabProps) {
 
-  // Mock Data for Needs Attention
-  const needsAttention = [
-    { label: "Unread Conversations", count: 7, icon: MessageSquare, color: "text-amber-500", bg: "bg-amber-50", border: "border-amber-200", tab: "chats" },
-    { label: "Pending Orders", count: 3, icon: Clock, color: "text-blue-500", bg: "bg-blue-50", border: "border-blue-200", tab: "orders" },
-    { label: "Failed Responses", count: 1, icon: ZapOff, color: "text-red-500", bg: "bg-red-50", border: "border-red-200", tab: "chats" },
-    { label: "Followups Due", count: 2, icon: AlertCircle, color: "text-purple-500", bg: "bg-purple-50", border: "border-purple-200", tab: "chats" },
-  ];
+  // Needs Attention
+  const hasUrgentIssues = (stats?.failed_responses ?? 0) > 0 || (stats?.pending_orders ?? 0) > 0 || (stats?.followups_due ?? 0) > 0;
 
   return (
-    <div className="space-y-8 pb-12 max-w-full overflow-x-hidden">
+    <div className="space-y-12 pb-12 max-w-5xl overflow-x-hidden font-body">
       
-      {/* Page Header */}
+      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <div className="flex items-center gap-3">
-            <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900">
-              Mission Control
-            </h1>
-            {subscription && (
-              <span className="px-2 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-md border border-emerald-200">
-                {subscription.plan_type} PLAN
-              </span>
-            )}
-            {subscription?.plan_type === "TRIAL" && (
-              <span className="px-2 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-md border border-amber-200">
-                {subscription.trial_days_left} Days Left
-              </span>
-            )}
-          </div>
-          <p className="font-body text-sm text-slate-500 mt-1">
-            Everything you need to run your business today.
+          <h1 className="font-display text-3xl font-bold tracking-tight text-slate-900">
+            Mission Control
+          </h1>
+          <p className="text-slate-500 mt-2 text-sm max-w-2xl">
+            Your business pulse at a glance. Prioritize what needs your attention, review what happened, and take the next step.
           </p>
         </div>
       </div>
@@ -91,224 +75,178 @@ export default function OverviewTab({
               Your latest payment has failed or is pending. Please update your payment method to avoid service interruption.
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 shrink-0">
             <button className="px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg shadow-sm hover:bg-red-700 transition-colors">
               Retry Payment
-            </button>
-            <button className="px-4 py-2 bg-white text-slate-700 text-sm font-semibold rounded-lg shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors">
-              Contact Support
             </button>
           </div>
         </div>
       )}
 
-      {/* 1. Needs Attention */}
+      {/* 1. What needs attention? (Highest Priority) */}
       <section>
-        <h2 className="text-sm font-semibold text-slate-800 mb-4 flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-amber-500" />
-          Needs Attention
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {needsAttention.map((item, idx) => {
-            const Icon = item.icon;
-            return (
-              <motion.div 
-                key={idx}
-                whileHover={{ y: -2 }}
-                onClick={() => onTabChange?.(item.tab as any)}
-                className={`p-4 rounded-xl border ${item.border} ${item.bg} flex flex-col gap-3 cursor-pointer shadow-sm hover:shadow-md transition-all`}
-              >
-                <div className="flex justify-between items-start">
-                  <Icon className={`w-5 h-5 ${item.color}`} />
-                  <span className={`text-2xl font-bold ${item.color}`}>{item.count}</span>
-                </div>
-                <div className="flex items-center justify-between mt-1">
-                  <span className="text-xs font-semibold text-slate-700">{item.label}</span>
-                  <ArrowRight className={`w-3 h-3 ${item.color} opacity-50`} />
-                </div>
-              </motion.div>
-            );
-          })}
+        <div className="flex items-center gap-3 mb-6">
+          <div className={`w-3 h-3 rounded-full ${hasUrgentIssues ? 'bg-red-500 animate-pulse' : 'bg-emerald-500'}`} />
+          <h2 className="text-lg font-bold text-slate-900">What needs attention?</h2>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <button 
+            onClick={() => onTabChange?.('orders')}
+            className="flex flex-col p-6 bg-white border border-slate-200 hover:border-amber-300 rounded-2xl shadow-sm hover:shadow-md transition-all text-left"
+          >
+            <div className="flex items-start justify-between w-full mb-4">
+              <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center">
+                <Clock className="w-5 h-5 text-amber-600" />
+              </div>
+              <span className="text-2xl font-bold text-amber-600">{stats?.pending_orders ?? 0}</span>
+            </div>
+            <span className="font-bold text-slate-900">Pending Orders</span>
+            <span className="text-sm text-slate-500 mt-1">Requires fulfillment</span>
+          </button>
+
+          <button 
+            onClick={() => onTabChange?.('chats')}
+            className="flex flex-col p-6 bg-white border border-slate-200 hover:border-red-300 rounded-2xl shadow-sm hover:shadow-md transition-all text-left"
+          >
+            <div className="flex items-start justify-between w-full mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
+                <AlertCircle className="w-5 h-5 text-red-600" />
+              </div>
+              <span className="text-2xl font-bold text-red-600">{stats?.failed_responses ?? 0}</span>
+            </div>
+            <span className="font-bold text-slate-900">Failed AI Replies</span>
+            <span className="text-sm text-slate-500 mt-1">Requires human intervention</span>
+          </button>
+
+          <button 
+            onClick={() => onTabChange?.('chats')}
+            className="flex flex-col p-6 bg-white border border-slate-200 hover:border-blue-300 rounded-2xl shadow-sm hover:shadow-md transition-all text-left"
+          >
+            <div className="flex items-start justify-between w-full mb-4">
+              <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
+                <MessageSquare className="w-5 h-5 text-blue-600" />
+              </div>
+              <span className="text-2xl font-bold text-blue-600">{stats?.followups_due ?? 0}</span>
+            </div>
+            <span className="font-bold text-slate-900">Follow-ups Due</span>
+            <span className="text-sm text-slate-500 mt-1">Customers waiting for reply</span>
+          </button>
         </div>
       </section>
 
-      {/* 2. KPIs Row */}
-      <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Dominant Revenue Card */}
-        <div className="bg-emerald-500 border border-emerald-600 rounded-xl p-5 shadow-sm flex flex-col justify-between text-white relative overflow-hidden group">
-          <div className="absolute -right-6 -top-6 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all"></div>
-          <div className="flex justify-between items-center mb-4 relative z-10">
-            <div className="flex items-center gap-2 text-emerald-50">
-              <TrendingUp className="w-4 h-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider">Revenue Today</span>
-            </div>
-            <span className="text-xs font-medium text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full shadow-sm">↑ 18%</span>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        {/* 2. What happened? */}
+        <section>
+          <div className="flex items-center gap-3 mb-6">
+            <h2 className="text-lg font-bold text-slate-900">What happened today?</h2>
           </div>
-          <div className="flex items-end justify-between relative z-10">
-            <span className="text-4xl font-display font-bold">₹24,590</span>
-            <svg width="60" height="24" viewBox="0 0 60 24" className="overflow-visible opacity-80">
-              <path d="M0,24 L10,18 L20,20 L30,12 L40,16 L50,4 L60,0" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
-          <div className="mt-3 pt-3 border-t border-emerald-400/50 text-[11px] font-medium text-emerald-100 flex justify-between relative z-10">
-            <span>₹8,200 generated by AI</span>
-            <span>vs yesterday</span>
-          </div>
-        </div>
-
-        {/* Orders */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col justify-between">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-2 text-amber-500">
-              <ShoppingBag className="w-4 h-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider">Orders Generated</span>
-            </div>
-            <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">Active</span>
-          </div>
-          <span className="text-3xl font-display font-bold text-slate-900"><AnimatedCounter target={orders.length} /></span>
-        </div>
-
-        {/* Conversations */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col justify-between">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-2 text-blue-600">
-              <MessageSquare className="w-4 h-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider">Chats Assisted</span>
-            </div>
-            <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">Active</span>
-          </div>
-          <span className="text-3xl font-display font-bold text-slate-900"><AnimatedCounter target={0} /></span>
-        </div>
-
-        {/* AI Resolution */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col justify-between">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-2 text-purple-600">
-              <Bot className="w-4 h-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider">AI Resolution</span>
-            </div>
-            <span className="text-xs font-medium text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">Stable</span>
-          </div>
-          <span className="text-3xl font-display font-bold text-slate-900">98%</span>
-        </div>
-      </section>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
-        {/* Left Col: Today's Wins & AI Suggestions */}
-        <div className="space-y-8">
-          {/* Today's Wins */}
-          <section>
-            <h2 className="text-sm font-semibold text-slate-800 mb-4 flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-emerald-500" />
-              Today's Wins
-            </h2>
-            <div className="bg-white border border-slate-200 rounded-xl p-0 shadow-sm divide-y divide-slate-100">
-              <div className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
-                    <TrendingUp className="w-4 h-4 text-emerald-600" />
-                  </div>
-                  <span className="text-sm font-medium text-slate-700">Revenue Generated</span>
-                </div>
-                <span className="font-semibold text-slate-900">₹8,200</span>
-              </div>
-              <div className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
-                    <ShoppingBag className="w-4 h-4 text-amber-600" />
-                  </div>
-                  <span className="text-sm font-medium text-slate-700">Orders Automated</span>
-                </div>
-                <span className="font-semibold text-slate-900">{orders.length} Orders</span>
-              </div>
-              <div className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                    <MessageSquare className="w-4 h-4 text-blue-600" />
-                  </div>
-                  <span className="text-sm font-medium text-slate-700">Conversations Resolved</span>
-                </div>
-                <span className="font-semibold text-slate-900">87 Chats</span>
-              </div>
-              <div className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
-                    <RotateCcw className="w-4 h-4 text-purple-600" />
-                  </div>
-                  <span className="text-sm font-medium text-slate-700">Leads Recovered</span>
-                </div>
-                <span className="font-semibold text-slate-900">6 Leads</span>
-              </div>
-              <div className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-                    <Clock className="w-4 h-4 text-slate-600" />
-                  </div>
-                  <span className="text-sm font-medium text-slate-700">Time Saved</span>
-                </div>
-                <span className="font-semibold text-slate-900">4h 15m</span>
-              </div>
-            </div>
-          </section>
-        </div>
-        
-        {/* Right Col: Quick Actions & AI Suggestions */}
-        <div className="space-y-8">
           
-          <section>
-            <h2 className="text-sm font-semibold text-slate-800 mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-2 gap-4">
-              <button 
-                onClick={() => onTabChange?.("catalog")}
-                className="group flex flex-col items-start p-5 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer text-left"
-              >
-                <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center group-hover:scale-110 transition-transform mb-4 border border-slate-100">
-                  <Upload className="w-5 h-5 text-slate-600" />
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col gap-6">
+            {/* Primary Metric: Revenue */}
+            <div className="flex items-center justify-between pb-6 border-b border-slate-100">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6 text-emerald-600" />
                 </div>
-                <span className="text-sm font-bold text-slate-900">Upload Catalog</span>
-                <span className="text-xs text-slate-500 mt-1">Add items via CSV/PDF</span>
-              </button>
-
-              <button 
-                onClick={() => onTabChange?.("catalog")}
-                className="group flex flex-col items-start p-5 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer text-left"
-              >
-                <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center group-hover:scale-110 transition-transform mb-4 border border-slate-100">
-                  <Plus className="w-5 h-5 text-slate-600" />
+                <div>
+                  <p className="text-sm font-semibold text-slate-500">Revenue Generated</p>
+                  <p className="font-display text-3xl font-bold text-slate-900 mt-1">
+                    ₹{(stats?.revenue_today ?? 0).toLocaleString("en-IN")}
+                  </p>
                 </div>
-                <span className="text-sm font-bold text-slate-900">Add Product</span>
-                <span className="text-xs text-slate-500 mt-1">Create single item</span>
-              </button>
-
-              <button 
-                onClick={() => alert('Start Broadcast not yet implemented')}
-                className="group flex flex-col items-start p-5 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer text-left"
-              >
-                <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center group-hover:scale-110 transition-transform mb-4 border border-slate-100">
-                  <Send className="w-5 h-5 text-slate-600" />
-                </div>
-                <span className="text-sm font-bold text-slate-900">Broadcast</span>
-                <span className="text-xs text-slate-500 mt-1">Send WhatsApp blast</span>
-              </button>
-
-              <button 
-                onClick={() => onTabChange?.("playground")}
-                className="group flex flex-col items-start p-5 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer text-left"
-              >
-                <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center group-hover:scale-110 transition-transform mb-4 border border-purple-100">
-                  <Bot className="w-5 h-5 text-purple-600" />
-                </div>
-                <span className="text-sm font-bold text-slate-900">Test AI</span>
-                <span className="text-xs text-slate-500 mt-1">Try your assistant</span>
-              </button>
+              </div>
             </div>
-          </section>
 
+            {/* Secondary Metrics */}
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <div className="flex items-center gap-2 text-slate-500 mb-1">
+                  <ShoppingBag className="w-4 h-4" />
+                  <span className="text-sm font-semibold">Orders Automated</span>
+                </div>
+                <p className="font-display text-2xl font-bold text-slate-900">{stats?.orders_count ?? orders.length}</p>
+              </div>
+              
+              <div>
+                <div className="flex items-center gap-2 text-slate-500 mb-1">
+                  <MessageSquare className="w-4 h-4" />
+                  <span className="text-sm font-semibold">Chats Resolved</span>
+                </div>
+                <p className="font-display text-2xl font-bold text-slate-900">{stats?.chats_count ?? 0}</p>
+              </div>
 
+              <div>
+                <div className="flex items-center gap-2 text-slate-500 mb-1">
+                  <Bot className="w-4 h-4" />
+                  <span className="text-sm font-semibold">AI Resolution</span>
+                </div>
+                <p className="font-display text-2xl font-bold text-slate-900">{stats?.ai_resolution_rate ?? 100}%</p>
+              </div>
+            </div>
+          </div>
+        </section>
 
-        </div>
+        {/* 3. What should I do next? */}
+        <section>
+          <div className="flex items-center gap-3 mb-6">
+            <h2 className="text-lg font-bold text-slate-900">What should I do next?</h2>
+          </div>
+          
+          <div className="flex flex-col gap-4">
+            {catalog.length === 0 ? (
+              <button 
+                onClick={() => onTabChange?.("catalog")}
+                className="group flex items-center justify-between p-6 bg-primary text-white rounded-2xl shadow-md hover:bg-primary-hover transition-all text-left"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
+                    <Zap className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg">Upload Your Catalog</h3>
+                    <p className="text-primary-muted text-white/70 text-sm mt-1">Start answering questions automatically.</p>
+                  </div>
+                </div>
+                <ArrowRight className="w-6 h-6 transform group-hover:translate-x-1 transition-transform" />
+              </button>
+            ) : null}
+
+            <button 
+              onClick={() => onTabChange?.("catalog")}
+              className="group flex items-center justify-between p-6 bg-white border border-slate-200 rounded-2xl shadow-sm hover:border-slate-300 transition-all text-left"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center">
+                  <ShoppingBag className="w-6 h-6 text-slate-700" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-lg">Add New Product</h3>
+                  <p className="text-slate-500 text-sm mt-1">Keep your AI up to date.</p>
+                </div>
+              </div>
+              <ArrowRight className="w-5 h-5 text-slate-400 transform group-hover:translate-x-1 transition-transform" />
+            </button>
+
+            <button 
+              onClick={() => onTabChange?.("playground")}
+              className="group flex items-center justify-between p-6 bg-white border border-slate-200 rounded-2xl shadow-sm hover:border-slate-300 transition-all text-left"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center">
+                  <Bot className="w-6 h-6 text-slate-700" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-lg">Test AI Assistant</h3>
+                  <p className="text-slate-500 text-sm mt-1">Verify responses to complex questions.</p>
+                </div>
+              </div>
+              <ArrowRight className="w-5 h-5 text-slate-400 transform group-hover:translate-x-1 transition-transform" />
+            </button>
+          </div>
+        </section>
       </div>
+
     </div>
   );
 }

@@ -1,3 +1,5 @@
+import hmac
+import hashlib
 import logging
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
@@ -14,6 +16,20 @@ from app.services.permissions import check_can_use_bot, check_conversation_limit
 from app.services.analytics import log_conversion_event
 
 logger = logging.getLogger(__name__)
+
+def verify_meta_signature(body_bytes: bytes, signature_header: str, app_secret: str) -> bool:
+    if not signature_header or not app_secret:
+        return False
+    if signature_header.startswith("sha256="):
+        signature = signature_header.split("sha256=")[1]
+    else:
+        signature = signature_header
+    expected_sig = hmac.new(
+        app_secret.encode("utf-8"),
+        body_bytes,
+        hashlib.sha256
+    ).hexdigest()
+    return hmac.compare_digest(expected_sig, signature)
 
 router = APIRouter(prefix="/api/webhooks/whatsapp", tags=["Meta WhatsApp Webhooks"])
 
@@ -52,6 +68,15 @@ async def handle_incoming_unified_message(
     """Processes incoming WhatsApp messages from the unified App webhook, resolves the business by phone_number_id, and triggers the agent."""
     try:
         body_bytes = await request.body()
+        
+        signature_header = request.headers.get("x-hub-signature-256")
+        if not signature_header:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Missing signature header.")
+            
+        app_secret = settings.META_APP_SECRET
+        if not verify_meta_signature(body_bytes, signature_header, app_secret):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid request signature.")
+            
         body_str = body_bytes.decode("utf-8")
         print("\n==================================================")
         print(f"[UNIFIED WEBHOOK RECEIVE] Incoming payload.")
@@ -155,6 +180,8 @@ async def handle_incoming_unified_message(
                     meta_message_id=msg.get("id")
                 )
                 
+    except HTTPException as he:
+        raise he
     except Exception as e:
         logger.error(f"Failed to parse incoming unified webhook payload: {e}")
         print(f"[UNIFIED WEBHOOK PARSE ERROR]: {e}")
@@ -211,8 +238,21 @@ async def handle_incoming_whatsapp_message(
 ):
     """Processes incoming WhatsApp messages from Meta, runs the business's LangGraph agent, and sends back replies."""
     try:
-        # Meta Webhook (JSON)
+        # Verify business exists early
+        biz = db.query(Business).filter(Business.id == business_id).first()
+        if not biz:
+            raise HTTPException(status_code=404, detail="Business tenant not found.")
+
         body_bytes = await request.body()
+        
+        signature_header = request.headers.get("x-hub-signature-256")
+        if not signature_header:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Missing signature header.")
+            
+        app_secret = biz.api_settings.get("meta_app_secret") or settings.META_APP_SECRET
+        if not verify_meta_signature(body_bytes, signature_header, app_secret):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid request signature.")
+
         body_str = body_bytes.decode("utf-8")
         print("\n==================================================")
         print(f"[META WEBHOOK RECEIVE] Business: {business_id}")
@@ -289,6 +329,8 @@ async def handle_incoming_whatsapp_message(
                     meta_message_id=msg.get("id")
                 )
                     
+    except HTTPException as he:
+        raise he
     except Exception as e:
         logger.error(f"Failed to parse incoming webhook payload: {e}")
         print(f"[WEBHOOK PARSE ERROR]: {e}")

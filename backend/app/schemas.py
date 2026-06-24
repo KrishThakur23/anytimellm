@@ -180,4 +180,29 @@ class OnboardingChatResponse(BaseModel):
     chat_history: List[Dict[str, Any]]
     collected: Dict[str, Any]
 
+# Paginated schemas
+class PaginatedCatalog(BaseModel):
+    items: List[CatalogOut]
+    total: int
+    page: int
+    limit: int
+
+class PaginatedOrder(BaseModel):
+    items: List[OrderOut]
+    total: int
+    page: int
+    limit: int
+
+class PaginatedConversation(BaseModel):
+    items: List[ConversationOut]
+    total: int
+    page: int
+    limit: int
+
+class PaginatedDocument(BaseModel):
+    items: List[DocumentOut]
+    total: int
+    page: int
+    limit: int
+
 

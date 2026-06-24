@@ -8,9 +8,10 @@ from uuid import UUID
 from typing import List
 from datetime import datetime
 
+from sqlalchemy import func
 from app.database import get_db
-from app.models import Business, Catalog, Order, Conversation, Message
-from app.schemas import BusinessCreate, BusinessOut, CatalogCreate, CatalogOut, OrderOut, ConversationOut, MessageOut, MessageCreate
+from app.models import Business, Catalog, Order, Conversation, Message, Document
+from app.schemas import BusinessCreate, BusinessOut, CatalogCreate, CatalogOut, OrderOut, ConversationOut, MessageOut, MessageCreate, PaginatedCatalog, PaginatedOrder, PaginatedConversation
 from app.services.security import get_current_user
 from app.config import settings
 
@@ -51,6 +52,120 @@ def get_business_details(
     if not biz:
         raise HTTPException(status_code=404, detail="Business not found.")
     return biz
+
+@router.get("/{business_id}/stats")
+def get_business_stats(
+    business_id: UUID,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Fetch real database aggregates and metrics for the dashboard overview tab."""
+    if current_user.business_id != business_id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this business.")
+        
+    unread_conversations = (
+        db.query(func.count(Conversation.id))
+        .filter(
+            Conversation.business_id == business_id,
+            Conversation.status == "active",
+            Conversation.is_ai_paused == True
+        )
+        .scalar() or 0
+    )
+    
+    pending_orders = (
+        db.query(func.count(Order.id))
+        .filter(Order.business_id == business_id, Order.status == "pending")
+        .scalar() or 0
+    )
+    
+    failed_responses = (
+        db.query(func.count(Document.id))
+        .filter(Document.business_id == business_id, Document.status == "failed")
+        .scalar() or 0
+    )
+    
+    from datetime import datetime, timedelta
+    cutoff_24h = datetime.utcnow() - timedelta(hours=24)
+    active_convs = db.query(Conversation).filter(Conversation.business_id == business_id, Conversation.status == "active").all()
+    followups_due = 0
+    for conv in active_convs:
+        has_cust_msg = db.query(Message).filter(Message.conversation_id == conv.id, Message.sender == "customer").first() is not None
+        if not has_cust_msg:
+            continue
+        has_recent_agent = db.query(Message).filter(
+            Message.conversation_id == conv.id,
+            Message.sender == "agent",
+            Message.created_at >= cutoff_24h
+        ).first() is not None
+        if not has_recent_agent:
+            followups_due += 1
+            
+    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    confirmed_orders_today = db.query(Order).filter(
+        Order.business_id == business_id,
+        Order.status == "confirmed",
+        Order.created_at >= today_start
+    ).all()
+    revenue_today = 0.0
+    for order in confirmed_orders_today:
+        details = order.details or {}
+        items = details.get("items", [])
+        if isinstance(items, list):
+            for item in items:
+                if isinstance(item, dict):
+                    price = item.get("price") or item.get("price_per_unit") or item.get("amount")
+                    qty = item.get("quantity") or item.get("qty") or 1
+                    if price is not None:
+                        try:
+                            revenue_today += float(price) * float(qty)
+                        except (ValueError, TypeError):
+                            pass
+                    else:
+                        item_name = item.get("name") or item.get("item") or item.get("product")
+                        if item_name:
+                            catalog_item = db.query(Catalog).filter(
+                                Catalog.business_id == business_id,
+                                Catalog.name == item_name
+                            ).first()
+                            if catalog_item and catalog_item.price:
+                                try:
+                                    revenue_today += float(catalog_item.price) * float(qty)
+                                except (ValueError, TypeError):
+                                    pass
+                                    
+    orders_count = (
+        db.query(func.count(Order.id))
+        .filter(Order.business_id == business_id)
+        .scalar() or 0
+    )
+    
+    chats_count = (
+        db.query(func.count(Conversation.id))
+        .filter(Conversation.business_id == business_id, Conversation.status == "active")
+        .scalar() or 0
+    )
+    
+    total_closed = db.query(func.count(Conversation.id)).filter(Conversation.business_id == business_id, Conversation.status == "closed").scalar() or 0
+    autonomous_closed = db.query(func.count(Conversation.id)).filter(
+        Conversation.business_id == business_id,
+        Conversation.status == "closed",
+        Conversation.is_ai_paused == False
+    ).scalar() or 0
+    ai_resolution_rate = 100.0
+    if total_closed > 0:
+        ai_resolution_rate = round((autonomous_closed / total_closed) * 100.0, 1)
+        
+    return {
+        "unread_conversations": unread_conversations,
+        "pending_orders": pending_orders,
+        "failed_responses": failed_responses,
+        "followups_due": followups_due,
+        "revenue_today": revenue_today,
+        "orders_count": orders_count,
+        "chats_count": chats_count,
+        "ai_resolution_rate": ai_resolution_rate
+    }
 
 
 @router.patch("/{business_id}/settings", response_model=BusinessOut)
@@ -128,32 +243,40 @@ def add_catalog_item(
         raise HTTPException(status_code=500, detail="Could not create catalog item.")
 
 
-@router.get("/{business_id}/catalog", response_model=List[CatalogOut])
+@router.get("/{business_id}/catalog", response_model=PaginatedCatalog)
 def get_business_catalog(
     business_id: UUID,
-    skip: int = 0,
-    limit: int = 100,
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1),
     current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Retrieve catalog list representing items owned by this business tenant."""
     if current_user.business_id != business_id:
         raise HTTPException(status_code=403, detail="Not authorized to access this business.")
-    return (
+    
+    total = db.query(Catalog).filter(Catalog.business_id == business_id).count()
+    items = (
         db.query(Catalog)
         .filter(Catalog.business_id == business_id)
         .order_by(Catalog.created_at.desc())
-        .offset(skip)
+        .offset((page - 1) * limit)
         .limit(limit)
         .all()
     )
+    return {
+        "items": items,
+        "total": total,
+        "page": page,
+        "limit": limit
+    }
 
 
-@router.get("/{business_id}/orders", response_model=List[OrderOut])
+@router.get("/{business_id}/orders", response_model=PaginatedOrder)
 def get_business_orders(
     business_id: UUID,
-    skip: int = 0,
-    limit: int = 100,
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1),
     current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -165,12 +288,13 @@ def get_business_orders(
     if not biz:
         raise HTTPException(status_code=404, detail="Business not found.")
         
+    total = db.query(Order).filter(Order.business_id == business_id).count()
     orders = (
         db.query(Order)
         .filter(Order.business_id == business_id)
         .options(joinedload(Order.customer))
         .order_by(Order.created_at.desc())
-        .offset(skip)
+        .offset((page - 1) * limit)
         .limit(limit)
         .all()
     )
@@ -186,7 +310,12 @@ def get_business_orders(
             customer_name=o.customer.name if o.customer else "Unknown Customer",
             customer_phone=o.customer.phone_number if o.customer else "Unknown Phone"
         ))
-    return out
+    return {
+        "items": out,
+        "total": total,
+        "page": page,
+        "limit": limit
+    }
 
 
 @router.patch("/{business_id}/orders/{order_id}", response_model=OrderOut)
@@ -298,11 +427,11 @@ async def update_order_status(
         raise HTTPException(status_code=500, detail="Could not update order status.")
 
 
-@router.get("/{business_id}/chats", response_model=List[ConversationOut])
+@router.get("/{business_id}/chats", response_model=PaginatedConversation)
 def get_business_chats(
     business_id: UUID,
-    skip: int = 0,
-    limit: int = 100,
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1),
     current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -314,12 +443,17 @@ def get_business_chats(
     if not biz:
         raise HTTPException(status_code=404, detail="Business not found.")
         
+    total = db.query(Conversation).filter(
+        Conversation.business_id == business_id,
+        Conversation.channel.in_(["whatsapp", "instagram"])
+    ).count()
+    
     conversations = (
         db.query(Conversation)
         .filter(Conversation.business_id == business_id, Conversation.channel.in_(["whatsapp", "instagram"]))
         .options(joinedload(Conversation.customer), selectinload(Conversation.messages))
         .order_by(Conversation.created_at.desc())
-        .offset(skip)
+        .offset((page - 1) * limit)
         .limit(limit)
         .all()
     )
@@ -355,7 +489,12 @@ def get_business_chats(
             ai_pause_reason=conv.ai_pause_reason,
             ai_paused_at=conv.ai_paused_at
         ))
-    return out
+    return {
+        "items": out,
+        "total": total,
+        "page": page,
+        "limit": limit
+    }
 
 
 @router.get("/{business_id}/chats/stream")
