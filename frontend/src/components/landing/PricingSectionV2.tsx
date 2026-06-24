@@ -1,10 +1,44 @@
-"use client";
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Check, X, ShieldCheck } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
 
 export default function PricingSectionV2() {
+  const router = useRouter();
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem("anytimellm-token");
+    if (token) {
+      setIsLoggedIn(true);
+      api.getMe()
+        .then(profile => {
+          setUserProfile(profile);
+        })
+        .catch(() => {
+          setIsLoggedIn(false);
+        });
+    }
+  }, []);
+
+  const handleUpgrade = async (planType: string) => {
+    setLoading(true);
+    try {
+      await api.upgradePlan(planType);
+      setSuccessMessage(`Successfully upgraded to ${planType}! Redirecting to dashboard...`);
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1500);
+    } catch (err: any) {
+      alert(err.message || "Failed to upgrade subscription.");
+      setLoading(false);
+    }
+  };
 
   return (
     <section className="py-16 px-6 md:px-12 max-w-7xl mx-auto w-full bg-transparent" id="pricing">
@@ -49,6 +83,12 @@ export default function PricingSectionV2() {
         <h2 className="text-4xl md:text-[3rem] font-black text-slate-900 tracking-tight mb-8">
           Pricing
         </h2>
+        
+        {successMessage && (
+          <div className="max-w-xl mx-auto mb-8 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-center font-bold text-sm animate-pulse">
+            {successMessage}
+          </div>
+        )}
         
         {/* Toggle Billing Period */}
         <div className="inline-flex items-center gap-2 bg-slate-100 p-1.5 rounded-full">
@@ -103,12 +143,29 @@ export default function PricingSectionV2() {
             </ul>
           </div>
 
-          <button
-            onClick={() => window.dispatchEvent(new CustomEvent("open-ai-assistant"))}
-            className="w-full h-16 font-bold text-base bg-slate-100 hover:bg-slate-200 text-slate-900 rounded-xl transition-all"
-          >
-            Start 14-Day Free Trial
-          </button>
+          {!isLoggedIn ? (
+            <Link
+              href="/register"
+              className="w-full h-16 font-bold text-base bg-slate-100 hover:bg-slate-200 text-slate-900 rounded-xl transition-all flex items-center justify-center"
+            >
+              Start 15-Day Free Trial
+            </Link>
+          ) : userProfile?.trial_expired ? (
+            <button
+              onClick={() => handleUpgrade("STARTER")}
+              disabled={loading}
+              className="w-full h-16 font-bold text-base bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition-all disabled:opacity-50 flex items-center justify-center cursor-pointer font-semibold"
+            >
+              {loading ? "Processing..." : `Pay ₹${billingPeriod === "monthly" ? "999" : "799"}/mo`}
+            </button>
+          ) : (
+            <Link
+              href="/dashboard"
+              className="w-full h-16 font-bold text-base bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition-all flex items-center justify-center text-center"
+            >
+              Go to Dashboard
+            </Link>
+          )}
         </div>
 
         {/* Growth Plan */}
@@ -142,12 +199,29 @@ export default function PricingSectionV2() {
             </ul>
           </div>
 
-          <button
-            onClick={() => window.dispatchEvent(new CustomEvent("open-ai-assistant"))}
-            className="w-full h-16 font-bold text-base bg-violet-600 hover:bg-violet-500 text-white rounded-xl transition-all shadow-lg shadow-violet-600/25 border border-violet-400"
-          >
-            Start 14-Day Free Trial
-          </button>
+          {!isLoggedIn ? (
+            <Link
+              href="/register"
+              className="w-full h-16 font-bold text-base bg-violet-600 hover:bg-violet-500 text-white rounded-xl transition-all shadow-lg shadow-violet-600/25 border border-violet-400 flex items-center justify-center"
+            >
+              Start 15-Day Free Trial
+            </Link>
+          ) : userProfile?.trial_expired ? (
+            <button
+              onClick={() => handleUpgrade("GROWTH")}
+              disabled={loading}
+              className="w-full h-16 font-bold text-base bg-violet-700 hover:bg-violet-600 text-white rounded-xl transition-all disabled:opacity-50 flex items-center justify-center cursor-pointer border border-violet-400 shadow-lg font-semibold"
+            >
+              {loading ? "Processing..." : `Pay ₹${billingPeriod === "monthly" ? "2,999" : "2,399"}/mo`}
+            </button>
+          ) : (
+            <Link
+              href="/dashboard"
+              className="w-full h-16 font-bold text-base bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition-all flex items-center justify-center text-center border border-emerald-500 shadow-lg"
+            >
+              Go to Dashboard
+            </Link>
+          )}
         </div>
 
       </div>
@@ -158,8 +232,8 @@ export default function PricingSectionV2() {
            <ShieldCheck className="w-8 h-8 text-violet-500" />
          </div>
          <div>
-           <h4 className="font-black text-lg text-slate-900 mb-2">14-Day Money-Back Guarantee</h4>
-           <p className="text-[15px] font-medium text-slate-500 leading-relaxed max-w-xl">If Business Brain™ doesn't save you time and capture more orders in the first 14 days, we'll refund your payment in full. No questions asked.</p>
+           <h4 className="font-black text-lg text-slate-900 mb-2">15-Day Money-Back Guarantee</h4>
+           <p className="text-[15px] font-medium text-slate-500 leading-relaxed max-w-xl">If Business Brain™ doesn't save you time and capture more orders in the first 15 days, we'll refund your payment in full. No questions asked.</p>
          </div>
       </div>
     </section>

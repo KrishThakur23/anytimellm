@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { ArrowRight, QrCode, UploadCloud, Rocket, ChevronDown } from "lucide-react";
 
 export default function CtaBannerV2() {
@@ -80,12 +81,12 @@ export default function CtaBannerV2() {
         </div>
 
         {/* Action Button */}
-        <button
-          onClick={() => window.dispatchEvent(new CustomEvent("open-ai-assistant"))}
+        <Link
+          href="/pricing"
           className="h-16 px-10 bg-slate-900 hover:bg-slate-800 text-white rounded-[1rem] font-bold text-lg tracking-wide shadow-2xl shadow-slate-900/20 flex items-center gap-3 transition-transform hover:scale-105 mb-6"
         >
-          Start 14-Day Free Trial <ArrowRight className="w-5 h-5" />
-        </button>
+          Start 15-Day Free Trial <ArrowRight className="w-5 h-5" />
+        </Link>
         <p className="mb-24 text-xs font-bold text-slate-400 uppercase tracking-widest">No credit card required</p>
 
         {/* Top 3 FAQs (as part of CTA section) */}

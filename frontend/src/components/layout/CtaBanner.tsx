@@ -29,14 +29,14 @@ export default function CtaBanner() {
         </p>
 
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4 relative z-10">
-          <button
-            onClick={() => window.dispatchEvent(new CustomEvent("open-ai-assistant"))}
+          <Link
+            href="/pricing"
             className="w-full sm:w-auto h-12 px-8 bg-white hover:bg-slate-50 text-slate-900 font-semibold text-sm tracking-wide flex items-center justify-center gap-2 transition-all duration-300 group shadow-md"
             style={{ borderRadius: 'var(--radius-md)' }}
           >
             Start Free
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </button>
+          </Link>
           <Link
             href="/demo"
             className="w-full sm:w-auto h-12 px-8 border border-white/30 hover:border-white text-white hover:bg-white/10 font-semibold text-sm tracking-wide flex items-center justify-center transition-all duration-300"

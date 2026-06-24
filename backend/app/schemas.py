@@ -152,6 +152,7 @@ class UserOut(BaseModel):
     business_id: UUID
     email: str
     created_at: datetime
+    trial_expired: bool = False
 
     class Config:
         from_attributes = True

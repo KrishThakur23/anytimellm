@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import CtaBanner from "@/components/layout/CtaBanner";
@@ -9,7 +11,40 @@ import { Check, ArrowRight, Star, ShieldCheck } from "lucide-react";
 import FloatingParticles from "@/components/effects/FloatingParticles";
 
 export default function PricingPage() {
+  const router = useRouter();
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem("anytimellm-token");
+    if (token) {
+      setIsLoggedIn(true);
+      api.getMe()
+        .then(profile => {
+          setUserProfile(profile);
+        })
+        .catch(() => {
+          setIsLoggedIn(false);
+        });
+    }
+  }, []);
+
+  const handleUpgrade = async (planType: string) => {
+    setLoading(true);
+    try {
+      await api.upgradePlan(planType);
+      setSuccessMessage(`Successfully upgraded to ${planType}! Redirecting to dashboard...`);
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1500);
+    } catch (err: any) {
+      alert(err.message || "Failed to upgrade subscription.");
+      setLoading(false);
+    }
+  };
 
   const plans = [
     {
@@ -122,6 +157,13 @@ export default function PricingPage() {
         </div>
       </section>
 
+      {/* Success Message Banner */}
+      {successMessage && (
+        <div className="max-w-xl mx-auto mb-8 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-center font-bold text-sm animate-pulse z-10">
+          {successMessage}
+        </div>
+      )}
+
       {/* Pricing Cards Section */}
       <section className="py-8 px-6 md:px-12 max-w-7xl mx-auto w-full z-10 grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
         {plans.map((plan) => (
@@ -185,17 +227,42 @@ export default function PricingPage() {
             </div>
 
             {plan.name !== "Agency" ? (
-              <button
-                onClick={() => window.dispatchEvent(new CustomEvent("open-ai-assistant"))}
-                className={`w-full h-12 font-mono text-xs tracking-[0.2em] uppercase flex items-center justify-center gap-1.5 transition-all duration-300 rounded-xl font-bold ${
-                  plan.popular
-                    ? "bg-[#128C7E] text-white hover:bg-[#0c6b60] shadow-lg shadow-[#128C7E]/20"
-                    : "border border-slate-200 hover:border-slate-400 text-slate-700 hover:bg-slate-50"
-                }`}
-              >
-                {plan.cta}
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+              <>
+                {!isLoggedIn ? (
+                  <Link
+                    href="/register"
+                    className={`w-full h-12 font-mono text-xs tracking-[0.2em] uppercase flex items-center justify-center gap-1.5 transition-all duration-300 rounded-xl font-bold ${
+                      plan.popular
+                        ? "bg-[#128C7E] text-white hover:bg-[#0c6b60] shadow-lg shadow-[#128C7E]/20"
+                        : "border border-slate-200 hover:border-slate-400 text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    Start 15-Day Free Trial
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                ) : userProfile?.trial_expired ? (
+                  <button
+                    onClick={() => handleUpgrade(plan.name.toUpperCase())}
+                    disabled={loading}
+                    className={`w-full h-12 font-mono text-xs tracking-[0.2em] uppercase flex items-center justify-center gap-1.5 transition-all duration-300 rounded-xl font-bold cursor-pointer disabled:opacity-50 ${
+                      plan.popular
+                        ? "bg-[#128C7E] text-white hover:bg-[#0c6b60] shadow-lg shadow-[#128C7E]/20"
+                        : "border border-slate-200 hover:border-slate-400 text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    {loading ? "Processing..." : `Pay ₹${plan.price}`}
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                ) : (
+                  <Link
+                    href="/dashboard"
+                    className="w-full h-12 font-mono text-xs tracking-[0.2em] uppercase flex items-center justify-center gap-1.5 transition-all duration-300 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg text-center"
+                  >
+                    Go to Dashboard
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                )}
+              </>
             ) : (
               <Link
                 href="/demo"

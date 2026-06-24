@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { ArrowRight, MessageSquare, Bot, ShoppingBag } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -39,13 +40,13 @@ export default function HeroSectionV2() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-5 items-start sm:items-center">
-            <button
-              onClick={() => window.dispatchEvent(new CustomEvent("open-ai-assistant"))}
+            <Link
+              href="/pricing"
               className="h-14 px-8 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-sm tracking-wide flex items-center justify-center gap-2 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-0.5"
             >
               Start Capturing More Orders
               <ArrowRight className="w-4 h-4" />
-            </button>
+            </Link>
             <div className="flex flex-col justify-center text-sm text-slate-500 font-medium">
               <span>Deploy your WhatsApp</span>
               <span>AI Employee in minutes.</span>

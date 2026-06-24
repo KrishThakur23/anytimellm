@@ -73,12 +73,22 @@ export default function Dashboard() {
 
     const savedToken = localStorage.getItem("anytimellm-token");
     if (savedToken) {
-      api.getMyBusiness()
+      api.getMe()
+        .then(user => {
+          if (user.trial_expired) {
+            alert("Your 15-day free trial has expired. Please select a plan to continue.");
+            window.location.href = "/pricing";
+            return;
+          }
+          return api.getMyBusiness();
+        })
         .then(biz => {
-          setActiveBusiness(biz);
+          if (biz) {
+            setActiveBusiness(biz);
+          }
         })
         .catch(err => {
-          console.error("Failed to load saved business session:", err);
+          console.error("Failed to load saved session:", err);
           localStorage.removeItem("anytimellm-active-business-id");
           localStorage.removeItem("anytimellm-token");
           window.location.href = "/login";

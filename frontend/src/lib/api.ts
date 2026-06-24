@@ -402,4 +402,17 @@ export const api = {
     }
     return res.json();
   },
+
+  async upgradePlan(planType: string): Promise<any> {
+    const res = await fetch(`${BACKEND_URL}/api/billing/upgrade`, {
+      method: "POST",
+      headers: getHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ plan_type: planType }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || "Failed to upgrade subscription.");
+    }
+    return res.json();
+  },
 };

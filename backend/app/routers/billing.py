@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
+from pydantic import BaseModel
 
 from app.database import get_db
 from app.config import settings
@@ -130,5 +131,78 @@ def get_subscription_status(
         "status": sub.status,
         "trial_end_date": sub.trial_end_date,
         "trial_days_left": trial_days_left,
+        "subscription_end_date": sub.subscription_end_date
+    }
+
+class UpgradeRequest(BaseModel):
+    plan_type: str
+
+@router.post("/upgrade")
+def upgrade_subscription(
+    payload: UpgradeRequest,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Simulates checking out and upgrading the business's subscription.
+    """
+    plan = payload.plan_type.upper().strip()
+    if plan not in ["STARTER", "GROWTH", "ENTERPRISE"]:
+        raise HTTPException(status_code=400, detail="Invalid plan type.")
+        
+    sub = db.query(Subscription).filter(Subscription.business_id == current_user.business_id).first()
+    if not sub:
+        sub = Subscription(
+            business_id=current_user.business_id,
+            plan_type="TRIAL",
+            status="active"
+        )
+        db.add(sub)
+        db.commit()
+        db.refresh(sub)
+        
+    old_plan = sub.plan_type
+    
+    # Update subscription to active paid plan
+    sub.plan_type = plan
+    sub.status = "active"
+    sub.subscription_status_reason = "paid"
+    sub.trial_end_date = None # Clear trial dates if they exist
+    sub.trial_start_date = None
+    
+    now = datetime.utcnow()
+    sub.subscription_start_date = now
+    sub.subscription_end_date = now + timedelta(days=30)
+    
+    # Record subscription history
+    amount = 999.00 if plan == "STARTER" else (2999.00 if plan == "GROWTH" else 0.00)
+    history = SubscriptionHistory(
+        business_id=current_user.business_id,
+        old_plan=old_plan,
+        new_plan=plan,
+        status_change="upgraded",
+        amount=amount,
+        provider="simulated_checkout",
+        timestamp=now
+    )
+    
+    # Record Audit Log
+    audit = AuditLog(
+        business_id=current_user.business_id,
+        action="subscription_upgraded",
+        entity_type="subscription",
+        entity_id=str(sub.id),
+        details={"old_plan": old_plan, "new_plan": plan, "amount": amount}
+    )
+    
+    db.add(history)
+    db.add(audit)
+    db.commit()
+    db.refresh(sub)
+    
+    return {
+        "status": "success",
+        "plan_type": sub.plan_type,
+        "subscription_status": sub.status,
         "subscription_end_date": sub.subscription_end_date
     }

@@ -99,8 +99,10 @@ def login_user(payload: UserLogin, response: Response, db: Session = Depends(get
     )
 
 @router.get("/me", response_model=UserOut)
-def get_user_profile(current_user: User = Depends(get_current_user)):
+def get_user_profile(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """Retrieve details of the currently authenticated admin user."""
+    from app.services.permissions import check_subscription_expiry
+    check_subscription_expiry(db, current_user.business_id)
     return current_user
 
 @router.post("/refresh", response_model=TokenOut)

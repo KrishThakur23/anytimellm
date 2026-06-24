@@ -16,21 +16,37 @@ def check_subscription_expiry(db: Session, business_id: UUID) -> Subscription:
     plus the 24-hour grace period, it transitions the status to 'expired'.
     """
     sub = db.query(Subscription).filter(Subscription.business_id == business_id).first()
+    now = datetime.utcnow()
+    
     if not sub:
         # Fallback creation if missing (should not happen in prod with proper onboarding)
-        sub = Subscription(business_id=business_id)
+        sub = Subscription(
+            business_id=business_id,
+            plan_type="TRIAL",
+            status="active",
+            trial_start_date=now,
+            trial_end_date=now + timedelta(days=15)
+        )
         db.add(sub)
         db.commit()
         db.refresh(sub)
         return sub
 
-    now = datetime.utcnow()
-    # Ensure timezone awareness if your db returns aware datetimes
-    if sub.trial_end_date and sub.trial_end_date.tzinfo:
-        now = now.astimezone(sub.trial_end_date.tzinfo)
+    # If it is a TRIAL and trial dates are not set yet, initialize them
+    if sub.plan_type == "TRIAL" and (sub.trial_start_date is None or sub.trial_end_date is None):
+        start_dt = sub.created_at if sub.created_at else now
+        sub.trial_start_date = start_dt
+        sub.trial_end_date = start_dt + timedelta(days=15)
+        db.commit()
+        db.refresh(sub)
 
     # Determine applicable end date
     end_date = sub.subscription_end_date if sub.plan_type != "TRIAL" else sub.trial_end_date
+
+    # Ensure timezone awareness if your db returns aware datetimes
+    if end_date and end_date.tzinfo:
+        from datetime import timezone
+        now = datetime.now(timezone.utc).astimezone(end_date.tzinfo)
 
     if end_date and sub.status in ["active", "past_due"]:
         # Check grace period (24 hours)

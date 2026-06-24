@@ -77,13 +77,13 @@ export default function Header() {
             >
               Log in
             </Link>
-            <button
-              onClick={() => window.dispatchEvent(new CustomEvent("open-ai-assistant"))}
+            <Link
+              href="/pricing"
               className="text-[13px] font-semibold text-white bg-slate-900 px-5 py-2.5 hover:bg-slate-800 transition-all duration-300 flex items-center gap-1.5 group rounded-xl shadow-md hover:shadow-lg"
             >
               Start Free
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-            </button>
+            </Link>
           </>
         )}
       </div>
@@ -135,16 +135,14 @@ export default function Header() {
                 >
                   Log in
                 </Link>
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    window.dispatchEvent(new CustomEvent("open-ai-assistant"));
-                  }}
+                <Link
+                  href="/pricing"
+                  onClick={() => setMobileMenuOpen(false)}
                   className="w-full text-center text-sm font-semibold text-white bg-slate-900 py-2.5 flex items-center justify-center gap-1.5 rounded-xl shadow-md hover:shadow-lg transition-all"
                 >
                   Start Free
                   <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+                </Link>
               </>
             )}
           </div>

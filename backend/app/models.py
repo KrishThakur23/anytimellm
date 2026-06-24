@@ -127,6 +127,12 @@ class User(Base):
     
     business: Mapped["Business"] = relationship(back_populates="users")
 
+    @property
+    def trial_expired(self) -> bool:
+        if self.business and self.business.subscription:
+            return self.business.subscription.status == "expired"
+        return False
+
 # --- Billing & Subscription Models ---
 
 class Subscription(Base):
