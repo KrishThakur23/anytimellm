@@ -11,6 +11,10 @@ interface OrdersTabProps {
   onRefresh: () => void;
   onUpdateStatus: (orderId: string, status: 'pending' | 'confirmed' | 'cancelled') => void;
   updatingOrderId: string | null;
+  page: number;
+  total: number;
+  limit: number;
+  onPageChange: (page: number) => void;
 }
 
 export default function OrdersTab({
@@ -19,6 +23,10 @@ export default function OrdersTab({
   onRefresh,
   onUpdateStatus,
   updatingOrderId,
+  page,
+  total,
+  limit,
+  onPageChange,
 }: OrdersTabProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
@@ -121,10 +129,10 @@ export default function OrdersTab({
       {/* Orders List / Content */}
       {orders.length === 0 ? (
         <div className="py-16 text-center border border-dashed border-slate-300 bg-white rounded-xl shadow-sm">
-          <ShoppingBag className="w-10 h-10 mx-auto text-slate-300 mb-3" />
-          <h3 className="font-semibold text-slate-700 text-sm">No orders yet</h3>
+          <ShoppingBag className="w-10 h-10 mx-auto text-slate-300 mb-3 animate-bounce" />
+          <h3 className="font-semibold text-slate-700 text-sm">No orders generated yet</h3>
           <p className="text-sm text-slate-500 mt-1 max-w-sm mx-auto">
-            When your AI agent completes a sale, it will appear here.
+            When your AI assistant automates client checkout, orders will populate here.
           </p>
         </div>
       ) : (
@@ -293,6 +301,57 @@ export default function OrdersTab({
                 })}
               </tbody>
             </table>
+            {/* Pagination Controls */}
+            {total > limit && (
+              <div className="flex items-center justify-between border-t border-slate-100 bg-white px-4 py-3 sm:px-6">
+                <div className="flex flex-1 justify-between sm:hidden">
+                  <button
+                    onClick={() => onPageChange(page - 1)}
+                    disabled={page === 1}
+                    className="relative inline-flex items-center rounded-md border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => onPageChange(page + 1)}
+                    disabled={page * limit >= total}
+                    className="relative ml-3 inline-flex items-center rounded-md border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </div>
+                <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-xs text-slate-500 font-mono">
+                      Showing <span className="font-semibold text-slate-800">{(page - 1) * limit + 1}</span> to{" "}
+                      <span className="font-semibold text-slate-800">{Math.min(page * limit, total)}</span> of{" "}
+                      <span className="font-semibold text-slate-800">{total}</span> results
+                    </p>
+                  </div>
+                  <div>
+                    <nav className="isolate inline-flex -space-x-px rounded-md shadow-xs" aria-label="Pagination">
+                      <button
+                        onClick={() => onPageChange(page - 1)}
+                        disabled={page === 1}
+                        className="relative inline-flex items-center rounded-l-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-50 transition-colors disabled:opacity-45 disabled:cursor-not-allowed"
+                      >
+                        Previous
+                      </button>
+                      <span className="relative inline-flex items-center border border-slate-200 bg-slate-50/50 px-3.5 py-1.5 text-xs font-semibold text-slate-700 font-mono">
+                        Page {page} of {Math.ceil(total / limit)}
+                      </span>
+                      <button
+                        onClick={() => onPageChange(page + 1)}
+                        disabled={page * limit >= total}
+                        className="relative inline-flex items-center rounded-r-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-50 transition-colors disabled:opacity-45 disabled:cursor-not-allowed"
+                      >
+                        Next
+                      </button>
+                    </nav>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

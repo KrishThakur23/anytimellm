@@ -1,45 +1,65 @@
 "use client";
 
 import React, { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 export default function BusinessBrainReveal() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start center", "end center"],
-  });
+  const sectionRef = useRef<HTMLElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
 
-  // Calculate opacities based on scroll progress
-  const opacity1 = useTransform(scrollYProgress, [0, 0.2, 0.3], [0.2, 1, 1]);
-  const opacity2 = useTransform(scrollYProgress, [0.2, 0.4, 0.5], [0.2, 1, 1]);
-  const opacity3 = useTransform(scrollYProgress, [0.4, 0.6, 0.7], [0.2, 1, 1]);
-  const opacity4 = useTransform(scrollYProgress, [0.6, 0.8, 0.9], [0.2, 1, 1]);
-  const opacity5 = useTransform(scrollYProgress, [0.8, 1, 1], [0.2, 1, 1]);
+  useGSAP(() => {
+    if (!textRef.current) return;
+    const sentences = gsap.utils.toArray<HTMLElement>(".reveal-sentence", textRef.current);
+    if (sentences.length === 0) return;
+
+    // Set initial opacities: Sentence 1 is active (1.0), rest are inactive (0.2)
+    gsap.set(sentences, { opacity: 0.2 });
+    gsap.set(sentences[0], { opacity: 1 });
+
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: textRef.current,
+        start: "center center",
+        end: "+=200%", // Scroll distance to complete animation
+        scrub: 0.5, // smooth scrubbing transition
+        pin: true,
+      }
+    });
+
+    // Create a sequential cross-fade timeline
+    for (let i = 1; i < sentences.length; i++) {
+      tl.to(sentences[i - 1], { opacity: 0.2, duration: 1 }, `fade-${i}`)
+        .to(sentences[i], { opacity: 1, duration: 1 }, `fade-${i}`);
+    }
+  }, { scope: sectionRef });
 
   return (
-    <section ref={containerRef} className="h-[200vh] bg-transparent text-slate-900 relative">
-      <div className="sticky top-0 h-screen flex flex-col items-center justify-center overflow-hidden">
-        {/* Subtle background glow */}
-        <div className="absolute inset-0 bg-gradient-hero opacity-30 pointer-events-none -z-10" />
+    <section ref={sectionRef} className="bg-transparent text-slate-900 relative py-20 md:py-32">
+      {/* Subtle background glow */}
+      <div className="absolute inset-0 bg-gradient-hero opacity-30 pointer-events-none -z-10" />
 
-        <div className="max-w-5xl mx-auto px-6 text-center space-y-4 md:space-y-6">
-          <motion.h3 style={{ opacity: opacity1 }} className="text-4xl md:text-[4rem] font-black tracking-tight leading-none text-slate-900">
-            Reads your catalog.
-          </motion.h3>
-          <motion.h3 style={{ opacity: opacity2 }} className="text-4xl md:text-[4rem] font-black tracking-tight leading-none text-slate-900">
-            Understands your business.
-          </motion.h3>
-          <motion.h3 style={{ opacity: opacity3 }} className="text-4xl md:text-[4rem] font-black tracking-tight leading-none text-slate-900">
-            Answers customers.
-          </motion.h3>
-          <motion.h3 style={{ opacity: opacity4 }} className="text-4xl md:text-[4rem] font-black tracking-tight leading-none text-emerald-500">
-            Creates orders.
-          </motion.h3>
-          <motion.h3 style={{ opacity: opacity5 }} className="text-4xl md:text-[4rem] font-black tracking-tight leading-none text-violet-600">
-            Never sleeps.
-          </motion.h3>
-        </div>
+      <div ref={textRef} className="max-w-5xl mx-auto px-6 text-center space-y-4 md:space-y-6">
+        <h3 className="reveal-sentence font-display text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-none text-slate-900">
+          Reads your catalog.
+        </h3>
+        <h3 className="reveal-sentence font-display text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-none text-slate-900">
+          Understands your business.
+        </h3>
+        <h3 className="reveal-sentence font-display text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-none text-slate-900">
+          Answers customers.
+        </h3>
+        <h3 className="reveal-sentence font-display text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-none text-emerald-500">
+          Creates orders.
+        </h3>
+        <h3 className="reveal-sentence font-display text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-none text-violet-600">
+          Never sleeps.
+        </h3>
       </div>
     </section>
   );

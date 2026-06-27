@@ -78,6 +78,13 @@ export interface Conversation {
   is_ai_paused: boolean;
 }
 
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 // Utility function to inject JWT Authorization header
 function getHeaders(extraHeaders: Record<string, string> = {}): Record<string, string> {
   const headers: Record<string, string> = { ...extraHeaders };
@@ -220,12 +227,23 @@ export const api = {
     return res.json();
   },
 
-  async getDocuments(businessId: string): Promise<DocumentInfo[]> {
-    const res = await fetch(`${BACKEND_URL}/api/ingest/${businessId}`, {
+  async getDocuments(businessId: string, page: number = 1, limit: number = 10): Promise<PaginatedResponse<DocumentInfo>> {
+    const res = await fetch(`${BACKEND_URL}/api/ingest/${businessId}?page=${page}&limit=${limit}`, {
       headers: getHeaders(),
     });
     if (!res.ok) throw new Error("Failed to list business documents.");
     return res.json();
+  },
+
+  async deleteDocument(businessId: string, documentId: string): Promise<void> {
+    const res = await fetch(`${BACKEND_URL}/api/ingest/${businessId}/documents/${documentId}`, {
+      method: "DELETE",
+      headers: getHeaders(),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "Failed to delete document.");
+    }
   },
 
   async getSubscription(businessId: string): Promise<any> {
@@ -233,6 +251,23 @@ export const api = {
       headers: getHeaders(),
     });
     if (!res.ok) throw new Error("Failed to fetch subscription details.");
+    return res.json();
+  },
+
+  async getDashboardStats(businessId: string): Promise<{
+    unread_conversations: number;
+    pending_orders: number;
+    failed_responses: number;
+    followups_due: number;
+    revenue_today: number;
+    orders_count: number;
+    chats_count: number;
+    ai_resolution_rate: number;
+  }> {
+    const res = await fetch(`${BACKEND_URL}/api/businesses/${businessId}/stats`, {
+      headers: getHeaders(),
+    });
+    if (!res.ok) throw new Error("Failed to fetch dashboard stats.");
     return res.json();
   },
 
@@ -246,8 +281,8 @@ export const api = {
     return res.json();
   },
 
-  async getCatalog(businessId: string): Promise<CatalogItem[]> {
-    const res = await fetch(`${BACKEND_URL}/api/businesses/${businessId}/catalog`, {
+  async getCatalog(businessId: string, page: number = 1, limit: number = 10): Promise<PaginatedResponse<CatalogItem>> {
+    const res = await fetch(`${BACKEND_URL}/api/businesses/${businessId}/catalog?page=${page}&limit=${limit}`, {
       headers: getHeaders(),
     });
     if (!res.ok) throw new Error("Failed to fetch catalog list.");
@@ -268,8 +303,8 @@ export const api = {
     return res.json();
   },
 
-  async getOrders(businessId: string): Promise<Order[]> {
-    const res = await fetch(`${BACKEND_URL}/api/businesses/${businessId}/orders`, {
+  async getOrders(businessId: string, page: number = 1, limit: number = 10): Promise<PaginatedResponse<Order>> {
+    const res = await fetch(`${BACKEND_URL}/api/businesses/${businessId}/orders?page=${page}&limit=${limit}`, {
       headers: getHeaders(),
     });
     if (!res.ok) throw new Error("Failed to fetch orders list.");
@@ -286,8 +321,8 @@ export const api = {
     return res.json();
   },
 
-  async getChats(businessId: string): Promise<Conversation[]> {
-    const res = await fetch(`${BACKEND_URL}/api/businesses/${businessId}/chats`, {
+  async getChats(businessId: string, page: number = 1, limit: number = 10): Promise<PaginatedResponse<Conversation>> {
+    const res = await fetch(`${BACKEND_URL}/api/businesses/${businessId}/chats?page=${page}&limit=${limit}`, {
       headers: getHeaders(),
     });
     if (!res.ok) throw new Error("Failed to fetch WhatsApp chats.");

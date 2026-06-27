@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowRight, MessageSquare, Bot, ShoppingBag } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import BusinessBrainMotif from "@/components/ui/BusinessBrainMotif";
 
 export default function HeroSectionV2() {
   const [step, setStep] = useState(0);
@@ -21,36 +22,40 @@ export default function HeroSectionV2() {
   }, []);
 
   return (
-    <section className="relative pt-16 pb-16 px-6 md:px-12 w-full z-10 overflow-hidden bg-transparent">
+    <section className="relative pt-12 pb-12 px-6 md:px-12 w-full z-10 overflow-hidden bg-transparent">
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
         
         {/* Left: Copy */}
         <div className="flex-1 max-w-2xl z-10">
           <div className="mb-6 inline-flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-full">
              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-             <span className="text-[10px] font-bold text-slate-700 uppercase tracking-widest">Business Brain™ OS</span>
+             <span className="font-body text-[10px] font-bold text-slate-700 uppercase tracking-widest">Business Brain™ OS</span>
           </div>
 
-          <h1 className="text-5xl md:text-[4rem] font-black text-slate-900 leading-[1.05] tracking-tight mb-8">
-            Every missed WhatsApp message is a <span className="text-slate-400">customer buying elsewhere.</span>
+          <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-extrabold text-slate-900 leading-[1.05] tracking-tight mb-8">
+            Every missed message is a <span className="text-slate-400">lost sale.</span>
           </h1>
 
-          <p className="text-xl text-slate-600 font-medium mb-10 max-w-xl leading-relaxed">
-            Turn WhatsApp conversations into orders, bookings, and revenue 24/7. Your AI employee replies instantly, so you never lose a sale again.
+          <p className="font-body text-lg md:text-xl text-slate-600 font-medium mb-8 max-w-xl leading-relaxed">
+            Answer questions, check inventory, and create orders on WhatsApp automatically. Instantly, day or night.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-5 items-start sm:items-center">
             <Link
               href="/pricing"
-              className="h-14 px-8 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-sm tracking-wide flex items-center justify-center gap-2 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-0.5"
+              className="h-14 px-8 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-body font-semibold text-sm tracking-wide flex items-center justify-center gap-2 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-0.5"
             >
-              Start Capturing More Orders
+              Start free trial
               <ArrowRight className="w-4 h-4" />
             </Link>
-            <div className="flex flex-col justify-center text-sm text-slate-500 font-medium">
-              <span>Deploy your WhatsApp</span>
-              <span>AI Employee in minutes.</span>
+            <div className="flex flex-col justify-center text-sm text-slate-500 font-body font-medium">
+              <span>Set up your workspace</span>
+              <span>in three minutes.</span>
             </div>
+          </div>
+
+          <div className="mt-12 hidden md:block">
+            <BusinessBrainMotif />
           </div>
         </div>
 

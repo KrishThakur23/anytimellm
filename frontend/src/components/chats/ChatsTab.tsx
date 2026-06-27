@@ -9,7 +9,8 @@ import {
   Search, 
   Phone,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  ArrowLeft
 } from "lucide-react";
 import type { Conversation } from "@/lib/api";
 
@@ -19,6 +20,11 @@ interface ChatsTabProps {
   onRefresh: () => void;
   onSendReply: (conversationId: string, content: string) => Promise<void>;
   onTogglePause: (conversationId: string, isPaused: boolean) => Promise<void>;
+  onTabChange?: (tab: "overview" | "ingest" | "catalog" | "playground" | "integrations" | "orders" | "chats" | "analytics") => void;
+  page: number;
+  total: number;
+  limit: number;
+  onPageChange: (page: number) => void;
 }
 
 export default function ChatsTab({
@@ -27,6 +33,11 @@ export default function ChatsTab({
   onRefresh,
   onSendReply,
   onTogglePause,
+  onTabChange,
+  page,
+  total,
+  limit,
+  onPageChange,
 }: ChatsTabProps) {
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -34,6 +45,38 @@ export default function ChatsTab({
   const [sendingReply, setSendingReply] = useState(false);
   
   const threadEndRef = useRef<HTMLDivElement>(null);
+
+  if (!loading && chats.length === 0) {
+    return (
+      <div className="space-y-4 h-[calc(100vh-140px)] flex flex-col overflow-hidden text-left pb-4">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4 shrink-0">
+          <div>
+            <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900">
+              Live Chats
+            </h1>
+            <p className="font-body text-sm text-slate-500 mt-1">
+              Monitor and override the Business Brain.
+            </p>
+          </div>
+        </div>
+        <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-white border border-slate-200 rounded-xl shadow-sm">
+          <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mb-4 border border-slate-100">
+            <MessageSquare className="w-6 h-6 text-slate-400" />
+          </div>
+          <h3 className="font-semibold text-slate-800 text-lg">No conversations resolved yet</h3>
+          <p className="text-sm text-slate-500 mt-2 max-w-md leading-relaxed">
+            Link Meta channels in settings to receive customer inquiries. Once connected, customer conversations will populate here.
+          </p>
+          <button
+            onClick={() => onTabChange?.("integrations")}
+            className="mt-6 px-4 py-2 bg-slate-950 hover:bg-slate-800 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors cursor-pointer"
+          >
+            Connect Channels
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     if (threadEndRef.current && threadEndRef.current.parentElement) {
@@ -156,7 +199,7 @@ export default function ChatsTab({
       {/* Main split-pane content */}
       <div className="flex-1 flex gap-0 items-stretch overflow-hidden min-h-0 bg-white border border-slate-200 rounded-xl shadow-sm">
         {/* Left Column: Chat Conversation Threads list */}
-        <div className="w-80 flex flex-col border-r border-slate-200 shrink-0 bg-[#F8FAFC]">
+        <div className={`w-full md:w-80 flex flex-col border-r border-slate-200 shrink-0 bg-[#F8FAFC] ${selectedChatId ? "hidden md:flex" : "flex"}`}>
           {/* Search bar */}
           <div className="p-3 border-b border-slate-200 bg-white shrink-0">
             <div className="relative">
@@ -237,15 +280,43 @@ export default function ChatsTab({
               </div>
             )}
           </div>
+          {/* Pagination Controls */}
+          {total > limit && (
+            <div className="flex items-center justify-between border-t border-slate-200 bg-white px-4 py-2 shrink-0">
+              <button
+                onClick={() => onPageChange(page - 1)}
+                disabled={page === 1}
+                className="relative inline-flex items-center rounded-md border border-slate-250 bg-white px-2.5 py-1 text-[10px] font-bold text-slate-650 hover:bg-slate-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Prev
+              </button>
+              <span className="text-[10px] font-bold text-slate-500 font-mono">
+                Page {page}/{Math.ceil(total / limit)}
+              </span>
+              <button
+                onClick={() => onPageChange(page + 1)}
+                disabled={page * limit >= total}
+                className="relative inline-flex items-center rounded-md border border-slate-250 bg-white px-2.5 py-1 text-[10px] font-bold text-slate-650 hover:bg-slate-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Right Column: Chat thread detail */}
-        <div className="flex-1 flex flex-col relative bg-white">
+        <div className={`flex-1 flex flex-col relative bg-white ${selectedChatId ? "flex" : "hidden md:flex"}`}>
           {activeChat ? (
             <>
               {/* Header profile info */}
               <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center shrink-0 bg-white">
                 <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setSelectedChatId(null)}
+                    className="md:hidden flex items-center justify-center p-1.5 text-slate-500 hover:text-slate-800 transition-colors border border-slate-200 rounded-lg hover:bg-slate-50 bg-white mr-1"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                  </button>
                   <div className="text-left">
                     <h3 className="font-bold text-base text-slate-900">
                       {activeChat.customer_name || (isActiveInstagram ? "Instagram User" : "WhatsApp User")}

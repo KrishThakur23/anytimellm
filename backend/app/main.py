@@ -25,6 +25,15 @@ limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Validate JWT secret key on startup in production configurations
+    is_production = (
+        os.getenv("APP_ENV") == "production" or
+        ("postgresql" in settings.DATABASE_URL and "localhost" not in settings.DATABASE_URL and "127.0.0.1" not in settings.DATABASE_URL)
+    )
+    if settings.JWT_SECRET_KEY == "anytimellm_secret_key_change_me_in_production" and is_production:
+        logger.critical("CRITICAL: Default JWT_SECRET_KEY cannot be used in production.")
+        raise RuntimeError("CRITICAL: Default JWT_SECRET_KEY cannot be used in production.")
+
     # Initialize DB tables on startup (in production, use Alembic migrations, but for developer-first build we create all tables automatically)
     try:
         logger.info("Initializing relational database tables...")

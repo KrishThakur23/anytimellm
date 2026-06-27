@@ -125,19 +125,18 @@ export default function IndustrySwitcherV2() {
   const active = industries.find((i) => i.id === activeId) || industries[1];
 
   return (
-    <section className="py-16 px-6 md:px-12 max-w-7xl mx-auto w-full bg-transparent">
-      {/* Section Header */}
-      <div className="text-center mb-16">
-        <h2 className="text-4xl md:text-[3rem] font-black text-slate-900 tracking-tight mb-6">
+    <section className="py-12 px-6 md:px-12 max-w-7xl mx-auto w-full bg-transparent">
+      <div className="text-center mb-12">
+        <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight mb-6">
           Built for <span className="text-slate-400">every business.</span>
         </h2>
-        <p className="text-xl text-slate-600 font-medium max-w-2xl mx-auto">
+        <p className="font-body text-lg md:text-xl text-slate-600 font-medium max-w-2xl mx-auto">
           From menus to catalogs, bookings to inventory. See how Business Brain™ adapts to your specific needs.
         </p>
       </div>
 
       {/* Mobile swipeable, Desktop wrap Tabs */}
-      <div className="flex md:justify-center overflow-x-auto snap-x snap-mandatory gap-4 mb-16 pb-4 scrollbar-hide -mx-6 px-6 md:mx-0 md:px-0">
+      <div className="flex md:justify-center overflow-x-auto snap-x snap-mandatory gap-4 mb-12 pb-4 scrollbar-hide -mx-6 px-6 md:mx-0 md:px-0">
         {industries.map((ind) => (
           <button
             key={ind.id}
@@ -152,7 +151,7 @@ export default function IndustrySwitcherV2() {
               {ind.icon}
             </div>
             <div>
-              <div className={`font-black tracking-tight text-lg ${activeId === ind.id ? 'text-slate-900' : 'text-slate-700'}`}>{ind.name}</div>
+              <div className={`font-display font-bold tracking-tight text-lg ${activeId === ind.id ? 'text-slate-900' : 'text-slate-700'}`}>{ind.name}</div>
               <div className="text-sm font-medium text-slate-500 mt-1">{ind.businessName}</div>
             </div>
           </button>
@@ -178,12 +177,12 @@ export default function IndustrySwitcherV2() {
                   {active.icon}
                 </div>
                 <div>
-                  <span className="text-base font-black text-slate-900 tracking-tight block">
+                  <span className="font-display text-base font-bold text-slate-900 tracking-tight block">
                     {active.businessName}
                   </span>
                   <div className="flex items-center gap-1.5 mt-1">
                      <div className="w-2 h-2 rounded-full bg-violet-500 animate-pulse" />
-                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Online</span>
+                     <span className="font-body text-[10px] font-bold text-slate-500 uppercase tracking-widest">Online</span>
                   </div>
                 </div>
               </div>
@@ -263,11 +262,11 @@ export default function IndustrySwitcherV2() {
                   <div className={active.color}>{active.icon}</div>
                 </div>
                 <div>
-                  <div className={`text-lg font-black tracking-tight ${active.color} mb-1.5`}>{active.catalogResult.name}</div>
+                  <div className={`font-display text-lg font-bold tracking-tight ${active.color} mb-1.5`}>{active.catalogResult.name}</div>
                   <div className="text-sm font-bold text-slate-600">{active.catalogResult.detail}</div>
                 </div>
               </div>
-              <div className={`text-3xl font-black ${active.color}`}>{active.catalogResult.price}</div>
+              <div className={`font-display text-3xl font-bold ${active.color}`}>{active.catalogResult.price}</div>
             </motion.div>
           </div>
         </motion.div>

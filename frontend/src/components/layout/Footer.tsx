@@ -20,6 +20,7 @@ export default function Footer() {
       title: "Company",
       links: [
         { name: "About", href: "/about" },
+        { name: "Security", href: "/security" },
         { name: "Contact", href: "/about#contact" },
         { name: "Privacy Policy", href: "/privacy-policy" },
         { name: "Terms of Service", href: "/terms-of-service" },
@@ -42,16 +43,16 @@ export default function Footer() {
           {/* Brand Column */}
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="block mb-3">
-              <span className="text-[15px] font-extrabold tracking-[0.12em] text-slate-900">
+              <span className="font-display text-[15px] font-extrabold tracking-[0.12em] text-slate-900">
                 ANYTIMELLM
               </span>
             </Link>
-            <p className="text-[13px] text-slate-500 leading-relaxed max-w-xs">
-              AI Operating System for local businesses. Every message, order, and question — handled automatically.
+            <p className="font-body text-[13px] text-slate-500 leading-relaxed max-w-xs font-medium">
+              Reply to customer questions, check stock, and take orders automatically on WhatsApp.
             </p>
             <div className="flex items-center gap-1.5 mt-4">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span className="text-sm font-semibold text-emerald-600 tracking-wider uppercase">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="font-body text-[10px] font-bold text-emerald-600 tracking-wider uppercase">
                 ALL SYSTEMS OPERATIONAL
               </span>
             </div>
@@ -60,7 +61,7 @@ export default function Footer() {
           {/* Link Columns */}
           {footerLinks.map((section) => (
             <div key={section.title}>
-              <h4 className="text-[11px] font-bold text-slate-800 tracking-[0.15em] uppercase mb-4">
+              <h4 className="font-display text-[11px] font-bold text-slate-800 tracking-[0.15em] uppercase mb-4">
                 {section.title}
               </h4>
               <ul className="space-y-2.5">

@@ -13,7 +13,8 @@ import {
   CheckCircle2, 
   AlertCircle,
   Database,
-  Sparkles
+  Sparkles,
+  Trash2
 } from "lucide-react";
 import { motion } from "framer-motion";
 import type { DocumentInfo } from "@/lib/api";
@@ -27,6 +28,12 @@ interface IngestTabProps {
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleCrawlUrl: (e: React.FormEvent) => void;
+  onDeleteDocument?: (id: string) => void;
+  onRefresh?: () => void;
+  page: number;
+  total: number;
+  limit: number;
+  onPageChange: (page: number) => void;
 }
 
 export default function IngestTab({
@@ -38,9 +45,25 @@ export default function IngestTab({
   fileInputRef,
   handleFileUpload,
   handleCrawlUrl,
+  onDeleteDocument,
+  onRefresh,
+  page,
+  total,
+  limit,
+  onPageChange,
 }: IngestTabProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const hasProcessingDocs = documents.some(doc => doc.status === "processing");
+
+  React.useEffect(() => {
+    if (!hasProcessingDocs || !onRefresh) return;
+    const interval = setInterval(() => {
+      onRefresh();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [hasProcessingDocs, onRefresh]);
 
   const onDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -122,10 +145,11 @@ export default function IngestTab({
                 <table className="w-full text-left border-collapse">
                   <thead className="bg-white text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
                     <tr>
-                      <th className="py-4 px-6 w-[50%]">Source Data</th>
+                      <th className="py-4 px-6 w-[45%]">Source Data</th>
                       <th className="py-4 px-4">Format</th>
                       <th className="py-4 px-4 text-center">Status</th>
-                      <th className="py-4 px-6 text-right">Learned On</th>
+                      <th className="py-4 px-4 text-right">Learned On</th>
+                      <th className="py-4 px-6 text-right">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -177,8 +201,17 @@ export default function IngestTab({
                             </span>
                           )}
                         </td>
-                        <td className="py-4 px-6 text-right text-sm font-medium text-slate-500 whitespace-nowrap">
+                        <td className="py-4 px-4 text-right text-sm font-medium text-slate-500 whitespace-nowrap">
                           {doc.created_at ? new Date(doc.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "Just now"}
+                        </td>
+                        <td className="py-4 px-6 text-right whitespace-nowrap">
+                          <button
+                            onClick={() => onDeleteDocument?.(doc.id)}
+                            className="text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
+                            title="Delete document"
+                          >
+                            <Trash2 className="w-4.5 h-4.5" />
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -186,6 +219,57 @@ export default function IngestTab({
                 </table>
               )}
             </div>
+            {/* Pagination Controls */}
+            {total > limit && (
+              <div className="flex items-center justify-between border-t border-slate-100 bg-white px-4 py-3 sm:px-6">
+                <div className="flex flex-1 justify-between sm:hidden">
+                  <button
+                    onClick={() => onPageChange(page - 1)}
+                    disabled={page === 1}
+                    className="relative inline-flex items-center rounded-md border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => onPageChange(page + 1)}
+                    disabled={page * limit >= total}
+                    className="relative ml-3 inline-flex items-center rounded-md border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </div>
+                <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-xs text-slate-500 font-mono">
+                      Showing <span className="font-semibold text-slate-800">{(page - 1) * limit + 1}</span> to{" "}
+                      <span className="font-semibold text-slate-800">{Math.min(page * limit, total)}</span> of{" "}
+                      <span className="font-semibold text-slate-800">{total}</span> results
+                    </p>
+                  </div>
+                  <div>
+                    <nav className="isolate inline-flex -space-x-px rounded-md shadow-xs" aria-label="Pagination">
+                      <button
+                        onClick={() => onPageChange(page - 1)}
+                        disabled={page === 1}
+                        className="relative inline-flex items-center rounded-l-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-50 transition-colors disabled:opacity-45 disabled:cursor-not-allowed"
+                      >
+                        Previous
+                      </button>
+                      <span className="relative inline-flex items-center border border-slate-200 bg-slate-50/50 px-3.5 py-1.5 text-xs font-semibold text-slate-700 font-mono">
+                        Page {page} of {Math.ceil(total / limit)}
+                      </span>
+                      <button
+                        onClick={() => onPageChange(page + 1)}
+                        disabled={page * limit >= total}
+                        className="relative inline-flex items-center rounded-r-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-50 transition-colors disabled:opacity-45 disabled:cursor-not-allowed"
+                      >
+                        Next
+                      </button>
+                    </nav>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

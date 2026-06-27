@@ -25,10 +25,10 @@ export default function AboutPage() {
             OUR MISSION
           </span>
         </div>
-        <h1 className="text-4xl md:text-5xl lg:text-6xl tracking-tight text-slate-900 mt-2 mb-6 leading-[1.1] font-extrabold">
+        <h1 className="font-display text-4xl md:text-5xl lg:text-6xl tracking-tight text-slate-900 mt-2 mb-6 leading-[1.1] font-extrabold">
           Solving the 24/7 responsiveness problem for local businesses.
         </h1>
-        <p className="text-base md:text-xl text-slate-500 max-w-2xl mx-auto mb-12 leading-relaxed font-medium">
+        <p className="font-body text-base md:text-xl text-slate-500 max-w-2xl mx-auto mb-12 leading-relaxed font-medium">
           Small businesses lose customers every day simply because they can't reply to WhatsApps instantly. We are leveling the playing field.
         </p>
       </section>
@@ -56,10 +56,10 @@ export default function AboutPage() {
             <span className="text-[10px] tracking-[0.2em] text-violet-600 uppercase block mb-2 font-bold">
               Engineering & Product
             </span>
-            <h3 className="text-xl tracking-tight text-slate-900 font-bold mb-2">
+            <h3 className="font-display text-xl tracking-tight text-slate-900 font-bold mb-2">
               Gaurav Sharma
             </h3>
-            <p className="text-sm text-slate-500 mb-8 leading-relaxed">
+            <p className="font-body text-sm text-slate-500 mb-8 leading-relaxed">
               "Building conversational commerce for the millions of businesses that run entirely on chat."
             </p>
 
@@ -68,7 +68,7 @@ export default function AboutPage() {
               href="https://linkedin.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full h-11 border border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 text-slate-700 text-[11px] tracking-[0.1em] uppercase flex items-center justify-center gap-2 transition-all duration-300 font-bold rounded-xl shadow-sm"
+              className="w-full h-11 border border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 text-slate-700 text-xs flex items-center justify-center gap-2 transition-all duration-300 font-body font-semibold rounded-xl shadow-sm"
             >
               Connect on LinkedIn
               <ArrowUpRight className="w-3.5 h-3.5" />
@@ -85,19 +85,19 @@ export default function AboutPage() {
             <span className="text-[10px] tracking-[0.2em] text-violet-600 uppercase font-bold">THE STORY</span>
           </div>
 
-          <p className="text-lg text-slate-800 font-medium leading-snug">
+          <p className="font-body text-lg text-slate-800 font-medium leading-snug">
             In India, WhatsApp is not just a messaging app; it is the digital operating system for commerce.
           </p>
 
-          <p>
+          <p className="font-body">
             From local kirana shops and boutique fashion brands to large distributors, millions of customer deals are initiated, negotiated, and settled via chat threads every single day. However, managing hundreds of manual messages, checking stock lists, and updating catalog coordinates takes hours of precious business time.
           </p>
 
-          <p>
+          <p className="font-body">
             AnytimeLLM was built to bridge this gap. We wanted to create an intelligent assistant that learns your pricing grids instantly and responds to customers in Hindi, English, or Hinglish just like a human store manager would.
           </p>
 
-          <p>
+          <p className="font-body">
             By combining easy catalog uploads, order tracking database logic, and simple WhatsApp webhook triggers, we allow business owners to sleep soundly knowing their customers are served 24/7 without delays or coding hassles.
           </p>
 

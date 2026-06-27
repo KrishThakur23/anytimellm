@@ -34,15 +34,26 @@ export default function Dashboard() {
   // Dashboard Stats & State
   const [tab, setTab] = useState<Tab>("overview");
   const [documents, setDocuments] = useState<DocumentInfo[]>([]);
+  const [documentsPage, setDocumentsPage] = useState(1);
+  const [documentsTotal, setDocumentsTotal] = useState(0);
+
   const [catalog, setCatalog] = useState<CatalogItem[]>([]);
+  const [catalogPage, setCatalogPage] = useState(1);
+  const [catalogTotal, setCatalogTotal] = useState(0);
+
   const [orders, setOrders] = useState<Order[]>([]);
+  const [ordersPage, setOrdersPage] = useState(1);
+  const [ordersTotal, setOrdersTotal] = useState(0);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
   
   const [chats, setChats] = useState<Conversation[]>([]);
+  const [chatsPage, setChatsPage] = useState(1);
+  const [chatsTotal, setChatsTotal] = useState(0);
   const [loadingChats, setLoadingChats] = useState(false);
   
   const [subscription, setSubscription] = useState<any>(null);
+  const [stats, setStats] = useState<any>(null);
   
   // Form States
   const [urlInput, setUrlInput] = useState("");
@@ -120,9 +131,7 @@ export default function Dashboard() {
         }
       ]);
       setAgentLogs([
-        "System initialized.",
-        `Business tenant loaded: ${activeBusiness.name}`,
-        `Ready for memory or query lookups on namespace '${activeBusiness.id}'.`
+        "Chat Session Started"
       ]);
     }
   }, [activeBusiness]);
@@ -149,8 +158,11 @@ export default function Dashboard() {
       eventSource.onmessage = (event) => {
         if (event.data === "refresh") {
           console.log("Real-time message received via SSE. Refreshing chats...");
-          api.getChats(activeBusiness.id)
-            .then(data => setChats(data))
+          api.getChats(activeBusiness.id, chatsPage, 10)
+            .then(data => {
+              setChats(data.items);
+              setChatsTotal(data.total);
+            })
             .catch(err => console.error("Real-time chats update failed:", err));
         }
       };
@@ -175,16 +187,22 @@ export default function Dashboard() {
         // Fallback polling in case of connection drop (only register once)
         if (!timer) {
           timer = setInterval(() => {
-            api.getChats(activeBusiness.id)
-              .then(data => setChats(data))
+            api.getChats(activeBusiness.id, chatsPage, 10)
+              .then(data => {
+                setChats(data.items);
+                setChatsTotal(data.total);
+              })
               .catch(err => console.error("Fallback chats update failed:", err));
           }, 5000);
         }
       };
     } else if (tab === "orders") {
       timer = setInterval(() => {
-        api.getOrders(activeBusiness.id)
-          .then(data => setOrders(data))
+        api.getOrders(activeBusiness.id, ordersPage, 10)
+          .then(data => {
+            setOrders(data.items);
+            setOrdersTotal(data.total);
+          })
           .catch(err => console.error("Silent background orders refresh failed:", err));
       }, 5000);
     }
@@ -193,23 +211,85 @@ export default function Dashboard() {
       if (timer) clearInterval(timer);
       if (eventSource) eventSource.close();
     };
-  }, [tab, activeBusiness]);
+  }, [tab, activeBusiness, chatsPage, ordersPage]);
+
+  const fetchDocumentsPage = async (page: number) => {
+    if (!activeBusiness) return;
+    try {
+      const data = await api.getDocuments(activeBusiness.id, page, 10);
+      setDocuments(data.items);
+      setDocumentsPage(data.page);
+      setDocumentsTotal(data.total);
+    } catch (err) {
+      console.error("Failed to fetch documents page:", err);
+    }
+  };
+
+  const fetchCatalogPage = async (page: number) => {
+    if (!activeBusiness) return;
+    try {
+      const data = await api.getCatalog(activeBusiness.id, page, 10);
+      setCatalog(data.items);
+      setCatalogPage(data.page);
+      setCatalogTotal(data.total);
+    } catch (err) {
+      console.error("Failed to fetch catalog page:", err);
+    }
+  };
+
+  const fetchOrdersPage = async (page: number) => {
+    if (!activeBusiness) return;
+    try {
+      const data = await api.getOrders(activeBusiness.id, page, 10);
+      setOrders(data.items);
+      setOrdersPage(data.page);
+      setOrdersTotal(data.total);
+    } catch (err) {
+      console.error("Failed to fetch orders page:", err);
+    }
+  };
+
+  const fetchChatsPage = async (page: number) => {
+    if (!activeBusiness) return;
+    try {
+      const data = await api.getChats(activeBusiness.id, page, 10);
+      setChats(data.items);
+      setChatsPage(data.page);
+      setChatsTotal(data.total);
+    } catch (err) {
+      console.error("Failed to fetch chats page:", err);
+    }
+  };
 
   const fetchBusinessData = async () => {
     if (!activeBusiness) return;
     try {
-      const [docsData, catalogData, ordersData, chatsData, subData] = await Promise.all([
-        api.getDocuments(activeBusiness.id),
-        api.getCatalog(activeBusiness.id),
-        api.getOrders(activeBusiness.id),
-        api.getChats(activeBusiness.id),
-        api.getSubscription(activeBusiness.id).catch(() => null)
+      const [docsData, catalogData, ordersData, chatsData, subData, statsData] = await Promise.all([
+        api.getDocuments(activeBusiness.id, documentsPage, 10),
+        api.getCatalog(activeBusiness.id, catalogPage, 10),
+        api.getOrders(activeBusiness.id, ordersPage, 10),
+        api.getChats(activeBusiness.id, chatsPage, 10),
+        api.getSubscription(activeBusiness.id).catch(() => null),
+        api.getDashboardStats(activeBusiness.id).catch(() => null)
       ]);
-      setDocuments(docsData);
-      setCatalog(catalogData);
-      setOrders(ordersData);
-      setChats(chatsData);
+      setDocuments(docsData.items);
+      setDocumentsPage(docsData.page);
+      setDocumentsTotal(docsData.total);
+      
+      setCatalog(catalogData.items);
+      setCatalogPage(catalogData.page);
+      setCatalogTotal(catalogData.total);
+      
+      setOrders(ordersData.items);
+      setOrdersPage(ordersData.page);
+      setOrdersTotal(ordersData.total);
+      
+      setChats(chatsData.items);
+      setChatsPage(chatsData.page);
+      setChatsTotal(chatsData.total);
+      
       setSubscription(subData);
+      setStats(statsData);
     } catch (err: any) {
       console.error(err);
       setError("Failed to fetch business data. Check if backend server is running.");
@@ -220,8 +300,9 @@ export default function Dashboard() {
     if (!activeBusiness) return;
     setLoadingOrders(true);
     try {
-      const ordersData = await api.getOrders(activeBusiness.id);
-      setOrders(ordersData);
+      const ordersData = await api.getOrders(activeBusiness.id, ordersPage, 10);
+      setOrders(ordersData.items);
+      setOrdersTotal(ordersData.total);
     } catch (err) {
       setError("Failed to refresh orders.");
     } finally {
@@ -234,8 +315,9 @@ export default function Dashboard() {
     setUpdatingOrderId(orderId);
     try {
       await api.updateOrderStatus(activeBusiness.id, orderId, status);
-      const ordersData = await api.getOrders(activeBusiness.id);
-      setOrders(ordersData);
+      const ordersData = await api.getOrders(activeBusiness.id, ordersPage, 10);
+      setOrders(ordersData.items);
+      setOrdersTotal(ordersData.total);
     } catch (err) {
       setError("Failed to update order status.");
     } finally {
@@ -247,8 +329,9 @@ export default function Dashboard() {
     if (!activeBusiness) return;
     setLoadingChats(true);
     try {
-      const chatsData = await api.getChats(activeBusiness.id);
-      setChats(chatsData);
+      const chatsData = await api.getChats(activeBusiness.id, chatsPage, 10);
+      setChats(chatsData.items);
+      setChatsTotal(chatsData.total);
     } catch (err) {
       setError("Failed to refresh chats.");
     } finally {
@@ -353,6 +436,19 @@ export default function Dashboard() {
     }
   };
 
+  const handleDeleteDocument = async (documentId: string) => {
+    if (!activeBusiness) return;
+    if (!confirm("Are you sure you want to delete this document from the AI memory? This cannot be undone.")) return;
+    try {
+      await api.deleteDocument(activeBusiness.id, documentId);
+      await fetchDocumentsPage(documentsPage);
+      const statsData = await api.getDashboardStats(activeBusiness.id).catch(() => null);
+      if (statsData) setStats(statsData);
+    } catch (err: any) {
+      setError(err.message || "Failed to delete document.");
+    }
+  };
+
   const handleAddCatalogItem = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!catalogName.trim() || !activeBusiness) return;
@@ -360,13 +456,13 @@ export default function Dashboard() {
     setSavingCatalog(true);
     setError(null);
     try {
-      const item = await api.addCatalogItem(activeBusiness.id, {
+      await api.addCatalogItem(activeBusiness.id, {
         name: catalogName,
         price: catalogPrice ? parseFloat(catalogPrice) : 0,
         category: catalogCategory || "General",
         description: catalogDesc
       });
-      setCatalog(prev => [item, ...prev]);
+      await fetchCatalogPage(1);
       
       // Reset form
       setCatalogName("");
@@ -398,57 +494,20 @@ export default function Dashboard() {
     // Update Logs
     setAgentLogs(prev => [
       ...prev,
-      `Incoming Web Chat Message: "${promptText}"`,
-      `Invoking reasoning engine for business_id: '${activeBusiness.id}'`,
-      `State node [agent] started.`
+      "Inbound customer query"
     ]);
-
-    // Simulate trace logs during wait for premium feel
-    const logIntervals = [
-      "LLM generating thoughts...",
-      "Query matches potential catalog/ knowledge lookup intent.",
-      "Routing conditional edge: Running tool execution loop..."
-    ];
-    
-    let logIndex = 0;
-    const interval = setInterval(() => {
-      if (logIndex < logIntervals.length) {
-        const logText = logIntervals[logIndex];
-        setAgentLogs(prev => [...prev, logText]);
-        logIndex++;
-      } else {
-        clearInterval(interval);
-      }
-    }, 700);
 
     try {
       const reply = await api.chatWithAgent(activeBusiness.id, promptText, chatPhone);
       
-      clearInterval(interval);
-      
-      // Determine what tools the agent called based on output mock traces or response keywords
-      const lowerReply = reply.content.toLowerCase();
-      let detectedToolNode = "State node [tools] executed.";
-      if (lowerReply.includes("catalog_sql") || lowerReply.includes("database") || lowerReply.includes("pricing")) {
-        detectedToolNode += " Invoked query_catalog_sql_tool.";
-      } else if (lowerReply.includes("place_order") || lowerReply.includes("order placed")) {
-        detectedToolNode += " Invoked place_order_tool.";
-      } else if (lowerReply.includes("vector_store") || lowerReply.includes("processed the")) {
-        detectedToolNode += " Invoked query_vector_store_tool.";
-      }
-      
       setAgentLogs(prev => [
         ...prev,
-        detectedToolNode,
-        `State node [agent] finalized response.`,
-        `Outbox delivery completed.`
+        "Response dispatched to client"
       ]);
 
       setChatMessages(prev => [...prev, reply]);
-      // Refresh documents & catalog in case tool writes changed something
       fetchBusinessData();
     } catch (err: any) {
-      clearInterval(interval);
       setAgentLogs(prev => [...prev, `[ERROR] Execution failed: ${err.message}`]);
       setError("Failed to chat with AI agent.");
     } finally {
@@ -517,6 +576,7 @@ export default function Dashboard() {
             onTabChange={setTab}
             onUpdateBusiness={setActiveBusiness}
             subscription={subscription}
+            stats={stats}
           />
         )}
         {tab === "ingest" && (
@@ -529,6 +589,12 @@ export default function Dashboard() {
             fileInputRef={fileInputRef}
             handleFileUpload={handleFileUpload}
             handleCrawlUrl={handleCrawlUrl}
+            onDeleteDocument={handleDeleteDocument}
+            onRefresh={fetchBusinessData}
+            page={documentsPage}
+            total={documentsTotal}
+            limit={10}
+            onPageChange={fetchDocumentsPage}
           />
         )}
         {tab === "catalog" && (
@@ -544,6 +610,10 @@ export default function Dashboard() {
             setCatalogDesc={setCatalogDesc}
             savingCatalog={savingCatalog}
             handleAddCatalogItem={handleAddCatalogItem}
+            page={catalogPage}
+            total={catalogTotal}
+            limit={10}
+            onPageChange={fetchCatalogPage}
           />
         )}
         {tab === "playground" && (
@@ -572,6 +642,10 @@ export default function Dashboard() {
             onRefresh={handleRefreshOrders}
             onUpdateStatus={handleUpdateOrderStatus}
             updatingOrderId={updatingOrderId}
+            page={ordersPage}
+            total={ordersTotal}
+            limit={10}
+            onPageChange={fetchOrdersPage}
           />
         )}
         {tab === "chats" && (
@@ -581,6 +655,11 @@ export default function Dashboard() {
             onRefresh={handleRefreshChats}
             onSendReply={handleSendManualReply}
             onTogglePause={handleToggleChatPause}
+            onTabChange={setTab}
+            page={chatsPage}
+            total={chatsTotal}
+            limit={10}
+            onPageChange={fetchChatsPage}
           />
         )}
         {tab === "analytics" && (

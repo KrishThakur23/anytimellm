@@ -7,6 +7,7 @@ import Footer from "@/components/layout/Footer";
 // Global Elements
 import StickyBusinessBrain from "@/components/ui/StickyBusinessBrain";
 import ContextualGuidance from "@/components/ui/ContextualGuidance";
+import StickyMobileCta from "@/components/ui/StickyMobileCta";
 
 // Homepage Sections (Exactly 7)
 import HeroSectionV2 from "@/components/landing/HeroSectionV2";
@@ -46,6 +47,9 @@ export default function LandingPage() {
       {/* Fixed top layout header */}
       <Header />
 
+      {/* Mobile Sticky CTA */}
+      <StickyMobileCta />
+
       <main className="flex-1 w-full flex flex-col">
         {/* ────────────────────────────────────────────────────────────────
            SECTION 1: HERO (Pain + Hope + Proof Loop)
@@ -73,14 +77,14 @@ export default function LandingPage() {
         <MissionControlV2 />
 
         {/* ────────────────────────────────────────────────────────────────
-           SECTION 6: PRICING (Staff vs AI + Risk Reversal + Pricing)
-           ──────────────────────────────────────────────────────────────── */}
-        <PricingSectionV2 />
-
-        {/* ────────────────────────────────────────────────────────────────
-           SECTION 7: CTA BANNER (Visual Checklist Setup + Top 3 FAQs)
+           SECTION 6: CTA BANNER (Launch in 3 Minutes Setup)
            ──────────────────────────────────────────────────────────────── */}
         <CtaBannerV2 />
+
+        {/* ────────────────────────────────────────────────────────────────
+           SECTION 7: PRICING (Staff vs AI + Risk Reversal + Pricing)
+           ──────────────────────────────────────────────────────────────── */}
+        <PricingSectionV2 />
       </main>
 
       {/* FOOTER */}
