@@ -177,4 +177,4 @@ If deploying WhatsApp integration:
    * Provide the `META_WA_VERIFY_TOKEN` configured in your `.env` for WhatsApp authentication verify step.
 
 
-nice.nahh
+nice.nahhnoo
