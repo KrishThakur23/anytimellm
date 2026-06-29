@@ -171,3 +171,7 @@ Thumbs.db
 
 
 anytimellm-bot-v1-76385d893b03.json
+
+# Scratch files (may contain temporary test credentials)
+scratch/
+backend/scratch/
